@@ -1,37 +1,17 @@
 # Architecture Design
+Trạng thái: Mẫu chưa hoàn thành.
 
-Trạng thái: `Not Started`
+## Input
+Analysis model, Use Cases, NFR và technical constraints.
 
-## 1. Architecture drivers
+## Kiến trúc
+Chưa quyết định. Nguồn trình bày MVC trong project mẫu; khi thiết kế dự án cần làm rõ trách nhiệm Model, View, Controller và cách tổ chức phù hợp.
 
-- Use case quan trọng: TBD.
-- NFR quan trọng: consistency, idempotency, authorization, performance - cần chốt trong SRS.
-- Ràng buộc kỹ thuật: TBD.
+## Package Diagram
+Chưa thiết kế.
 
-## 2. Context and containers
+## Trách nhiệm thành phần
+Chưa phân bổ.
 
-TBD
-
-## 3. Modules and responsibilities
-
-Không chốt module trước khi analysis model được review.
-
-| Module | Responsibility | Dependencies | Related requirements |
-|---|---|---|---|
-| TBD | TBD | TBD | TBD |
-
-## 4. Data and transaction boundaries
-
-TBD
-
-## 5. Security model
-
-TBD
-
-## 6. Deployment view
-
-TBD
-
-## 7. Architecture decisions
-
-Các quyết định chi tiết nằm trong `Decisions/`.
+## Output chuyển giao
+Architecture Design, Package Diagram và component responsibility làm đầu vào thiết kế chi tiết.

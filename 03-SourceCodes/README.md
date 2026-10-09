@@ -1,9 +1,7 @@
 # Source Codes
+Input: Sprint Backlog, architecture, database/class design, UI prototype và coding convention.
 
-Thư mục mã nguồn sẽ được cấu trúc sau khi:
+Quy trình: task → tạo/checkout branch, pull mới nhất → implement → local test → commit/push → Pull Request → review/merge.
 
-1. SRS và các use case lõi đủ rõ.
-2. Kiến trúc và technology stack được quyết định bằng ADR.
-3. Database boundary và deployment model được thống nhất.
-
-Không scaffold framework ở giai đoạn khởi tạo để tránh biến lựa chọn công nghệ thành ràng buộc trước khi phân tích. Khi bắt đầu implementation, cấu trúc source phải ánh xạ được tới architecture và hỗ trợ test tự động.
+Output: source code, commit history, Pull Request và reviewed/merged code.
+Chưa có implementation hoặc cấu trúc source theo công nghệ cụ thể.

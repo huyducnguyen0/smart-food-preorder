@@ -1,46 +1,19 @@
-# UC-xxx - <Tên Use Case>
+# Use Case - <Tên>
+Trạng thái: Mẫu chưa hoàn thành.
 
-- Status: Draft
-- Primary actor:
-- Supporting actors:
-- Goal:
-- Trigger:
-- Related requirements:
+- Actor:
+- Mục đích:
+- SRS / quy tắc nghiệp vụ liên quan:
 
-## Preconditions
+## Precondition
 
-- TBD
+## Main Flow
+Mô tả lần lượt hành động của actor và phản hồi của system.
 
-## Main success scenario
+## Alternative Flow
+Mô tả luồng thay thế và trường hợp lỗi cần thiết, gắn với bước tương ứng.
 
-1. Actor ...
-2. System ...
+## Postcondition
 
-## Alternative/exception flows
-
-### A1 - <Tên nhánh>
-
-1. Tại bước ...
-2. System ...
-
-## Postconditions
-
-### Success
-
-- TBD
-
-### Failure/minimal guarantee
-
-- TBD
-
-## Business rules
-
-- BR-xxx
-
-## Special requirements
-
-- NFR-xxx
-
-## Test references
-
-- TC-xxx
+## Output chuyển giao
+Đặc tả dùng cho Activity Diagram, Analysis Class, Sequence Diagram, UI và Test Case.

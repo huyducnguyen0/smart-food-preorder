@@ -1,19 +1,10 @@
-# 02 - Requirements
+# Requirements
+Theo Bước 5–10 của nguồn.
 
-## Luồng artifact
+Thu thập và phân tích yêu cầu bắt đầu trước Product Backlog. Trong Sprint, yêu cầu tiếp tục được làm rõ trong SRS, Use Case và Activity.
+- Product Backlog: story, estimate, ưu tiên, acceptance criteria và trạng thái.
+- SRS: giới thiệu, tổng quan/nghiệp vụ, chức năng, NFR và constraint.
+- Use Cases: actor, danh sách/sơ đồ Use Case, đặc tả.
+- Activity Diagrams: luồng hành động từ đặc tả Use Case.
 
-```text
-Research evidence
-→ Product Backlog
-→ SRS
-→ Use Case Specification
-→ Activity Diagram
-→ Traceability Matrix
-```
-
-## Quy tắc
-
-- Phân biệt nhu cầu stakeholder, user story, requirement và giải pháp kỹ thuật.
-- Mỗi requirement phải có ID, nguồn, mức ưu tiên và cách kiểm chứng.
-- Từ ngữ như “nhanh”, “dễ dùng”, “nhiều request” phải được chuyển thành tiêu chí đo được.
-- Không coi giả định trong proposal là requirement đã xác nhận.
+Business workflow, quy tắc nghiệp vụ và thuật ngữ được trình bày trong SRS. Liên kết yêu cầu tới thiết kế, code và test trong nội dung tương ứng.

@@ -1,22 +1,16 @@
 # Database Design
+Trạng thái: Mẫu chưa hoàn thành.
 
-Trạng thái: `Not Started`
+## Input
+Architecture, analysis classes, sequence diagrams, SRS và data requirements.
 
-## Conceptual model
+## Conceptual Model / ER Diagram
+Xác định entity, attribute và relationship từ yêu cầu đã làm rõ.
+Chưa thiết kế.
 
-TBD - entities, attributes và relationships từ SRS/use cases.
+## Logical Model / Relational Schema
+Chuyển mô hình thành table, primary key, foreign key và relationship.
+Chưa thiết kế.
 
-## Logical model
-
-| Table/Entity | Purpose | Primary Key | Important constraints | Requirement source |
-|---|---|---|---|---|
-| TBD | TBD | TBD | TBD | TBD |
-
-## Integrity and concurrency
-
-- Transaction boundary: TBD.
-- Capacity invariant: TBD.
-- Idempotency strategy: TBD.
-- Audit/history requirement: TBD.
-
-Không tạo schema chính thức trước khi business rule về order, slot và capacity được chốt.
+## Output chuyển giao
+ER Diagram và Relational Schema dùng cho implementation.
