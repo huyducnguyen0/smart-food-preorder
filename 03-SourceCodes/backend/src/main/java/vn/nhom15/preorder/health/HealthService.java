@@ -2,7 +2,6 @@ package vn.nhom15.preorder.health;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -35,8 +34,8 @@ public class HealthService {
     public HealthResponse check() {
         OffsetDateTime now = OffsetDateTime.now(clock);
         try {
-            String schemaVersion = jdbcTemplate.query(LATEST_SCHEMA_VERSION_SQL,
-                    rs -> rs.next() ? rs.getString("version") : null);
+            String schemaVersion =
+                    jdbcTemplate.query(LATEST_SCHEMA_VERSION_SQL, rs -> rs.next() ? rs.getString("version") : null);
             return new HealthResponse(HealthResponse.UP, HealthResponse.UP, schemaVersion, now);
         } catch (DataAccessException e) {
             log.warn("Health check: không truy vấn được database: {}", e.getMessage());

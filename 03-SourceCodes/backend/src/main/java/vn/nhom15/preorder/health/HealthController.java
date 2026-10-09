@@ -23,9 +23,8 @@ public class HealthController {
     @GetMapping("/health")
     public ResponseEntity<HealthResponse> health() {
         HealthResponse result = healthService.check();
-        HttpStatus httpStatus = HealthResponse.UP.equals(result.status())
-                ? HttpStatus.OK
-                : HttpStatus.SERVICE_UNAVAILABLE;
+        HttpStatus httpStatus =
+                HealthResponse.UP.equals(result.status()) ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE;
         return ResponseEntity.status(httpStatus).body(result);
     }
 }

@@ -10,11 +10,7 @@ import java.time.OffsetDateTime;
  * @param schemaVersion phiên bản migration mới nhất đã áp dụng, null nếu không đọc được
  * @param serverTime    thời gian hiện tại theo múi giờ cửa hàng
  */
-public record HealthResponse(
-        String status,
-        String database,
-        String schemaVersion,
-        OffsetDateTime serverTime) {
+public record HealthResponse(String status, String database, String schemaVersion, OffsetDateTime serverTime) {
 
     public static final String UP = "UP";
     public static final String DOWN = "DOWN";
