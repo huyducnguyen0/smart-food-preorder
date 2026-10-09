@@ -212,7 +212,7 @@ Ngưỡng dưới đây là **nháp**, sẽ chốt cùng cấu hình môi trư�
 **Ràng buộc**
 - Ứng dụng web; một cửa hàng; không tích hợp hệ thống ngoài.
 - Thời gian theo múi giờ cửa hàng (Việt Nam, UTC+7).
-- Ngôn ngữ, framework, database chưa chọn; quyết định ở bước Architecture.
+- Công nghệ người dùng chọn ngày 2026-10-08: Java Spring Boot, PostgreSQL, React (phiên bản ở [03-SourceCodes](../../../03-SourceCodes/README.md)). Tổ chức kiến trúc quyết định ở bước Architecture.
 
 ## Output chuyển giao
 SRS dùng để xác định Actor/Use Case (Bước 8), đặc tả Use Case (Bước 9), thiết kế và kiểm thử. Cập nhật phần được làm rõ qua từng Sprint; quy tắc mới hoặc thay đổi phải ghi nguồn quyết định.

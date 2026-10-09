@@ -1,0 +1,28 @@
+# PostgreSQL cho môi trường phát triển local. Backend và frontend chạy trực tiếp trên máy.
+# Biến lấy từ file .env cùng thư mục (copy từ .env.example).
+name: smart-food-preorder
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:?Thiếu DB_NAME - copy .env.example thành .env}
+      POSTGRES_USER: ${DB_USER:?Thiếu DB_USER - copy .env.example thành .env}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD - copy .env.example thành .env}
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
+    ports:
+      # Cổng máy host lấy từ DB_PORT; cổng trong container luôn là 5432.
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      # Từ image 18, dữ liệu nằm trong thư mục con theo phiên bản (/var/lib/postgresql/18/docker),
+      # nên gắn volume vào /var/lib/postgresql, không phải /var/lib/postgresql/data như bản 17 trở về trước.
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
