@@ -18,8 +18,8 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - Ngày 2026-10-08 người dùng chốt các quy tắc nghiệp vụ mở (quota theo điểm công việc, khung 15 phút, đặt trong ngày trước ≥30 phút, trả tại quầy và chỉ bàn giao khi đã trả, hủy trước cửa sổ chuẩn bị, cửa hàng hủy kèm lý do, bếp cập nhật theo đơn, khách tự đăng ký). Đã ghi vào [SRS nháp](01-ManagedArea/02-Requirements/SRS/SRS.md): BR-01–33, state machine, FR-01–20, NFR với ngưỡng nháp. Chưa có Use Case.
 - Bước 4 (rà repository và Git workflow) được người dùng hoãn, chưa thực hiện; working tree Git còn nhiều thay đổi chưa commit.
 - Đã lập [Sprint 1 Backlog](01-ManagedArea/01-ProjectManagement/SPRINT_1_BACKLOG.md) ngày 2026-10-08: Sprint 2 tuần (12/10–25/10/2026), sức chứa 60 giờ, chọn PB-01, 02, 05, 06, 07, 08, 12, 13 (làm thêm PB-16, 15), 30 task. Công nghệ người dùng chọn: Spring Boot, PostgreSQL, React. Người dùng tạm duyệt kế hoạch và cách thực hiện task ngày 2026-10-09.
-- Bước 4 (Git) được đưa vào Sprint 1 thành task T-01: repo chưa có remote, DoD cần commit/push/PR.
-- Tiếp theo: bắt đầu Sprint 1 ngày 2026-10-12 (Buổi 1) với T-01 (Git), T-03 (khung dự án), T-04–T-11 (Use Case → thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- Bước 4 (Git) thực hiện ngày 2026-10-09 qua task T-01: commit toàn bộ tài liệu, tạo remote GitHub public, chốt quy ước nhánh/commit/PR (mục Git workflow).
+- Tiếp theo: Sprint 1 từ 2026-10-12 với T-03 (khung dự án), T-02 (convention), T-04–T-11 (Use Case → thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 - Công nghệ, kiến trúc, database và chi tiết nghiệp vụ chưa được chốt.
 
 ## Cấu trúc
@@ -140,6 +140,13 @@ Theo mục 9 của nguồn:
 
 ## Git workflow
 Chọn feature/bug → checkout nhánh phù hợp → pull mới nhất → tạo nhánh → code và commit → push → Pull Request → review/merge.
+
+Quy ước áp dụng (chốt ở task T-01, Sprint 1):
+- Remote: [github.com/huyducnguyen0/smart-food-preorder](https://github.com/huyducnguyen0/smart-food-preorder) (public). `main` luôn ở trạng thái chạy được; không commit thẳng vào `main`.
+- Nhánh: `feature/<PB-id>-<tên-ngắn>` cho story, `fix/<mô-tả>` cho lỗi, `docs/<mô-tả>` cho tài liệu, `chore/<T-id>-<mô-tả>` cho thiết lập. Ví dụ: `feature/PB-07-place-order`.
+- Commit theo Conventional Commits: `feat|fix|docs|test|refactor|chore(<phạm vi>): <mô tả>`, ghi mã PB/BR/T liên quan khi có.
+- Pull Request vào `main`: mô tả làm gì, liên kết story/task, cách đã kiểm tra. Người dùng tự review theo checklist, có AI hỗ trợ review; không có reviewer độc lập (RISK-08). Merge kiểu squash để mỗi PR là một commit trên `main`, rồi xóa nhánh.
+- Không đưa bí mật lên repo; `.env` nằm trong `.gitignore`, chỉ commit `.env.example`.
 
 ## Definition of Done
 Theo mục 11 của nguồn:
