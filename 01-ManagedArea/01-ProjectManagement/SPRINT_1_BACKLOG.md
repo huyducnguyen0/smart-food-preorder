@@ -58,7 +58,7 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 ## Sprint Backlog / Task Board
 | ID | User Story | Task / nội dung công việc | Estimate (giờ) | Người thực hiện | Dependency | Trạng thái |
 |---|---|---|---|---|---|---|
-| T-01 | — (WBS 1.4) | Commit trạng thái tài liệu hiện tại; tạo remote GitHub; chốt quy ước nhánh `feature/<PB-id>-<tên>` và PR vào `main` | 1.5 | Người dùng, AI hỗ trợ | — | To Do |
+| T-01 | — (WBS 1.4) | Commit trạng thái tài liệu hiện tại; tạo remote GitHub; chốt quy ước nhánh `feature/<PB-id>-<tên>` và PR vào `main` (quy ước ghi ở README mục Git workflow) | 1.5 | Người dùng, AI hỗ trợ | — | Review |
 | T-02 | — (WBS 4.1) | Chọn coding convention Java và TypeScript; cấu hình formatter/linter; cập nhật CODING_CONVENTION.md | 1 | Người dùng, AI hỗ trợ | T-03 | To Do |
 | T-03 | — (WBS 1.4, 4.13) | Khung dự án: Spring Boot, React, PostgreSQL bằng Docker Compose, migration database, dữ liệu mẫu; frontend gọi được backend; hướng dẫn chạy trong 03-SourceCodes | 5 | Người dùng, AI hỗ trợ | T-01 | To Do |
 | T-04 | Tất cả | Use Case Model: Actor List, Use Case List toàn hệ thống, sơ đồ tổng quan | 2 | Người dùng, AI hỗ trợ | — | To Do |
