@@ -19,8 +19,9 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - Đã lập [Sprint 1 Backlog](01-ManagedArea/01-ProjectManagement/SPRINT_1_BACKLOG.md) ngày 2026-10-08: Sprint 2 tuần (12/10–25/10/2026), chọn PB-01, 02, 05, 06, 07, 08, 12, 13 (làm thêm PB-16, 15), 30 task. Công nghệ người dùng chọn: Spring Boot, PostgreSQL, React. Người dùng tạm duyệt kế hoạch và cách thực hiện task ngày 2026-10-09.
 - Bước 4 (Git) thực hiện ngày 2026-10-09 qua task T-01: commit toàn bộ tài liệu, tạo remote GitHub public, chốt quy ước nhánh/commit/PR (mục Git workflow).
 - Ngày 2026-10-09 người dùng bỏ estimate theo giờ khỏi Sprint 1; lượng việc theo cỡ S-M-L và Task Board.
-- T-03 (khung dự án) thực hiện ngày 2026-10-09 trên nhánh `chore/T-03-project-skeleton`: Spring Boot 4.1 (Java 25), React + Vite (TypeScript), PostgreSQL 18 bằng Docker Compose, Flyway, `/api/health`; hướng dẫn chạy ở [03-SourceCodes](03-SourceCodes/README.md). Đã chạy thử end-to-end trên máy local; chờ người dùng tự chạy, giải thích lại và merge PR.
-- Tiếp theo: T-02 (convention), T-04–T-11 (Use Case → thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-03 (khung dự án) thực hiện ngày 2026-10-09 trên nhánh `chore/T-03-project-skeleton`: Spring Boot 4.1 (Java 25), React + Vite (TypeScript), PostgreSQL 18 bằng Docker Compose, Flyway, `/api/health`; hướng dẫn chạy ở [03-SourceCodes](03-SourceCodes/README.md). Đã merge (PR #2).
+- T-02 (coding convention) thực hiện ngày 2026-10-09 trên nhánh `chore/T-02-coding-convention`: [CODING_CONVENTION.md](03-SourceCodes/CODING_CONVENTION.md) theo 8 nhóm của Bước 15; Java dùng Spotless + Palantir (4 space, 120 ký tự) và Checkstyle, TypeScript dùng Prettier và oxlint; `.gitattributes` buộc LF. Chờ người dùng review và merge PR.
+- Tiếp theo: T-04–T-11 (Use Case → thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 - Công nghệ đã chọn (Spring Boot, PostgreSQL, React); kiến trúc (T-08), thiết kế database (T-09) và chi tiết nghiệp vụ còn lại chưa chốt.
 
 ## Cấu trúc

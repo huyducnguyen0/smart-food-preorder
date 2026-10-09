@@ -5,16 +5,18 @@ Quy trình: task → tạo/checkout branch, pull mới nhất → implement → 
 
 Output: source code, commit history, Pull Request và reviewed/merged code.
 
-Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend, frontend, database chạy local và endpoint `/api/health`; chưa có chức năng nghiệp vụ. Convention và formatter/linter chốt ở T-02 ([CODING_CONVENTION.md](CODING_CONVENTION.md)); kiến trúc package chốt ở T-08; schema database thiết kế ở T-09.
+Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend, frontend, database chạy local và endpoint `/api/health`; chưa có chức năng nghiệp vụ. Coding convention và formatter/linter chốt ở T-02: [CODING_CONVENTION.md](CODING_CONVENTION.md). Kiến trúc package chốt ở T-08; schema database thiết kế ở T-09.
 
 ## Cấu trúc
 ```text
 03-SourceCodes/
+├── CODING_CONVENTION.md  # Quy ước code, formatter, linter (T-02)
 ├── compose.yaml          # PostgreSQL cho môi trường local (Docker Compose)
 ├── .env.example          # Mẫu cấu hình; copy thành .env (không commit .env)
 ├── backend/              # Spring Boot (Maven Wrapper)
 │   ├── mvnw, mvnw.cmd    # Maven Wrapper: tự tải Maven, không cần cài Maven
-│   ├── pom.xml
+│   ├── pom.xml           # Thư viện, plugin Spotless (format) và Checkstyle (lint)
+│   ├── config/checkstyle/checkstyle.xml
 │   └── src/
 │       ├── main/java/vn/nhom15/preorder/
 │       │   ├── PreorderBackendApplication.java
@@ -26,6 +28,8 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend,
 │       └── test/java/...                # JUnit test
 └── frontend/             # React + TypeScript (Vite)
     ├── vite.config.ts    # Proxy /api → backend
+    ├── .prettierrc.json  # Cấu hình Prettier (format)
+    ├── .oxlintrc.json    # Cấu hình oxlint (lint)
     └── src/
         ├── api/health.ts # Hàm gọi API
         ├── App.tsx       # Màn kiểm tra kết nối
@@ -88,15 +92,15 @@ Mở http://localhost:5173. Trang hiển thị Trạng thái chung `UP`, Databas
 
 **Dừng**: `Ctrl+C` ở terminal backend và frontend; `docker compose stop` để dừng database (giữ dữ liệu).
 
-## Kiểm thử và build
+## Kiểm thử, kiểm tra convention và build
+Chạy trước mỗi commit/PR (chưa có CI):
 ```bash
-# trong backend/
-./mvnw test
-# trong frontend/
-npm run lint
-npm run build
+# trong backend/: test + kiểm tra định dạng (Spotless) + lint (Checkstyle)
+./mvnw verify
+# trong frontend/: định dạng (Prettier) + lint (oxlint) + kiểm tra kiểu và build
+npm run format:check && npm run lint && npm run build
 ```
-Test backend hiện tại không cần database (giả lập bằng Mockito).
+Nếu báo lỗi định dạng, chạy `./mvnw spotless:apply` (backend) hoặc `npm run format` (frontend) để tự sửa. Lỗi Checkstyle/oxlint phải sửa tay theo [CODING_CONVENTION.md](CODING_CONVENTION.md). Chỉ chạy test backend: `./mvnw test`. Test backend hiện tại không cần database (giả lập bằng Mockito).
 
 ## Cấu hình (.env)
 | Biến | Mặc định mẫu | Dùng bởi |
@@ -124,6 +128,7 @@ Thông tin `DB_NAME`, `DB_USER`, `DB_PASSWORD` chỉ được dùng khi containe
 | Backend báo `password authentication failed` | Đang kết nối nhầm PostgreSQL cài trên máy (thường cổng 5432), hoặc đổi mật khẩu sau khi database đã tạo | Kiểm tra `DB_PORT`; nếu dữ liệu local không cần giữ thì xóa và tạo lại database |
 | Backend báo `Port 8080 was already in use` | Backend cũ chưa tắt hoặc chương trình khác dùng 8080 | Tắt tiến trình cũ hoặc đổi `BACKEND_PORT` |
 | Trang báo `HTTP 502` | Backend chưa chạy | Chạy bước 3 |
+| `verify` in cảnh báo `Could not transfer metadata ... jvnet-nexus-releases ... certificate_expired` | Một thư viện cũ mà plugin Checkstyle dùng gián tiếp khai báo kho Maven đã ngừng hoạt động | Vô hại, bỏ qua; thư viện vẫn tải từ Maven Central |
 | `/api/health` trả 503, database `DOWN` (chờ khoảng 30 giây) | Container database đang dừng | `docker compose up -d --wait`; backend tự kết nối lại |
 
 Xóa toàn bộ dữ liệu database local và tạo lại từ migration (**mất hết dữ liệu local**):
