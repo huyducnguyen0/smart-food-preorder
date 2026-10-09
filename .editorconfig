@@ -10,3 +10,15 @@ indent_size = 2
 
 [*.md]
 trim_trailing_whitespace = false
+
+# Theo 03-SourceCodes/CODING_CONVENTION.md: Java/XML thụt 4 space, dòng tối đa 120 (Palantir);
+# TypeScript/CSS/JSON thụt 2 space, dòng tối đa 100 (Prettier).
+[*.{java,xml}]
+indent_size = 4
+max_line_length = 120
+
+[*.{ts,tsx,js,css,html,json}]
+max_line_length = 100
+
+[*.cmd]
+end_of_line = crlf

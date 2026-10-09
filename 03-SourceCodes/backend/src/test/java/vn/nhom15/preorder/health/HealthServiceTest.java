@@ -10,7 +10,6 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,8 +19,7 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 class HealthServiceTest {
 
     private final JdbcTemplate jdbcTemplate = mock(JdbcTemplate.class);
-    private final Clock clock = Clock.fixed(Instant.parse("2026-10-12T02:00:00Z"),
-            ZoneId.of("Asia/Ho_Chi_Minh"));
+    private final Clock clock = Clock.fixed(Instant.parse("2026-10-12T02:00:00Z"), ZoneId.of("Asia/Ho_Chi_Minh"));
     private final HealthService healthService = new HealthService(jdbcTemplate, clock);
 
     @Test
