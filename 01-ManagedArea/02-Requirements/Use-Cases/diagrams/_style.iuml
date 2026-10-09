@@ -1,0 +1,13 @@
+' Kiểu dùng chung cho sơ đồ Use Case (T-04). Được !include trong từng file .puml.
+skinparam shadowing false
+skinparam defaultFontSize 13
+skinparam packageStyle rectangle
+skinparam actorStyle default
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam rectangle {
+  BorderColor #555555
+}
+skinparam ArrowColor #333333

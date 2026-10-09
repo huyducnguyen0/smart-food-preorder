@@ -1,0 +1,24 @@
+@startuml uc-04-bep
+!include _style.iuml
+title Phân rã — Bếp (UC-12)
+
+actor "Nhân viên bếp" as Kitchen
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-12\nXử lý đơn tại bếp" as UC12
+  usecase "UC-12.1\nXem hàng chờ bếp" as UC121
+  usecase "UC-12.2\nCập nhật tiến độ đơn" as UC122
+}
+
+Kitchen -- UC12
+UC12 ..> UC121 : <<include>>
+UC121 <.. UC122 : <<extend>>
+
+note right of UC121
+  Nhóm sắp tới / cần chuẩn bị / đang làm,
+  sắp xếp và đánh dấu trễ (BR-21, BR-22, BR-26)
+end note
+note right of UC122
+  CONFIRMED → PREPARING → READY (SRS B.5)
+end note
+@enduml

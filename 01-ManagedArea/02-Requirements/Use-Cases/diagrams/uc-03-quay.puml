@@ -1,0 +1,32 @@
+@startuml uc-03-quay
+!include _style.iuml
+title Phân rã — Quầy (UC-07 đến UC-11)
+left to right direction
+
+actor "Nhân viên quầy" as Counter
+actor "Quản lý" as Manager
+Manager --|> Counter
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-07\nTạo đơn walk-in" as UC07
+  usecase "UC-17\nKiểm tra và giữ quota" as UC17
+  usecase "UC-08\nGhi nhận thanh toán" as UC08
+  usecase "UC-09\nBàn giao đơn" as UC09
+  usecase "UC-10\nĐánh dấu no-show" as UC10
+  usecase "UC-11\nCửa hàng hủy đơn" as UC11
+}
+
+Counter -- UC07
+Counter -- UC08
+Counter -- UC09
+Counter -- UC10
+Counter -- UC11
+
+UC07 ..> UC17 : <<include>>
+UC07 ..> UC08 : <<include>>
+
+note "Nhân viên quầy: chỉ đơn walk-in CONFIRMED.\nQuản lý: đơn CONFIRMED hoặc PREPARING (BR-24)." as N1
+N1 .. UC11
+note "Chỉ đơn READY, đúng mã nhận\nvà đã PAID (BR-29)" as N2
+N2 .. UC09
+@enduml
