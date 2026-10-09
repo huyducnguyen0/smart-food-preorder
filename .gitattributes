@@ -1,12 +1,11 @@
-* text=auto
+# Mọi file text dùng LF trên mọi máy, khớp .editorconfig và formatter (Prettier, Spotless),
+# kể cả khi Git trên Windows bật core.autocrlf.
+* text=auto eol=lf
 
-*.md text eol=lf
-*.yml text eol=lf
-*.yaml text eol=lf
-*.json text eol=lf
-*.pdf binary
-
-# Script shell phải giữ LF để chạy được trong Git Bash/Linux; script Windows giữ CRLF.
-mvnw text eol=lf
-*.sh text eol=lf
+# Script Windows giữ CRLF.
 *.cmd text eol=crlf
+*.bat text eol=crlf
+
+*.pdf binary
+*.png binary
+*.jpg binary
