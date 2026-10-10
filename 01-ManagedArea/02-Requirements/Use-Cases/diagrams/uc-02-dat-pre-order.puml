@@ -1,0 +1,39 @@
+@startuml uc-02-dat-pre-order
+!include _style.iuml
+title Phân rã — Pre-order của khách (UC-03 đến UC-06)
+left to right direction
+
+actor "Khách vãng lai" as Guest
+actor "Khách" as Customer
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-03\nXem menu" as UC03
+  usecase "UC-04\nĐặt pre-order" as UC04
+  usecase "UC-04.1\nQuản lý giỏ hàng" as UC041
+  usecase "UC-04.2\nChọn khung giờ và gửi đơn" as UC042
+  usecase "UC-17\nKiểm tra và giữ quota" as UC17
+  usecase "UC-18\nĐề xuất khung thay thế" as UC18
+  usecase "UC-05\nXem đơn của tôi" as UC05
+  usecase "UC-06\nKhách hủy đơn" as UC06
+}
+
+Guest -- UC03
+Customer -- UC03
+Customer -- UC04
+Customer -- UC05
+Customer -- UC06
+
+UC04 ..> UC041 : <<include>>
+UC04 ..> UC042 : <<include>>
+UC042 ..> UC17 : <<include>>
+UC18 .> UC042 : <<extend>>
+
+note right of UC18
+  Điều kiện mở rộng: khung đã chọn
+  không đủ quota (BR-16)
+end note
+note bottom of UC17
+  Dùng chung với UC-07 Tạo đơn walk-in
+  (BR-08 – BR-14)
+end note
+@enduml

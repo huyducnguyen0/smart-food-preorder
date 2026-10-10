@@ -20,8 +20,9 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - Bước 4 (Git) thực hiện ngày 2026-10-09 qua task T-01: commit toàn bộ tài liệu, tạo remote GitHub public, chốt quy ước nhánh/commit/PR (mục Git workflow).
 - Ngày 2026-10-09 người dùng bỏ estimate theo giờ khỏi Sprint 1; lượng việc theo cỡ S-M-L và Task Board.
 - T-03 (khung dự án) thực hiện ngày 2026-10-09 trên nhánh `chore/T-03-project-skeleton`: Spring Boot 4.1 (Java 25), React + Vite (TypeScript), PostgreSQL 18 bằng Docker Compose, Flyway, `/api/health`; hướng dẫn chạy ở [03-SourceCodes](03-SourceCodes/README.md). Đã merge (PR #2).
-- T-02 (coding convention) thực hiện ngày 2026-10-09 trên nhánh `chore/T-02-coding-convention`: [CODING_CONVENTION.md](03-SourceCodes/CODING_CONVENTION.md) theo 8 nhóm của Bước 15; Java dùng Spotless + Palantir (4 space, 120 ký tự) và Checkstyle, TypeScript dùng Prettier và oxlint; `.gitattributes` buộc LF. Chờ người dùng review và merge PR.
-- Tiếp theo: T-04–T-11 (Use Case → thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-02 (coding convention) thực hiện ngày 2026-10-09 trên nhánh `chore/T-02-coding-convention`: [CODING_CONVENTION.md](03-SourceCodes/CODING_CONVENTION.md) theo 8 nhóm của Bước 15; Java dùng Spotless + Palantir (4 space, 120 ký tự) và Checkstyle, TypeScript dùng Prettier và oxlint; `.gitattributes` buộc LF. Đã merge (PR #3).
+- T-04 (Use Case Model) thực hiện ngày 2026-10-10 trên nhánh `docs/T-04-use-case-model`: [Use Cases](01-ManagedArea/02-Requirements/Use-Cases/README.md) gồm 5 actor, 16 use case tổng quan, phân rã và sơ đồ PlantUML. Người dùng chọn PlantUML cho sơ đồ UML và cho khách chưa đăng nhập xem menu (BR-34). Chờ người dùng review và merge PR.
+- Tiếp theo: T-05 (Use Case Specification) → T-11 (thiết kế). Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 - Công nghệ đã chọn (Spring Boot, PostgreSQL, React); kiến trúc (T-08), thiết kế database (T-09) và chi tiết nghiệp vụ còn lại chưa chốt.
 
 ## Cấu trúc

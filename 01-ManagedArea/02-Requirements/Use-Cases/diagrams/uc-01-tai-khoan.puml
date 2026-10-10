@@ -1,0 +1,27 @@
+@startuml uc-01-tai-khoan
+!include _style.iuml
+title Phân rã — Tài khoản (UC-01, UC-02, UC-15)
+
+actor "Khách vãng lai" as Guest
+actor "Người dùng" as User
+actor "Quản lý" as Manager
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-01\nĐăng ký tài khoản" as UC01
+  usecase "UC-02\nĐăng nhập, đăng xuất" as UC02
+  usecase "UC-15\nQuản lý tài khoản nhân viên\n(xem danh sách nhân viên)" as UC15
+  usecase "UC-15.1\nTạo tài khoản\nnhân viên" as UC151
+  usecase "UC-15.2\nKhóa tài khoản" as UC152
+  usecase "UC-15.3\nMở khóa tài khoản" as UC153
+}
+
+Guest -- UC01
+User -- UC02
+Manager -- UC15
+UC15 <.. UC151 : <<extend>>
+UC15 <.. UC152 : <<extend>>
+UC15 <.. UC153 : <<extend>>
+
+note "Người dùng = Khách, Nhân viên quầy, Nhân viên bếp,\nQuản lý (xem sơ đồ tổng quan).\nTài khoản bị khóa không đăng nhập được (BR-32)." as N1
+N1 .. UC02
+@enduml

@@ -1,5 +1,5 @@
 # Software Requirements Specification
-Trạng thái: Bản nháp ngày 2026-10-08. Các quy tắc nghiệp vụ ở mục B.3–B.5 đã được người dùng chọn hoặc chấp nhận trong trao đổi cùng ngày. Ngưỡng NFR ở mục D là nháp, chốt khi chọn môi trường kiểm thử. Chưa có Use Case Specification; các mục sẽ được làm rõ thêm theo từng Sprint.
+Trạng thái: Bản nháp ngày 2026-10-08. Các quy tắc nghiệp vụ ở mục B.3–B.5 đã được người dùng chọn hoặc chấp nhận trong trao đổi cùng ngày. Ngưỡng NFR ở mục D là nháp, chốt khi chọn môi trường kiểm thử. Bổ sung BR-34 ngày 2026-10-10 khi lập Use Case Model ([Use Cases](../Use-Cases/README.md)). Chưa có Use Case Specification; các mục sẽ được làm rõ thêm theo từng Sprint.
 
 ## Input
 - [Product Backlog](../Product-Backlog/PRODUCT_BACKLOG.md): User Story và Acceptance Criteria.
@@ -40,6 +40,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 ### B.2. Đối tượng sử dụng
 | Actor | Mô tả | Cách có tài khoản |
 |---|---|---|
+| Khách vãng lai | Người chưa đăng nhập: xem menu, đăng ký tài khoản (BR-34) | Không có tài khoản |
 | Khách pre-order | Đặt, theo dõi, hủy đơn của mình | Tự đăng ký |
 | Nhân viên quầy | Nhập walk-in, ghi nhận thanh toán, bàn giao, hủy walk-in, đánh dấu no-show | Quản lý tạo |
 | Nhân viên bếp | Xem hàng chờ, cập nhật tiến độ | Quản lý tạo |
@@ -132,6 +133,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-31 | Khách tự đăng ký bằng email hoặc số điện thoại (duy nhất) và mật khẩu. | Quyết định 2026-10-08 |
 | BR-32 | Quản lý tạo, khóa và mở khóa tài khoản nhân viên quầy/bếp. Tài khoản bị khóa không đăng nhập được. Tài khoản quản lý đầu tiên có sẵn khi cài đặt. | Quyết định 2026-10-08 |
 | BR-33 | Mọi thao tác kiểm tra quyền theo vai trò và quyền sở hữu đơn tại nơi xử lý yêu cầu, không chỉ trên giao diện. | Proposal mục 8; RISK-07 |
+| BR-34 | Xem menu không cần đăng nhập. Thêm vào giỏ, đặt đơn và mọi thao tác khác (trừ đăng ký, đăng nhập) cần đăng nhập. | Quyết định 2026-10-10 |
 
 ### B.5. Trạng thái đơn
 
@@ -176,11 +178,11 @@ Mỗi chức năng liên kết story trong Product Backlog. Luồng chính/thay 
 
 | ID | Chức năng | Actor | Hành vi hệ thống | Quy tắc | Story |
 |---|---|---|---|---|---|
-| FR-01 | Đăng ký tài khoản khách | Khách | Tạo tài khoản với email/SĐT chưa dùng và mật khẩu | BR-31 | PB-19 |
+| FR-01 | Đăng ký tài khoản khách | Khách vãng lai | Tạo tài khoản với email/SĐT chưa dùng và mật khẩu | BR-31 | PB-19 |
 | FR-02 | Đăng nhập, đăng xuất | Tất cả | Xác thực; chuyển vào chức năng theo vai trò; từ chối tài khoản bị khóa | BR-32, BR-33 | PB-01 |
 | FR-03 | Quản lý tài khoản nhân viên | Quản lý | Tạo, khóa, mở khóa tài khoản quầy/bếp | BR-32 | PB-20 |
 | FR-04 | Quản lý món | Quản lý | Tạo, sửa món; đặt còn bán/tạm hết; ngừng bán | BR-01–BR-03, BR-05 | PB-03 |
-| FR-05 | Xem menu | Khách, quầy | Hiển thị món đang bán theo nhóm và tình trạng | BR-04 | PB-02 |
+| FR-05 | Xem menu | Khách vãng lai, khách, quầy | Hiển thị món đang bán theo nhóm và tình trạng | BR-04, BR-34 | PB-02 |
 | FR-06 | Cấu hình giờ mở cửa và quota | Quản lý | Đặt giờ mở cửa, quota mặc định, quota từng khung ngày hiện tại; xem điểm đã giữ | BR-06, BR-07, BR-11 | PB-04 |
 | FR-07 | Kiểm tra và giữ quota | Hệ thống | Tính điểm đơn, kiểm tra quota còn lại, giữ quota cùng lúc tạo đơn | BR-08–BR-14 | PB-05 |
 | FR-08 | Giỏ hàng | Khách | Thêm, đổi số lượng, bỏ món; hiển thị tổng tiền | BR-04 | PB-06 |

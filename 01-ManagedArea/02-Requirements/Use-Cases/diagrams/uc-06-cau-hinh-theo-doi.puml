@@ -1,0 +1,27 @@
+@startuml uc-06-cau-hinh-theo-doi
+!include _style.iuml
+title Phân rã — Cấu hình giờ mở cửa, quota và theo dõi vận hành (UC-14, UC-16)
+
+actor "Quản lý" as Manager
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-14\nCấu hình giờ mở cửa và quota\n(xem quota, điểm đã giữ theo khung)" as UC14
+  usecase "UC-14.1\nĐặt giờ mở cửa" as UC141
+  usecase "UC-14.2\nĐặt quota mặc định" as UC142
+  usecase "UC-14.3\nSửa quota khung\nngày hiện tại" as UC143
+  usecase "UC-16\nTheo dõi vận hành" as UC16
+}
+
+Manager -- UC14
+Manager -- UC16
+UC14 <.. UC141 : <<extend>>
+UC14 <.. UC142 : <<extend>>
+UC14 <.. UC143 : <<extend>>
+
+note "Không thu hẹp giờ mở cửa làm mất\nkhung đang có đơn (BR-11)" as N1
+N1 .. UC141
+note "Không thấp hơn\nđiểm đã giữ (BR-11)" as N2
+N2 .. UC143
+note "Quota, điểm đã giữ, đơn trễ,\nthống kê ngày (FR-20, BR-26)" as N3
+N3 .. UC16
+@enduml

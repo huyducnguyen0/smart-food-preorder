@@ -1,0 +1,55 @@
+@startuml uc-00-tong-quan
+!include _style.iuml
+title Use Case tổng quan — Hệ thống đặt món trước và điều phối nhận món
+left to right direction
+
+actor "Khách vãng lai" as Guest
+actor "Khách" as Customer
+actor "Người dùng" as User
+actor "Nhân viên bếp" as Kitchen
+actor "Nhân viên quầy" as Counter
+actor "Quản lý" as Manager
+
+Customer --|> User
+Kitchen --|> User
+Counter --|> User
+Manager --|> Counter
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-01\nĐăng ký tài khoản" as UC01
+  usecase "UC-02\nĐăng nhập, đăng xuất" as UC02
+  usecase "UC-03\nXem menu" as UC03
+  usecase "UC-04\nĐặt pre-order" as UC04
+  usecase "UC-05\nXem đơn của tôi" as UC05
+  usecase "UC-06\nKhách hủy đơn" as UC06
+  usecase "UC-07\nTạo đơn walk-in" as UC07
+  usecase "UC-08\nGhi nhận thanh toán" as UC08
+  usecase "UC-09\nBàn giao đơn" as UC09
+  usecase "UC-10\nĐánh dấu no-show" as UC10
+  usecase "UC-11\nCửa hàng hủy đơn" as UC11
+  usecase "UC-12\nXử lý đơn tại bếp" as UC12
+  usecase "UC-13\nQuản lý món" as UC13
+  usecase "UC-14\nCấu hình giờ mở cửa và quota" as UC14
+  usecase "UC-15\nQuản lý tài khoản nhân viên" as UC15
+  usecase "UC-16\nTheo dõi vận hành" as UC16
+}
+
+Guest -- UC01
+Guest -- UC03
+User -- UC02
+Customer -- UC03
+Customer -- UC04
+Customer -- UC05
+Customer -- UC06
+Kitchen -- UC12
+UC03 -- Counter
+UC07 -- Counter
+UC08 -- Counter
+UC09 -- Counter
+UC10 -- Counter
+UC11 -- Counter
+UC13 -- Manager
+UC14 -- Manager
+UC15 -- Manager
+UC16 -- Manager
+@enduml

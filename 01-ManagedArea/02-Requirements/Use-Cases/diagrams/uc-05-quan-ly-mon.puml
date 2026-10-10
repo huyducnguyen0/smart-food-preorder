@@ -1,0 +1,23 @@
+@startuml uc-05-quan-ly-mon
+!include _style.iuml
+title Phân rã — Quản lý món (UC-13)
+
+actor "Quản lý" as Manager
+
+rectangle "Hệ thống đặt món trước" {
+  usecase "UC-13\nQuản lý món\n(xem danh sách món)" as UC13
+  usecase "UC-13.1\nThêm món" as UC131
+  usecase "UC-13.2\nSửa thông tin món" as UC132
+  usecase "UC-13.3\nĐổi còn bán / tạm hết" as UC133
+  usecase "UC-13.4\nNgừng bán món" as UC134
+}
+
+Manager -- UC13
+UC13 <.. UC131 : <<extend>>
+UC13 <.. UC132 : <<extend>>
+UC13 <.. UC133 : <<extend>>
+UC13 <.. UC134 : <<extend>>
+
+note "Món không bị xóa,\nchỉ ngừng bán (BR-03)" as N1
+N1 .. UC134
+@enduml
