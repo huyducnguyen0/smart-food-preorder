@@ -1,5 +1,5 @@
 # Software Requirements Specification
-Trạng thái: Bản nháp ngày 2026-10-08. Các quy tắc nghiệp vụ ở mục B.3–B.5 đã được người dùng chọn hoặc chấp nhận trong trao đổi cùng ngày. Ngưỡng NFR ở mục D là nháp, chốt khi chọn môi trường kiểm thử. Bổ sung BR-34 ngày 2026-10-10 khi lập Use Case Model ([Use Cases](../Use-Cases/README.md)). Chưa có Use Case Specification; các mục sẽ được làm rõ thêm theo từng Sprint.
+Trạng thái: Bản nháp ngày 2026-10-08. Các quy tắc nghiệp vụ ở mục B.3–B.5 đã được người dùng chọn hoặc chấp nhận trong trao đổi cùng ngày. Ngưỡng NFR ở mục D là nháp, chốt khi chọn môi trường kiểm thử. Bổ sung BR-34 ngày 2026-10-10 khi lập Use Case Model và BR-35–BR-38 cùng ngày khi đặc tả Use Case Sprint 1 ([Use Cases](../Use-Cases/README.md)). Use Case Specification mới có cho phạm vi Sprint 1; các mục sẽ được làm rõ thêm theo từng Sprint.
 
 ## Input
 - [Product Backlog](../Product-Backlog/PRODUCT_BACKLOG.md): User Story và Acceptance Criteria.
@@ -97,6 +97,9 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-15 | Chỉ đặt cho khung trong ngày hiện tại, có giờ bắt đầu cách thời điểm đặt ít nhất 30 phút (cấu hình được). | Quyết định 2026-10-08 |
 | BR-16 | Khung khách chọn không đủ quota thì đề xuất tối đa 3 khung hợp lệ (theo BR-15) còn đủ quota, gần khung đã chọn nhất, cả trước và sau. Cùng khoảng cách thì khung sau đứng trước. Không có khung nào thì báo hết chỗ trong ngày. | Proposal mục 7; quyết định 2026-10-08 |
 | BR-17 | Gửi lại cùng một yêu cầu đặt (do retry, bấm lặp) chỉ tạo tối đa một đơn và trả lại kết quả của đơn đó. | Proposal mục 8 |
+| BR-35 | Khi gửi đơn, hệ thống kiểm tra lại giá và tình trạng từng món. Nếu khác nội dung khách đang xem (giá đổi, món tạm hết hoặc ngừng bán) thì không tạo đơn, báo các món thay đổi để khách xem lại rồi gửi lại. Đơn lưu giá từng món tại thời điểm xác nhận; đổi giá sau đó không ảnh hưởng đơn đã xác nhận. | Quyết định 2026-10-10 |
+| BR-36 | Danh sách khung cho khách chỉ hiển thị "đặt được" hoặc "không đủ chỗ", tính theo điểm của giỏ hiện tại so với quota còn lại; không hiển thị con số quota hay điểm đã giữ. Khung không đủ chỗ vẫn hiện nhưng không chọn được. Kết quả hiển thị chỉ mang tính tham khảo; việc xác nhận cuối cùng theo BR-09 lúc gửi đơn. | Quyết định 2026-10-10 |
+| BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. | Quyết định 2026-10-10 |
 
 **Walk-in**
 | ID | Quy tắc | Nguồn |
@@ -125,6 +128,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-27 | Thanh toán tại quầy: pre-order trả khi nhận, walk-in trả khi đặt. Trạng thái `UNPAID` / `PAID`, kèm phương thức (tiền mặt hoặc chuyển khoản tại quầy). Hệ thống chỉ ghi nhận, không xử lý tiền. | NT8; quyết định 2026-10-08 |
 | BR-28 | Đơn đã xác nhận không mặc định là đã thanh toán; pre-order bắt đầu ở `UNPAID`. | NT8 |
 | BR-29 | Chỉ bàn giao đơn `READY`, mã nhận đúng và `PAID`. Đơn đã bàn giao không bàn giao lại được. | Quyết định 2026-10-08 |
+| BR-38 | Mã nhận gồm 6 ký tự lấy ngẫu nhiên từ chữ in hoa và chữ số, bỏ các ký tự dễ nhầm `0`, `O`, `1`, `I`, `L`; không trùng với mã của đơn khác trong cùng ngày. Áp dụng cho cả pre-order và walk-in. | Quyết định 2026-10-10 |
 | BR-30 | Hoàn tiền cho đơn đã `PAID` bị hủy thực hiện ngoài hệ thống; lý do hủy ghi nhận việc này. | Giới hạn phạm vi (không phải POS) |
 
 **Tài khoản**
@@ -186,7 +190,7 @@ Mỗi chức năng liên kết story trong Product Backlog. Luồng chính/thay 
 | FR-06 | Cấu hình giờ mở cửa và quota | Quản lý | Đặt giờ mở cửa, quota mặc định, quota từng khung ngày hiện tại; xem điểm đã giữ | BR-06, BR-07, BR-11 | PB-04 |
 | FR-07 | Kiểm tra và giữ quota | Hệ thống | Tính điểm đơn, kiểm tra quota còn lại, giữ quota cùng lúc tạo đơn | BR-08–BR-14 | PB-05 |
 | FR-08 | Giỏ hàng | Khách | Thêm, đổi số lượng, bỏ món; hiển thị tổng tiền | BR-04 | PB-06 |
-| FR-09 | Đặt pre-order | Khách | Liệt kê khung hợp lệ kèm tình trạng còn chỗ; tạo đơn theo FR-07; cấp mã nhận; chống trùng | BR-12, BR-15, BR-17 | PB-07 |
+| FR-09 | Đặt pre-order | Khách | Liệt kê khung hợp lệ kèm tình trạng còn chỗ; tạo đơn theo FR-07; cấp mã nhận; chống trùng | BR-12, BR-15, BR-17, BR-35–BR-38 | PB-07 |
 | FR-10 | Đề xuất khung thay thế | Hệ thống | Khi khung chọn không đủ quota, trả về tối đa 3 khung | BR-16 | PB-09 |
 | FR-11 | Xem đơn của khách | Khách | Danh sách, chi tiết, trạng thái, mã nhận, trạng thái thanh toán, lý do hủy; trang tự cập nhật trạng thái | BR-33 | PB-08, PB-14 |
 | FR-12 | Khách hủy đơn | Khách | Hủy và hoàn quota khi thỏa điều kiện; ngược lại từ chối kèm lý do | BR-23 | PB-10 |
