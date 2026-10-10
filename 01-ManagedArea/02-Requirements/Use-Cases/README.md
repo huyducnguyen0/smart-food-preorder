@@ -1,5 +1,5 @@
 # Use Cases
-Trạng thái: Use Case Model lập ở task T-04 (Sprint 1) ngày 2026-10-10 từ SRS và Product Backlog; người dùng chưa review. Use Case Specification viết ở T-05 cho các use case trong phạm vi Sprint 1, các use case còn lại đặc tả ở Sprint sau.
+Trạng thái: Use Case Model lập ở task T-04 (Sprint 1) ngày 2026-10-10 từ SRS và Product Backlog, người dùng đã review và merge. Use Case Specification cho phạm vi Sprint 1 lập ở T-05 cùng ngày (mục 5); các use case còn lại đặc tả ở Sprint sau.
 
 Input: [SRS](../SRS/SRS.md) (B.2 đối tượng sử dụng, B.3 business process, B.4 quy tắc, C chức năng FR-01–FR-20), [Product Backlog](../Product-Backlog/PRODUCT_BACKLOG.md) (PB-01–PB-21).
 Thực hiện theo Bước 8 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): xác định actor → xác định Use Case → sơ đồ tổng quan → phân rã.
@@ -9,7 +9,7 @@ Output:
 - Use Case List (mục 2).
 - Use Case Diagram tổng quan (mục 3).
 - Decomposed Use Case Diagram (mục 4).
-- Use Case Specification theo [mẫu](USE_CASE_TEMPLATE.md): T-05.
+- Use Case Specification theo [mẫu](USE_CASE_TEMPLATE.md) (mục 5).
 
 Các output dùng cho Activity, Analysis, UI và Test Case.
 
@@ -123,6 +123,20 @@ PowerShell: `docker run --rm -v "${PWD}:/data" plantuml/plantuml:1.2026.8 -tsvg 
 - Quản lý là tổng quát hóa của Nhân viên quầy, theo SRS B.2.
 - Kiểm tra và giữ quota (FR-07) là use case được include, không có actor riêng, để thể hiện pre-order và walk-in dùng chung một logic quota (NT1, NFR-05).
 
+## 5. Use Case Specification
+Lập ở T-05 ngày 2026-10-10 cho phạm vi Sprint 1. UC-03 và UC-17 tách file riêng vì sau này UC-07 Tạo đơn walk-in dùng lại.
+
+| Đặc tả | Story | Luồng thay thế / lỗi |
+|---|---|---|
+| [UC-02 Đăng nhập, đăng xuất](specifications/UC-02-dang-nhap-dang-xuat.md) | PB-01 | E1–E5; kèm bảng phân quyền chung theo vai trò |
+| [UC-03 Xem menu](specifications/UC-03-xem-menu.md) | PB-02 | A1–A3, E1 |
+| [UC-17 Kiểm tra và giữ quota](specifications/UC-17-kiem-tra-va-giu-quota.md) | PB-05 | E1–E3; bất biến quota khi đồng thời |
+| [UC-04 Đặt pre-order](specifications/UC-04-dat-pre-order.md) (gồm UC-04.1, UC-04.2) | PB-06, PB-07 | A1–A2, E1–E11; điểm mở rộng cho UC-18 |
+| [UC-05 Xem đơn của tôi](specifications/UC-05-xem-don-cua-toi.md) | PB-08 | A1, E1–E3 |
+| [UC-12 Xử lý đơn tại bếp](specifications/UC-12-xu-ly-don-tai-bep.md) (gồm UC-12.1, UC-12.2) | PB-12, PB-13 | A1, E1–E4 |
+
+Mỗi đặc tả có dòng "Story và AC" chỉ ra bước/luồng đáp ứng từng tiêu chí chấp nhận. Đối chiếu ngày 2026-10-10: đủ AC của 8 story Sprint 1; mọi BR được tham chiếu có trong SRS; trạng thái đơn khớp SRS B.5. Quyết định nghiệp vụ phát sinh khi đặc tả ghi thành BR-35–BR-38 trong SRS và RISK-13.
+
 ## Output chuyển giao
-- T-05 viết Use Case Specification cho phạm vi Sprint 1: UC-02 Đăng nhập; UC-04 Đặt pre-order (gồm UC-03, UC-04.1, UC-04.2, UC-17); UC-05 Xem đơn của tôi; UC-12 Xử lý đơn tại bếp.
+- T-06 vẽ Activity Diagram từ UC-04 và UC-12; T-07 Analysis/Sequence từ UC-04 và UC-17; T-11 UI từ các đặc tả; T-23 viết Test Case từ các luồng A/E.
 - T-06 (Activity), T-07 (Analysis, Sequence), T-11 (UI) và T-23 (Test Case) dùng danh sách và ID ở đây.
