@@ -52,7 +52,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 
 ## Ghi chú và giới hạn
 - Quyết định 2026-10-10: Sprint 1 **chưa** tạm khóa tài khoản khi nhập sai mật khẩu nhiều lần; chỉ khóa khi quản lý khóa. Rủi ro đoán mật khẩu ghi ở RISK-13, xét lại trước khi triển khai công khai.
-- Giả định: tài khoản nhân viên và quản lý cũng đăng nhập bằng email hoặc số điện thoại như khách; xác nhận khi đặc tả UC-15.
+- Người dùng xác nhận ngày 2026-10-11: tài khoản nhân viên và quản lý cũng đăng nhập bằng email hoặc số điện thoại như khách; UC-15 tạo tài khoản nhân viên theo định danh này.
 - Cơ chế phiên (session hay token), thời gian hết hạn phiên: quyết định ở Architecture (T-08) và T-12.
 
 ## Output chuyển giao

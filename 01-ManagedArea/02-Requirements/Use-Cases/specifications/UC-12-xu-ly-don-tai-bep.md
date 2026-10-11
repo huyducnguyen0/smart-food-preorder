@@ -51,7 +51,7 @@ Cập nhật theo **cả đơn**, không theo từng món (BR-22).
 - **Không thành công**: trạng thái đơn không đổi.
 
 ## Ghi chú và giới hạn
-- Không có thao tác hoàn tác (ví dụ `PREPARING → CONFIRMED` khi bấm nhầm) vì SRS B.5 không cho phép chuyển trạng thái khác. Bấm nhầm thì xử lý ngoài hệ thống. Đây là hệ quả của quy tắc hiện có; cần người dùng xác nhận chấp nhận được.
+- Không có thao tác hoàn tác (ví dụ `PREPARING → CONFIRMED` khi bấm nhầm) vì SRS B.5 không cho phép chuyển trạng thái khác. Bấm nhầm thì xử lý ngoài hệ thống. Người dùng xác nhận chấp nhận giới hạn này ngày 2026-10-11.
 - Bếp không thấy giá và trạng thái thanh toán (không cần cho việc chế biến).
 - Đơn `READY` không còn trong hàng chờ bếp; đơn bị hủy (Sprint sau) tự rời hàng chờ.
 

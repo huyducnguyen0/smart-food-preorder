@@ -99,7 +99,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-17 | Gửi lại cùng một yêu cầu đặt (do retry, bấm lặp) chỉ tạo tối đa một đơn và trả lại kết quả của đơn đó. | Proposal mục 8 |
 | BR-35 | Khi gửi đơn, hệ thống kiểm tra lại giá và tình trạng từng món. Nếu khác nội dung khách đang xem (giá đổi, món tạm hết hoặc ngừng bán) thì không tạo đơn, báo các món thay đổi để khách xem lại rồi gửi lại. Đơn lưu giá từng món tại thời điểm xác nhận; đổi giá sau đó không ảnh hưởng đơn đã xác nhận. | Quyết định 2026-10-10 |
 | BR-36 | Danh sách khung cho khách chỉ hiển thị "đặt được" hoặc "không đủ chỗ", tính theo điểm của giỏ hiện tại so với quota còn lại; không hiển thị con số quota hay điểm đã giữ. Khung không đủ chỗ vẫn hiện nhưng không chọn được. Kết quả hiển thị chỉ mang tính tham khảo; việc xác nhận cuối cùng theo BR-09 lúc gửi đơn. | Quyết định 2026-10-10 |
-| BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. | Quyết định 2026-10-10 |
+| BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. | Quyết định 2026-10-10; N = 3 xác nhận 2026-10-11 |
 
 **Walk-in**
 | ID | Quy tắc | Nguồn |
@@ -135,7 +135,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | ID | Quy tắc | Nguồn |
 |---|---|---|
 | BR-31 | Khách tự đăng ký bằng email hoặc số điện thoại (duy nhất) và mật khẩu. | Quyết định 2026-10-08 |
-| BR-32 | Quản lý tạo, khóa và mở khóa tài khoản nhân viên quầy/bếp. Tài khoản bị khóa không đăng nhập được. Tài khoản quản lý đầu tiên có sẵn khi cài đặt. | Quyết định 2026-10-08 |
+| BR-32 | Quản lý tạo, khóa và mở khóa tài khoản nhân viên quầy/bếp; tài khoản nhân viên đăng nhập bằng email hoặc số điện thoại như khách (xác nhận 2026-10-11). Tài khoản bị khóa không đăng nhập được. Tài khoản quản lý đầu tiên có sẵn khi cài đặt. | Quyết định 2026-10-08 |
 | BR-33 | Mọi thao tác kiểm tra quyền theo vai trò và quyền sở hữu đơn tại nơi xử lý yêu cầu, không chỉ trên giao diện. | Proposal mục 8; RISK-07 |
 | BR-34 | Xem menu không cần đăng nhập. Thêm vào giỏ, đặt đơn và mọi thao tác khác (trừ đăng ký, đăng nhập) cần đăng nhập. | Quyết định 2026-10-10 |
 
