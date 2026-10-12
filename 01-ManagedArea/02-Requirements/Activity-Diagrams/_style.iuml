@@ -1,0 +1,21 @@
+' Kiểu dùng chung cho Activity Diagram (T-06). Được !include trong từng file .puml.
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam ArrowColor #333333
+skinparam activity {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  DiamondBackgroundColor #F5F5F5
+  DiamondBorderColor #333333
+}
+skinparam partition {
+  BorderColor #777777
+}
+skinparam swimlane {
+  BorderColor #999999
+  TitleFontStyle bold
+}
+skinparam note {
+  BackgroundColor #FFFDE7
+  BorderColor #999999
+}

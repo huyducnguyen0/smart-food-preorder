@@ -1,0 +1,130 @@
+@startuml UC-04_dat-pre-order_activity
+!include _style.iuml
+title Activity — UC-04 Đặt pre-order (gồm UC-04.1, UC-04.2, include UC-17)
+
+|Khách|
+start
+:Mở menu (UC-03);
+(G)
+repeat
+  :Thêm món / đổi số lượng / bỏ món
+  (bước 1, 3);
+  |Hệ thống|
+  if (Món còn bán? (BR-04)) then (có)
+    :Cập nhật giỏ trên trình duyệt:
+    dòng, đơn giá, tổng tiền (bước 2, 4);
+  else (không)
+    :E1: báo món không còn bán,
+    làm mới menu;
+  endif
+  |Khách|
+repeat while (Chỉnh giỏ tiếp?) is (có) not (không)
+if (Giỏ trống?) then (có)
+  :A2: không cho chọn giờ nhận;
+  (G)
+  detach
+else (không)
+endif
+:Chọn "Chọn giờ nhận" (bước 5);
+(K)
+|Hệ thống|
+:Liệt kê khung 15 phút hôm nay,
+trong giờ mở cửa, cách hiện tại ≥ 30 phút (BR-06, BR-15),
+đánh dấu "Đặt được" / "Không đủ chỗ"
+theo điểm giỏ, không lộ quota (BR-36) (bước 6);
+if (Còn khung hợp lệ?) then (không)
+  :E2: báo "Hôm nay không còn khung nhận"
+  (giỏ được giữ);
+  stop
+else (có)
+endif
+if (Có khung "Đặt được"?) then (không)
+  :E3 / E4: báo hết chỗ trong ngày,
+  hoặc giỏ vượt quota mọi khung (BR-12);
+  (G)
+  detach
+else (có)
+endif
+
+|Khách|
+:Chọn khung "Đặt được", xem tóm tắt,
+chọn "Xác nhận đặt" (bước 7)
+[kèm mã yêu cầu của lần đặt này];
+
+|Hệ thống|
+if (Mã yêu cầu đã có đơn? (BR-17)) then (có)
+  :A1: lấy lại kết quả đơn đã tạo
+  (không tạo đơn mới, không giữ thêm quota);
+else (chưa)
+  if (Khách đã có đủ N = 3 đơn chưa kết thúc? (BR-37)) then (có)
+    :E5: từ chối, hướng dẫn xem "Đơn của tôi"
+    (giỏ được giữ);
+    stop
+  else (chưa)
+  endif
+  if (Khung vẫn cách hiện tại ≥ 30 phút? (BR-15)) then (không)
+    :E6: báo khung không còn đặt được;
+    (K)
+    detach
+  else (có)
+  endif
+  if (Món còn bán và đúng giá khách đã thấy? (BR-04, BR-35)) then (không)
+    :E7: cập nhật giỏ (giá mới, bỏ món hết),
+    báo từng món thay đổi;
+    (G)
+    detach
+  else (có)
+  endif
+
+  partition "UC-17 Kiểm tra và giữ quota (bước 9)" {
+    :Tính điểm đơn = Σ điểm món × số lượng (BR-08);
+    if (Điểm đơn = 0? (BR-13)) then (không)
+      if (Điểm đơn ≤ quota của khung? (BR-12)) then (không)
+        :E9: báo đơn quá lớn cho một khung,
+        đề nghị liên hệ cửa hàng;
+        (G)
+        detach
+      else (có)
+      endif
+      if (Điểm đơn ≤ quota − điểm đang giữ? (BR-09)) then (không)
+        :E8: báo khung vừa hết chỗ;
+        note right
+          Điểm mở rộng:
+          UC-18 Đề xuất khung
+          thay thế (Sprint sau)
+        end note
+        (K)
+        detach
+      else (có)
+      endif
+      :Giữ quota cho khung
+      (kiểm tra và giữ không bị chen ngang, NFR-01);
+    else (có)
+    endif
+  }
+
+  :Tạo đơn CONFIRMED, UNPAID, nguồn pre-order,
+  lưu giá từng dòng và điểm đơn, cấp mã nhận
+  (BR-28, BR-35, BR-08, BR-38) (bước 10);
+  if (Tạo đơn và giữ quota cùng thành công? (BR-10)) then (không)
+    :E10: hủy mọi thay đổi, báo lỗi
+    (không có đơn, quota không đổi, giỏ được giữ,
+    khách gửi lại an toàn nhờ A1);
+    stop
+  else (có)
+  endif
+endif
+:Hiển thị mã nhận, khung, món, tổng tiền,
+trạng thái "Đã xác nhận", nhắc thanh toán tại quầy,
+xóa giỏ (bước 11);
+|Khách|
+:Nhận mã nhận;
+stop
+
+floating note right
+  Ký hiệu (G): quay lại chỉnh giỏ (bước 3–4).
+  Ký hiệu (K): quay lại danh sách khung (bước 6).
+  E11 — phiên hết hạn ở bất kỳ bước nào:
+  chuyển đăng nhập (UC-02 E4), giỏ vẫn còn.
+end note
+@enduml
