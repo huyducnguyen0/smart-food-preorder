@@ -1,5 +1,5 @@
 # Sprint 1
-Trạng thái: Kế hoạch lập ngày 2026-10-08, người dùng tạm duyệt ngày 2026-10-09 (có thể điều chỉnh khi thực hiện). T-01, T-03, T-02 (2026-10-09) và T-04 (2026-10-10) được làm sớm, trước ngày bắt đầu Sprint.
+Trạng thái: Kế hoạch lập ngày 2026-10-08, người dùng tạm duyệt ngày 2026-10-09 (có thể điều chỉnh khi thực hiện). T-01, T-03, T-02 (2026-10-09), T-04 và T-05 (2026-10-10) được làm sớm, trước ngày bắt đầu Sprint.
 
 Quyết định 2026-10-09: người dùng bỏ estimate theo giờ khỏi Sprint 1 (sức chứa giờ, estimate giờ từng task, giờ thực tế). Lượng việc chọn theo cỡ S-M-L trong Product Backlog và theo dõi qua Task Board. Đây là lựa chọn của người dùng, gọn hơn mục "chia task, estimate" của Bước 6 trong nguồn.
 
@@ -47,8 +47,8 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-01 | — (WBS 1.4) | Commit trạng thái tài liệu hiện tại; tạo remote GitHub; chốt quy ước nhánh `feature/<PB-id>-<tên>` và PR vào `main` (quy ước ghi ở README mục Git workflow) | Người dùng, AI hỗ trợ | — | Done |
 | T-02 | — (WBS 4.1) | Chọn coding convention Java và TypeScript; cấu hình formatter/linter; cập nhật [CODING_CONVENTION.md](../../03-SourceCodes/CODING_CONVENTION.md) (Spotless + Palantir, Checkstyle; Prettier, oxlint) | Người dùng, AI hỗ trợ | T-03 | Done |
 | T-03 | — (WBS 1.4, 4.13) | Khung dự án: Spring Boot, React, PostgreSQL bằng Docker Compose, migration database; frontend gọi được backend (`/api/health`); hướng dẫn chạy trong [03-SourceCodes](../../03-SourceCodes/README.md). Dữ liệu mẫu chuyển sang các task tạo bảng (T-12, T-15, T-16) vì schema thiết kế ở T-09 | Người dùng, AI hỗ trợ | T-01 | Done |
-| T-04 | Tất cả | Use Case Model: Actor List, Use Case List toàn hệ thống, sơ đồ tổng quan ([Use Cases](../02-Requirements/Use-Cases/README.md), PlantUML) | Người dùng, AI hỗ trợ | — | Review |
-| T-05 | PB-01, 02, 06, 07, 08, 12, 13 | Use Case Specification: Đăng nhập; Đặt pre-order (gồm xem menu, giỏ); Xem đơn; Xử lý đơn tại bếp | Người dùng, AI hỗ trợ | T-04 | To Do |
+| T-04 | Tất cả | Use Case Model: Actor List, Use Case List toàn hệ thống, sơ đồ tổng quan ([Use Cases](../02-Requirements/Use-Cases/README.md), PlantUML) | Người dùng, AI hỗ trợ | — | Done |
+| T-05 | PB-01, 02, 06, 07, 08, 12, 13 | Use Case Specification: Đăng nhập; Đặt pre-order (gồm xem menu, giỏ); Xem đơn; Xử lý đơn tại bếp. Thực hiện thành 6 file (tách UC-03 Xem menu, UC-17 Giữ quota để walk-in dùng lại), xem [Use Cases](../02-Requirements/Use-Cases/README.md) mục 5 | Người dùng, AI hỗ trợ | T-04 | Review |
 | T-06 | PB-07, PB-13 | Activity Diagram: Đặt pre-order; Xử lý đơn tại bếp | Người dùng, AI hỗ trợ | T-05 | To Do |
 | T-07 | PB-05, PB-07 | Analysis Model (Boundary/Controller/Entity) và Sequence Diagram cho Đặt pre-order có giữ quota | Người dùng, AI hỗ trợ | T-05 | To Do |
 | T-08 | Tất cả | Architecture: tầng backend, module frontend, REST API, Package Diagram, trách nhiệm thành phần (NFR-05) | Người dùng, AI hỗ trợ | T-07 | To Do |

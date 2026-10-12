@@ -32,6 +32,7 @@ Trạng thái: Bản đánh giá sơ bộ, chưa được người dùng review 
 | RISK-10 | Yêu cầu/thiết kế thay đổi mà không cập nhật liên kết → tài liệu, code và test lệch nhau → nghiệm thu sai hoặc thiếu bằng chứng | 2.2–2.7, nhóm 3, 4.13, 5.2–5.4 | Trung bình: nhiều artifact phát triển qua các Sprint | Trung bình: gây làm lại và khó giải trình | Trung bình | Chưa xác nhận | Open |
 | RISK-11 | Chưa chốt workload/môi trường hoặc chỉ chạy happy path → kết luận chất lượng không đủ căn cứ → bỏ sót lỗi, suy rộng hiệu năng | 2.4, 5.1–5.4, 6.1 | Trung bình: hiện chưa có tiêu chí đo và kết quả test | Cao: không chứng minh được NFR cốt lõi | Cao | Chưa xác nhận | Open |
 | RISK-12 | Cấu hình/môi trường demo không tái lập hoặc phụ thuộc chưa kiểm tra → bản release không chạy được → không trình diễn được chức năng đã làm | 1.4, 3.3, 4.13, 6.2 | Trung bình: môi trường triển khai chưa được lựa chọn | Trung bình: có thể chặn buổi demo, cần khắc phục môi trường | Trung bình | Chưa xác nhận | Open |
+| RISK-13 | Sprint 1 không giới hạn số lần đăng nhập sai (quyết định 2026-10-10) → có thể đoán mật khẩu tự động → chiếm tài khoản khách hoặc nhân viên | 4.2, 5.3 | Thấp khi chỉ chạy local/demo; tăng khi triển khai công khai | Cao: tài khoản nhân viên đổi được trạng thái đơn | Trung bình | Chưa xác nhận | Open |
 
 ## Phòng ngừa và ứng phó
 
@@ -51,6 +52,7 @@ Các hành động dưới đây là công việc dự kiến trong artifact/WBS
 | RISK-10 | Cập nhật các mục liên quan trong cùng thay đổi; tham chiếu requirement/Use Case/test ngay trong artifact | Khi phát hiện lệch, xác định nội dung đúng theo quyết định đã duyệt, sửa các đầu ra bị ảnh hưởng và kiểm tra lại |
 | RISK-11 | Định nghĩa expected result, workload và môi trường; có test lỗi/biên, white-box và black-box theo nguồn | Khi kết quả thiếu điều kiện hoặc không tái hiện được, giới hạn kết luận, bổ sung test và chạy lại; không báo pass từ suy đoán |
 | RISK-12 | Kiểm tra cấu hình và cách chạy với bản increment; giữ version code phù hợp bằng chứng test | Khi demo không chạy, kiểm tra dependency/config của đúng phiên bản, khôi phục khả năng chạy trong môi trường đã chọn và kiểm thử lại trước khi kết luận release |
+| RISK-13 | Mật khẩu chỉ lưu dạng băm (NFR-06); báo lỗi đăng nhập chung không lộ tài khoản tồn tại (UC-02 E1); xét lại giới hạn đăng nhập sai trước khi triển khai công khai | Khi có dấu hiệu dò mật khẩu hoặc trước khi đưa lên môi trường công khai: thêm giới hạn số lần thử/tạm khóa, khóa tài khoản bị nghi ngờ (BR-32) |
 
 ## Ưu tiên áp dụng vào công việc tiếp theo
 
