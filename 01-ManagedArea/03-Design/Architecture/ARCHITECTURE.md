@@ -184,7 +184,7 @@ Phản hồi lỗi dạng:
 | `src/app` | Khởi tạo ứng dụng, khai báo route, `RequireRole` chặn trang theo vai trò (chỉ để điều hướng; quyền thật kiểm ở backend) |
 | `src/features/<tên>` | Một thư mục cho mỗi nhóm màn hình: `auth`, `menu`, `cart`, `checkout`, `orders`, `kitchen`. Trang, component riêng và hook của nhóm đó |
 | `src/api` | Nơi duy nhất gọi `fetch`. `client.ts` gắn header CSRF, đọc lỗi Problem Details thành `ApiError` có `code`; mỗi file còn lại khai báo kiểu và hàm gọi API của một module backend |
-| `src/components` | Component dùng chung: khung trang, thanh điều hướng, hiển thị tiền, nhãn trạng thái, thông báo lỗi |
+| `src/components` | Component dùng chung theo [UI Prototype](../UI-Prototype/README.md) v2: khung app (`AppShell`), thanh trên, thanh tab đáy, bảng trượt từ đáy (`BottomSheet`), hiển thị tiền, nhãn trạng thái, thông báo |
 
 Quyết định:
 - **Điều hướng**: thư viện React Router, thêm ở T-13. Route cụ thể ở [UI Prototype](../UI-Prototype/README.md).

@@ -32,7 +32,7 @@ package "src" {
     [auth.ts, menu.ts, slots.ts,\norders.ts, kitchen.ts] as apis
   }
   package "components" as components {
-    [Layout, NavBar,\nMoney, StatusBadge, ErrorMessage] as comps
+    [AppShell, TopBar, TabBar, BottomSheet,\nMoney, StatusBadge, Alert] as comps
   }
 }
 

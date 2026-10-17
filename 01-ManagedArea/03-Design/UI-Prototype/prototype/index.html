@@ -3,339 +3,479 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prototype — Đặt món trước (Sprint 1)</title>
+<title>Prototype v2 — Đặt món trước (Sprint 1)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Bảng màu (UI-Prototype README mục 4). T-13 chép các biến này sang frontend/src/index.css. */
+/* Bảng màu v2 (UI-Prototype README mục 4). T-13 chép các biến này sang frontend/src/index.css. */
 :root {
-  --color-bg: #FAF7F2;
-  --color-surface: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-text: #1F2937;
-  --color-text-muted: #5B6472;
-  --color-primary: #C2410C;
-  --color-primary-hover: #9A3412;
-  --color-primary-soft: #FFEDD5;
-  --color-success: #166534;  --color-success-bg: #DCFCE7;
-  --color-warning: #92400E;  --color-warning-bg: #FEF3C7;
-  --color-danger: #B91C1C;   --color-danger-bg: #FEE2E2;
-  --color-info: #1D4ED8;     --color-info-bg: #DBEAFE;
-  --color-neutral: #374151;  --color-neutral-bg: #F3F4F6;
-  --radius: 10px;
-  --space: 16px;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --bg: #F7F5F2;
+  --surface: #FFFFFF;
+  --cream: #FFF4E6;
+  --border: #ECE8E3;
+  --ink: #1C1917;
+  --ink-2: #57534E;
+  --ink-3: #6D6661;
+  --primary: #C2410C;
+  --primary-hover: #9A3412;
+  --primary-soft: #FFEDD5;
+  --dark: #1F2A24;
+  --success: #166534; --success-bg: #DCFCE7;
+  --warning: #92400E; --warning-bg: #FEF3C7;
+  --danger: #B91C1C;  --danger-bg: #FEE2E2;
+  --info: #1D4ED8;    --info-bg: #DBEAFE;
+  --neutral: #44403C; --neutral-bg: #F5F5F4;
+  --radius: 16px;
+  --shadow: 0 1px 2px rgba(28,25,23,.06), 0 4px 16px rgba(28,25,23,.06);
+  font-family: 'Be Vietnam Pro', system-ui, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: var(--bg);
   line-height: 1.5;
-  color: var(--color-text);
-  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
 }
 * { box-sizing: border-box; }
 body { margin: 0; }
-button { font: inherit; cursor: pointer; }
-a { color: var(--color-primary); }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+a { color: var(--primary); }
+img { display: block; }
+.icon { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 8px; }
 
-.demo { background: #111827; color: #F9FAFB; font-size: 13px; padding: 8px var(--space); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
-.demo label { display: flex; gap: 6px; align-items: center; }
-.demo select { font: inherit; font-size: 13px; }
+/* Khung ứng dụng của khách: một cột như app điện thoại, giữa màn hình trên máy tính */
+.app { max-width: 520px; margin: 0 auto; min-height: 100vh; background: var(--surface); position: relative; padding-bottom: 150px; box-shadow: 0 0 0 1px var(--border); }
+.app.wide { max-width: none; background: var(--bg); box-shadow: none; padding-bottom: 32px; }
+.topbar { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.topbar h1 { font-size: 17px; margin: 0; flex: 1; font-weight: 700; }
+.topbar .back { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); }
+.topbar .back:hover { background: var(--neutral-bg); }
+.brand { display: flex; align-items: center; gap: 10px; flex: 1; text-decoration: none; color: var(--ink); }
+.logo { width: 38px; height: 38px; border-radius: 12px; background: var(--primary); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 15px; letter-spacing: -.5px; flex: none; }
+.brand b { display: block; font-size: 16px; line-height: 1.2; }
+.brand small { display: flex; align-items: center; gap: 4px; color: var(--ink-3); font-size: 12px; }
+.brand small .icon { width: 14px; height: 14px; }
+.icon-btn { position: relative; width: 42px; height: 42px; display: grid; place-items: center; border-radius: 50%; color: var(--ink); }
+.icon-btn:hover { background: var(--neutral-bg); }
+.dot { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 99px; background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; border: 2px solid #fff; }
+.link-btn { color: var(--primary); font-weight: 600; font-size: 14px; padding: 8px 4px; text-decoration: none; }
 
-.nav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
-.nav-inner { max-width: 1080px; margin: 0 auto; padding: 0 var(--space); display: flex; align-items: center; gap: 4px; min-height: 56px; flex-wrap: wrap; }
-.brand { font-weight: 700; color: var(--color-primary); margin-right: auto; text-decoration: none; }
-.nav a.link { color: var(--color-text); text-decoration: none; padding: 8px 10px; border-radius: 8px; }
-.nav a.link.active { background: var(--color-primary-soft); color: var(--color-primary-hover); font-weight: 600; }
-.count { background: var(--color-primary); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 12px; margin-left: 4px; }
+.content { padding: 16px; }
+.section-title { font-size: 20px; font-weight: 800; margin: 24px 0 12px; letter-spacing: -.3px; scroll-margin-top: 130px; }
+.muted { color: var(--ink-3); font-size: 14px; }
 
-main { max-width: 720px; margin: 0 auto; padding: var(--space); }
-main.wide { max-width: 1080px; }
-h1 { font-size: 22px; margin: 8px 0 16px; }
-h2 { font-size: 17px; margin: 20px 0 8px; }
-.muted { color: var(--color-text-muted); font-size: 14px; }
-.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space); margin-bottom: 12px; }
+/* Banner */
+.hero { position: relative; margin: 16px; border-radius: 20px; overflow: hidden; height: 168px; background: var(--dark); }
+.hero img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
+.hero div { position: absolute; inset: 0; padding: 20px; display: flex; flex-direction: column; justify-content: flex-end; color: #fff; }
+.hero strong { font-size: 24px; line-height: 1.15; font-weight: 800; letter-spacing: -.5px; }
+.hero span { font-size: 14px; opacity: .92; margin-top: 4px; }
 
-.btn { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); border-radius: 8px; padding: 9px 16px; }
-.btn:hover { background: var(--color-neutral-bg); }
-.btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: 600; }
-.btn-primary:hover { background: var(--color-primary-hover); }
-.btn:disabled { background: var(--color-neutral-bg); color: #9CA3AF; border-color: var(--color-border); cursor: not-allowed; }
-.btn:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
-.actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }
+/* Nhóm món */
+.chips { position: sticky; top: 63px; z-index: 15; background: var(--surface); display: flex; gap: 8px; overflow-x: auto; padding: 10px 16px; scrollbar-width: none; border-bottom: 1px solid var(--border); }
+.chip { white-space: nowrap; padding: 8px 16px; border-radius: 99px; background: var(--neutral-bg); font-weight: 600; font-size: 14px; color: var(--ink-2); }
+.chip.active { background: var(--ink); color: #fff; }
 
-.alert { border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; border: 1px solid transparent; }
-.alert-danger { background: var(--color-danger-bg); color: var(--color-danger); border-color: #FCA5A5; }
-.alert-warning { background: var(--color-warning-bg); color: var(--color-warning); border-color: #FCD34D; }
-.alert-success { background: var(--color-success-bg); color: var(--color-success); border-color: #86EFAC; }
-.alert ul { margin: 6px 0 0; padding-left: 20px; }
+/* Món */
+.item { display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: center; cursor: pointer; }
+.item:last-child { border-bottom: 0; }
+.thumb { width: 92px; height: 92px; border-radius: 16px; object-fit: cover; background: var(--cream); flex: none; }
+.thumb.ph { display: grid; place-items: center; color: var(--primary); }
+.thumb.ph .icon { width: 34px; height: 34px; stroke-width: 1.6; }
+.item-body { flex: 1; min-width: 0; }
+.item-body b { display: block; font-size: 16px; font-weight: 700; }
+.item-body p { margin: 2px 0 6px; color: var(--ink-3); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.price { font-weight: 700; color: var(--primary); }
+.add { width: 36px; height: 36px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); display: grid; place-items: center; flex: none; }
+.add:hover { background: var(--primary); color: #fff; }
+.item.off { cursor: default; }
+.item.off .thumb { filter: grayscale(1); opacity: .55; }
+.item.off .price { color: var(--ink-3); }
+.tag { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 99px; padding: 2px 10px; background: var(--neutral-bg); color: var(--neutral); }
 
-.badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
-.b-CONFIRMED { background: var(--color-info-bg); color: var(--color-info); }
-.b-PREPARING { background: var(--color-warning-bg); color: var(--color-warning); }
-.b-READY { background: var(--color-success-bg); color: var(--color-success); }
-.b-PICKED_UP, .b-NO_SHOW { background: var(--color-neutral-bg); color: var(--color-neutral); }
-.b-CANCELLED { background: var(--color-danger-bg); color: var(--color-danger); }
-.b-late { background: var(--color-danger); color: #fff; }
+/* Nút */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 99px; padding: 13px 22px; font-weight: 700; font-size: 15px; background: var(--neutral-bg); color: var(--ink); text-decoration: none; }
+.btn:hover { background: var(--border); }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-outline { background: transparent; box-shadow: inset 0 0 0 1.5px var(--border); }
+.btn-block { width: 100%; }
+.btn:disabled { background: var(--neutral-bg); color: #A8A29E; cursor: not-allowed; }
+.stepper { display: inline-flex; align-items: center; gap: 4px; background: var(--neutral-bg); border-radius: 99px; padding: 3px; flex: none; }
+.stepper button { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.stepper button .icon { width: 16px; height: 16px; }
+.stepper span { min-width: 24px; text-align: center; font-weight: 700; }
 
-.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-.tab { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 999px; padding: 6px 14px; }
-.tab.active { background: var(--color-text); color: #fff; border-color: var(--color-text); }
+/* Thanh giỏ hàng dính đáy + tab bar */
+.dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; pointer-events: none; }
+.dock-inner { max-width: 520px; margin: 0 auto; pointer-events: auto; }
+.cartbar { margin: 0 12px 10px; background: var(--dark); color: #fff; border-radius: 18px; display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 18px; box-shadow: 0 8px 24px rgba(31,42,36,.35); }
+.cartbar .meta { flex: 1; }
+.cartbar .meta small { display: block; opacity: .75; font-size: 12px; }
+.cartbar .meta b { font-size: 17px; }
+.cartbar .btn { padding: 10px 18px; }
+.tabbar { background: var(--surface); border-top: 1px solid var(--border); display: flex; padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); }
+.tabbar a { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0; font-size: 12px; font-weight: 600; color: var(--ink-3); text-decoration: none; border-radius: 12px; }
+.tabbar a.active { color: var(--primary); }
+.bottom-cta { background: var(--surface); border-top: 1px solid var(--border); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
 
-.item { display: flex; gap: 12px; justify-content: space-between; align-items: center; }
-.item .price { font-weight: 700; white-space: nowrap; }
-.item-off { opacity: .75; }
+/* Bảng thêm món (bottom sheet) */
+.sheet-wrap { position: fixed; inset: 0; z-index: 50; background: rgba(28,25,23,.45); display: flex; align-items: flex-end; justify-content: center; animation: fade .15s; }
+.sheet { width: 100%; max-width: 520px; background: var(--surface); border-radius: 24px 24px 0 0; max-height: 92vh; overflow: auto; animation: up .2s ease-out; }
+.sheet .hero-img { width: 100%; height: 260px; object-fit: cover; }
+.sheet .close { position: absolute; margin: 14px; width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; z-index: 1; }
+.sheet-body { padding: 20px; }
+.sheet-body h2 { margin: 0; font-size: 22px; font-weight: 800; }
+.sheet-foot .btn { white-space: nowrap; padding: 13px 14px; }
+.sheet-foot { display: flex; gap: 12px; align-items: center; padding: 12px 20px 20px; position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+@keyframes fade { from { opacity: 0; } }
 
-table { width: 100%; border-collapse: collapse; }
-th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
-th { font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
-td.num, th.num { text-align: right; white-space: nowrap; }
-.qty { display: inline-flex; align-items: center; gap: 6px; }
-.qty button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); }
-.total { text-align: right; font-size: 18px; font-weight: 700; margin-top: 12px; }
-tr.clickable { cursor: pointer; }
-tr.clickable:hover { background: var(--color-neutral-bg); }
+/* Thẻ, thông báo */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+.card.soft { background: var(--bg); border: 0; }
+.alert { display: flex; gap: 10px; border-radius: 14px; padding: 12px 14px; margin-bottom: 14px; font-size: 14px; }
+.alert .icon { margin-top: 1px; }
+.alert ul { margin: 4px 0 0; padding-left: 18px; }
+.alert-danger { background: var(--danger-bg); color: var(--danger); }
+.alert-warning { background: var(--warning-bg); color: var(--warning); }
+.alert-success { background: var(--success-bg); color: var(--success); }
+.toast { position: fixed; left: 50%; top: 76px; transform: translateX(-50%); z-index: 60; background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 99px; font-size: 14px; font-weight: 600; box-shadow: var(--shadow); animation: fade .2s; display: flex; gap: 8px; align-items: center; white-space: nowrap; }
+.toast .icon { width: 18px; height: 18px; color: #86EFAC; }
+.rows .row { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; }
+.rows .row.total { border-top: 1px dashed #D6D3D1; margin-top: 6px; padding-top: 12px; font-weight: 800; font-size: 18px; }
 
-.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-.slot { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 8px; padding: 10px; text-align: left; }
-.slot strong { display: block; font-size: 16px; }
-.slot .s-ok { color: var(--color-success); font-size: 13px; }
-.slot .s-full { color: var(--color-text-muted); font-size: 13px; }
-.slot:disabled { background: var(--color-neutral-bg); color: var(--color-text-muted); cursor: not-allowed; }
-.slot.selected { border: 2px solid var(--color-primary); background: var(--color-primary-soft); }
+/* Giỏ */
+.cart-line { display: flex; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.cart-line .thumb { width: 64px; height: 64px; border-radius: 12px; }
+.cart-line .grow { flex: 1; min-width: 0; }
+.cart-line b { display: block; font-size: 15px; }
+.cart-line .remove { color: var(--ink-3); font-size: 13px; font-weight: 600; padding: 4px 0; }
 
-.code { font-size: 40px; font-weight: 800; letter-spacing: 6px; font-family: ui-monospace, Consolas, monospace; }
-dl.info { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
-dl.info dt { color: var(--color-text-muted); }
-dl.info dd { margin: 0; }
+/* Tiến trình đặt */
+.steps { display: flex; gap: 6px; padding: 14px 16px 4px; }
+.steps div { flex: 1; }
+.steps i { display: block; height: 4px; border-radius: 4px; background: var(--border); margin-bottom: 6px; }
+.steps .on i { background: var(--primary); }
+.steps span { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.steps .on span { color: var(--ink); }
 
-.form { max-width: 380px; margin: 24px auto; }
+/* Khung giờ */
+.hour { font-size: 13px; font-weight: 700; color: var(--ink-3); margin: 16px 0 8px; letter-spacing: .3px; }
+.slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.slot { border-radius: 14px; padding: 10px 4px; text-align: center; background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--border); }
+.slot b { display: block; font-size: 16px; }
+.slot small { font-size: 11px; font-weight: 600; color: var(--success); }
+.slot:hover:not(:disabled) { box-shadow: inset 0 0 0 1.5px var(--primary); }
+.slot.selected { background: var(--primary); box-shadow: none; color: #fff; }
+.slot.selected small { color: #fff; }
+.slot:disabled { background: var(--neutral-bg); box-shadow: none; color: var(--ink-3); cursor: not-allowed; }
+.slot:disabled b { text-decoration: line-through; font-weight: 600; }
+.slot:disabled small { color: var(--ink-3); }
+
+/* Vé mã nhận */
+.ticket { background: var(--dark); color: #fff; border-radius: 22px; padding: 22px; position: relative; overflow: hidden; }
+.ticket .label { opacity: .75; font-size: 13px; }
+.ticket .code { font-size: 44px; font-weight: 800; letter-spacing: 8px; font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; margin: 2px 0 6px; position: relative; z-index: 1; }
+.ticket .when { display: flex; gap: 8px; align-items: center; font-weight: 600; position: relative; z-index: 1; }
+.ticket .when .icon { width: 18px; height: 18px; }
+.ticket::after { content: ''; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: rgba(194,65,12,.35); }
+.track { display: flex; margin: 18px 0 4px; }
+.track div { flex: 1; text-align: center; font-size: 12px; font-weight: 600; color: var(--ink-3); position: relative; }
+.track div::before { content: ''; display: block; width: 14px; height: 14px; border-radius: 50%; margin: 0 auto 6px; background: var(--border); position: relative; z-index: 1; }
+.track div:not(:first-child)::after { content: ''; position: absolute; top: 6px; right: 50%; width: 100%; height: 3px; background: var(--border); }
+.track div.on { color: var(--ink); }
+.track div.on::before, .track div.on::after { background: var(--primary); }
+
+.badge { display: inline-block; border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.b-CONFIRMED { background: var(--info-bg); color: var(--info); }
+.b-PREPARING { background: var(--warning-bg); color: var(--warning); }
+.b-READY { background: var(--success-bg); color: var(--success); }
+.b-PICKED_UP, .b-NO_SHOW { background: var(--neutral-bg); color: var(--neutral); }
+.b-CANCELLED { background: var(--danger-bg); color: var(--danger); }
+
+.seg { display: flex; background: var(--neutral-bg); border-radius: 99px; padding: 4px; margin: 4px 0 14px; }
+.seg button { flex: 1; padding: 8px; border-radius: 99px; font-weight: 600; font-size: 14px; color: var(--ink-2); }
+.seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+.order-card { display: flex; gap: 12px; align-items: center; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; cursor: pointer; }
+.order-card:hover { border-color: var(--ink-3); }
+.order-card .thumb { width: 64px; height: 64px; border-radius: 12px; }
+.order-card .code-s { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 17px; letter-spacing: 2px; }
+.order-card .grow { flex: 1; min-width: 0; }
+.order-card .muted { display: flex; gap: 4px; align-items: center; font-size: 13px; }
+.order-card .muted .icon { width: 14px; height: 14px; }
+
+/* Đăng nhập */
+.login-hero { height: 220px; position: relative; }
+.login-hero img { width: 100%; height: 100%; object-fit: cover; }
+.login-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0) 40%, #fff 100%); }
 .field { display: block; margin-bottom: 14px; }
-.field span { display: block; font-weight: 600; margin-bottom: 4px; }
-.field input { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; }
-.field .err { color: var(--color-danger); font-size: 14px; }
+.field span { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+.field input { width: 100%; font: inherit; padding: 13px 16px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); }
+.field input:focus { border-color: var(--primary); outline: none; }
 
-.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: start; }
-.col { background: var(--color-neutral-bg); border-radius: var(--radius); padding: 10px; }
-.col h2 { margin: 2px 4px 10px; font-size: 16px; }
-.k-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-.k-card.late { border-left: 5px solid var(--color-danger); }
-.k-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.k-code { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 18px; }
-.k-card ul { margin: 8px 0; padding-left: 18px; }
-.k-card .btn { width: 100%; }
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+/* Bếp */
+.k-top { background: var(--dark); color: #fff; }
+.k-top-inner { max-width: 1240px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.k-top h1 { margin: 0; font-size: 20px; flex: 1; white-space: nowrap; }
+.k-top .clock { opacity: .85; font-size: 14px; display: flex; gap: 6px; align-items: center; }
+.k-top .btn { padding: 9px 16px; background: rgba(255,255,255,.12); color: #fff; }
+.board { max-width: 1240px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.col h2 { display: flex; align-items: center; gap: 8px; font-size: 16px; margin: 0 0 12px; }
+.col h2 i { width: 10px; height: 10px; border-radius: 50%; }
+.col h2 em { font-style: normal; background: var(--surface); border-radius: 99px; padding: 0 9px; font-size: 13px; }
+.k-card { background: var(--surface); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow); border-top: 4px solid var(--border); }
+.k-card.g-PREP { border-top-color: #D97706; }
+.k-card.g-DUE { border-top-color: var(--primary); }
+.k-card.g-UP { border-top-color: #A8A29E; }
+.k-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.k-code { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 22px; letter-spacing: 2px; }
+.k-time { font-weight: 700; background: var(--neutral-bg); border-radius: 10px; padding: 3px 10px; white-space: nowrap; }
+.late { background: var(--danger); color: #fff; border-radius: 8px; padding: 2px 8px; font-size: 12px; font-weight: 800; letter-spacing: .5px; }
+.k-card ul { list-style: none; padding: 0; margin: 12px 0; font-size: 17px; font-weight: 600; }
+.k-card li { padding: 4px 0; }
+.k-card li b { display: inline-block; min-width: 34px; color: var(--primary); }
+.k-meta { color: var(--ink-3); font-size: 13px; margin-top: 6px; }
+.k-card .btn { width: 100%; padding: 12px; }
+.empty { text-align: center; padding: 48px 16px; color: var(--ink-3); }
+.empty .icon { width: 48px; height: 48px; stroke-width: 1.4; margin: 0 auto 10px; color: #D6D3D1; display: block; }
 
-@media (max-width: 760px) {
-  .board { grid-template-columns: 1fr; }
-  .hide-sm { display: none; }
-  .code { font-size: 32px; }
-}
+/* Bảng điều khiển prototype (không thuộc giao diện thật) */
+.demo-toggle { position: fixed; left: 12px; bottom: 160px; z-index: 40; background: #111827; color: #fff; border-radius: 99px; padding: 6px 12px; font-size: 12px; font-weight: 700; box-shadow: var(--shadow); opacity: .85; }
+.demo { position: fixed; left: 12px; bottom: 200px; z-index: 40; width: 270px; background: #111827; color: #F9FAFB; border-radius: 14px; padding: 14px; font-size: 13px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,.3); }
+.demo.open { display: block; }
+.demo label { display: block; margin-bottom: 8px; }
+.demo select { width: 100%; font: inherit; font-size: 13px; margin-top: 2px; padding: 4px; border-radius: 6px; }
+.demo p { margin: 0 0 10px; opacity: .7; }
+
+@media (max-width: 860px) { .board { grid-template-columns: 1fr; } .k-top .clock { order: 5; width: 100%; } }
+@media (max-width: 380px) { .slots { grid-template-columns: repeat(3, 1fr); } .thumb { width: 78px; height: 78px; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; scroll-behavior: auto !important; } }
 </style>
 </head>
 <body>
-<div class="demo" aria-label="Điều khiển prototype, không phải giao diện thật">
-  <strong>PROTOTYPE · dữ liệu giả</strong>
+<button class="demo-toggle" id="demoToggle" aria-expanded="false">⚙ Prototype</button>
+<div class="demo" id="demo" aria-label="Điều khiển prototype, không thuộc giao diện thật">
+  <p>Bảng điều khiển của prototype, dữ liệu giả. Không thuộc giao diện thật.</p>
   <label>Vai trò
-    <select id="role">
-      <option value="guest">Khách vãng lai</option>
-      <option value="CUSTOMER" selected>Khách</option>
-      <option value="KITCHEN">Nhân viên bếp</option>
-    </select>
-  </label>
+    <select id="role"><option value="guest">Khách vãng lai</option><option value="CUSTOMER" selected>Khách</option><option value="KITCHEN">Nhân viên bếp</option></select></label>
   <label>Danh sách khung
-    <select id="slotCase">
-      <option value="ok">Bình thường</option>
-      <option value="E2">E2 hết khung trong ngày</option>
-      <option value="E3">E3 mọi khung không đủ chỗ</option>
-      <option value="E4">E4 đơn quá lớn</option>
-    </select>
-  </label>
+    <select id="slotCase"><option value="ok">Bình thường</option><option value="E2">E2 hết khung trong ngày</option><option value="E3">E3 mọi khung không đủ chỗ</option><option value="E4">E4 đơn quá lớn</option></select></label>
   <label>Kết quả gửi đơn
-    <select id="submitCase">
-      <option value="ok">Thành công</option>
-      <option value="E5">E5 đủ 3 đơn</option>
-      <option value="E6">E6 khung hết hạn</option>
-      <option value="E7">E7 món thay đổi</option>
-      <option value="E8">E8 khung vừa hết chỗ</option>
-      <option value="E9">E9 đơn quá lớn</option>
-      <option value="E10">E10 lỗi hệ thống</option>
-    </select>
-  </label>
+    <select id="submitCase"><option value="ok">Thành công</option><option value="E5">E5 đủ 3 đơn</option><option value="E6">E6 khung hết hạn</option><option value="E7">E7 món thay đổi</option><option value="E8">E8 khung vừa hết chỗ</option><option value="E9">E9 đơn quá lớn</option><option value="E10">E10 lỗi hệ thống</option></select></label>
   <label>Hàng chờ bếp
-    <select id="kitchenCase">
-      <option value="ok">Có đơn</option>
-      <option value="empty">Trống (A1)</option>
-    </select>
-  </label>
+    <select id="kitchenCase"><option value="ok">Có đơn</option><option value="empty">Trống (A1)</option></select></label>
 </div>
 
-<nav class="nav"><div class="nav-inner" id="nav"></div></nav>
-<main id="app"></main>
+<div id="root"></div>
 
 <script>
-const money = (v) => v.toLocaleString('vi-VN') + ' đ';
+// Ảnh món: Unsplash (giấy phép Unsplash, dùng tự do), chỉ để minh họa trong prototype.
+const IMG = (id, w = 400) => `https://images.unsplash.com/photo-${id}?w=${w}&h=${w}&fit=crop&q=70&auto=format`;
+const ICONS = {
+  plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>', back: '<path d="m15 18-6-6 6-6"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h10"/>', receipt: '<path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', walk: '<circle cx="13" cy="4" r="2"/><path d="M10 22l2-7 3 3v6M8 12l2-4 4 1 3 3"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>', alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>', bag: '<path d="M5 8h14l-1 13H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
+  cup: '<path d="M6 8h12l-1.5 12h-9z"/><path d="M5 8h14M9 4h6l1 4H8z"/>', chef: '<path d="M6 14a4 4 0 0 1-.5-8A5 5 0 0 1 15 4a4 4 0 0 1 3 7.5V14z"/><path d="M6 14v6h12v-6"/>',
+};
+const ic = (n) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]}</svg>`;
+const money = (v) => v.toLocaleString('vi-VN') + 'đ';
 const STATUS = { CONFIRMED: 'Đã xác nhận', PREPARING: 'Đang chuẩn bị', READY: 'Sẵn sàng nhận', PICKED_UP: 'Đã nhận', CANCELLED: 'Đã hủy', NO_SHOW: 'Không đến nhận' };
 const badge = (s) => `<span class="badge b-${s}">${STATUS[s]}</span>`;
 
 const menu = [
   { name: 'Burger', items: [
-    { id: 12, name: 'Burger bò', desc: 'Bò nướng, rau, sốt nhà làm', price: 45000, available: true },
-    { id: 13, name: 'Burger gà giòn', desc: 'Gà chiên giòn, xà lách', price: 39000, available: false } ] },
+    { id: 12, name: 'Burger bò', desc: 'Bò nướng, phô mai cheddar, rau tươi, sốt nhà làm', price: 45000, img: '1568901346375-23c9450c58cd', available: true },
+    { id: 14, name: 'Burger phô mai đôi', desc: 'Hai lớp bò, phô mai, cà chua, xà lách', price: 59000, img: '1571091718767-18b5b1457add', available: true },
+    { id: 13, name: 'Burger gà giòn', desc: 'Gà chiên giòn, bắp cải, sốt cay', price: 39000, img: '1606755962773-d324e0a13086', available: false } ] },
   { name: 'Gà rán', items: [
-    { id: 21, name: 'Gà rán 2 miếng', desc: null, price: 55000, available: true },
-    { id: 22, name: 'Khoai tây chiên', desc: 'Cỡ vừa', price: 25000, available: true } ] },
+    { id: 21, name: 'Gà rán 2 miếng', desc: 'Giòn rụm, ướp 12 tiếng', price: 55000, img: '1626082927389-6cd097cdc6ec', available: true },
+    { id: 23, name: 'Gà que tẩm bột', desc: '6 que, kèm sốt mayo', price: 42000, img: '1562967914-608f82629710', available: true },
+    { id: 22, name: 'Khoai tây chiên', desc: 'Cỡ vừa, rắc muối biển', price: 25000, img: '1573080496219-bb080dd4f877', available: true } ] },
   { name: 'Đồ uống', items: [
-    { id: 31, name: 'Trà đào', desc: null, price: 20000, available: true },
-    { id: 32, name: 'Nước ngọt', desc: 'Lon 330 ml', price: 15000, available: true } ] },
+    { id: 31, name: 'Trà đào', desc: 'Trà đen, đào ngâm, đá', price: 20000, img: '1556679343-c7306c1976bc', available: true },
+    { id: 32, name: 'Nước suối', desc: 'Chai 500 ml', price: 10000, img: null, available: true } ] },
 ];
 const allItems = menu.flatMap((c) => c.items);
-const slots = [
-  ['11:30', true], ['11:45', true], ['12:00', false], ['12:15', false], ['12:30', true], ['12:45', true],
-  ['13:00', true], ['13:15', true], ['13:30', true], ['13:45', true],
-];
+const itemOf = (id) => allItems.find((i) => i.id === id);
+const thumb = (i) => i.img ? `<img class="thumb" src="${IMG(i.img, 240)}" alt="" loading="lazy">` : `<div class="thumb ph">${ic('cup')}</div>`;
+const SLOTS = [['11:30', true], ['11:45', true], ['12:00', false], ['12:15', false], ['12:30', true], ['12:45', true], ['13:00', true], ['13:15', true], ['13:30', true], ['13:45', true], ['14:00', true], ['14:15', false]];
 const endOf = (t) => { const [h, m] = t.split(':').map(Number); const x = h * 60 + m + 15; return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`; };
+const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const NOW = '11:20';
 
 const state = {
   cart: [{ id: 12, qty: 2, price: 45000 }, { id: 31, qty: 1, price: 20000 }],
-  category: 'Tất cả',
-  slot: null,
-  notice: null,
-  loginError: null,
+  category: null, slot: null, notice: null, loginError: null, sheet: null, toast: null, orderTab: 'open',
   orders: [
-    { id: 40, code: 'B5H2NE', slot: '11:00', date: 'hôm nay', status: 'READY', paid: false, lines: [{ name: 'Burger bò', qty: 1, price: 45000 }] },
-    { id: 35, code: 'H8R2ZC', slot: '18:30', date: '16/10/2026', status: 'PICKED_UP', paid: true, lines: [{ name: 'Gà rán 2 miếng', qty: 1, price: 55000 }, { name: 'Trà đào', qty: 1, price: 20000 }] },
+    { id: 40, code: 'B5H2NE', slot: '11:00', date: 'Hôm nay', status: 'READY', paid: false, at: '10:20', lines: [{ id: 12, qty: 1, price: 45000 }] },
+    { id: 35, code: 'H8R2ZC', slot: '18:30', date: '16/10', status: 'PICKED_UP', paid: true, at: '17:55', lines: [{ id: 21, qty: 1, price: 55000 }, { id: 31, qty: 1, price: 20000 }] },
   ],
   kitchen: [
-    { code: 'P4W9TD', slot: '11:15', status: 'PREPARING', confirmed: '10:40', lines: ['2 × Burger bò', '1 × Khoai tây chiên'] },
-    { code: 'D3F7KA', slot: '11:30', status: 'CONFIRMED', confirmed: '10:52', lines: ['2 × Burger bò', '1 × Trà đào'] },
-    { code: 'T6N3XV', slot: '11:30', status: 'CONFIRMED', confirmed: '11:05', lines: ['1 × Gà rán 2 miếng'] },
-    { code: 'M2C8QA', slot: '12:15', status: 'CONFIRMED', confirmed: '11:02', lines: ['3 × Gà rán 2 miếng'] },
+    { code: 'P4W9TD', slot: '11:15', status: 'PREPARING', confirmed: '10:40', lines: [[2, 'Burger bò'], [1, 'Khoai tây chiên']] },
+    { code: 'D3F7KA', slot: '11:30', status: 'CONFIRMED', confirmed: '10:52', lines: [[2, 'Burger bò'], [1, 'Trà đào']] },
+    { code: 'T6N3XV', slot: '11:30', status: 'CONFIRMED', confirmed: '11:05', lines: [[1, 'Gà rán 2 miếng']] },
+    { code: 'M2C8QA', slot: '12:15', status: 'CONFIRMED', confirmed: '11:02', lines: [[3, 'Gà rán 2 miếng'], [2, 'Nước suối']] },
   ],
-  kitchenNotice: null,
 };
-const NOW = '11:20';
-const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
 const $ = (id) => document.getElementById(id);
 const role = () => $('role').value;
 const cartCount = () => state.cart.reduce((s, l) => s + l.qty, 0);
 const cartTotal = () => state.cart.reduce((s, l) => s + l.qty * l.price, 0);
-const itemOf = (id) => allItems.find((i) => i.id === id);
 const go = (path) => { location.hash = '#' + path; };
+const toast = (msg) => { state.toast = msg; render(); clearTimeout(toast.t); toast.t = setTimeout(() => { state.toast = null; render(); }, 1800); };
+const alertBox = (kind, html) => `<div class="alert alert-${kind}" role="alert">${ic(kind === 'success' ? 'check' : 'alert')}<div>${html}</div></div>`;
+const cartBtn = () => `<a class="icon-btn" href="#/cart" aria-label="Giỏ hàng, ${cartCount()} món">${ic('bag')}${cartCount() ? `<span class="dot">${cartCount()}</span>` : ''}</a>`;
 
-function renderNav(path) {
-  const link = (p, label) => `<a class="link ${path === p ? 'active' : ''}" href="#${p}">${label}</a>`;
-  let html = `<a class="brand" href="#/">Nhóm 15 Food</a>`;
-  if (role() === 'guest') html += link('/', 'Menu') + link('/login', 'Đăng nhập');
-  if (role() === 'CUSTOMER') html += link('/', 'Menu') + link('/cart', `Giỏ<span class="count">${cartCount()}</span>`) + link('/orders', 'Đơn của tôi') + `<span class="link muted hide-sm">Khách Một</span><a class="link" href="#/logout">Đăng xuất</a>`;
-  if (role() === 'KITCHEN') html += link('/kitchen', 'Hàng chờ bếp') + `<span class="link muted hide-sm">Bếp Một</span><a class="link" href="#/logout">Đăng xuất</a>`;
-  $('nav').innerHTML = html;
+function topbar(title, back) {
+  return `<header class="topbar">${back ? `<a class="back" href="#${back}" aria-label="Quay lại">${ic('back')}</a>` : ''}<h1>${title}</h1>${role() === 'CUSTOMER' ? cartBtn() : ''}</header>`;
+}
+function dock(path) {
+  const tab = (p, icon, label) => `<a href="#${p}" class="${path === p ? 'active' : ''}">${ic(icon)}${label}</a>`;
+  const showBar = role() === 'CUSTOMER' && cartCount() > 0 && path === '/';
+  const bar = showBar ? `<div class="cartbar"><div class="meta"><small>${cartCount()} món · tự đến lấy</small><b>${money(cartTotal())}</b></div><a class="btn btn-primary" href="#/cart">Xem giỏ</a></div>` : '';
+  const tabs = role() === 'CUSTOMER'
+    ? tab('/', 'menu', 'Thực đơn') + tab('/orders', 'receipt', 'Đơn của tôi') + `<a href="#/logout">${ic('user')}Đăng xuất</a>`
+    : tab('/', 'menu', 'Thực đơn') + tab('/login', 'user', 'Đăng nhập');
+  return `<div class="dock"><div class="dock-inner">${bar}<nav class="tabbar" aria-label="Điều hướng chính">${tabs}</nav></div></div>`;
 }
 
 const pages = {
-  '/': () => {
-    const cats = ['Tất cả', ...menu.map((c) => c.name)];
-    const shown = menu.filter((c) => state.category === 'Tất cả' || c.name === state.category);
-    return `<h1>Menu hôm nay</h1>
-      <div class="tabs" role="tablist">${cats.map((c) => `<button class="tab ${c === state.category ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('')}</div>
-      ${state.notice ? `<div class="alert alert-success">${state.notice}</div>` : ''}
-      ${shown.map((c) => `<h2>${c.name}</h2>${c.items.map((i) => `
-        <div class="card item ${i.available ? '' : 'item-off'}">
-          <div><strong>${i.name}</strong>${i.desc ? `<div class="muted">${i.desc}</div>` : ''}${i.available ? '' : '<div><span class="badge b-PICKED_UP">Tạm hết</span></div>'}</div>
-          <div style="text-align:right"><div class="price">${money(i.price)}</div>
-          ${i.available ? `<button class="btn btn-primary" data-add="${i.id}" style="margin-top:6px">Thêm vào giỏ</button>` : ''}</div>
-        </div>`).join('')}`).join('')}`;
-  },
-  '/login': () => `<div class="form card">
-      <h1>Đăng nhập</h1>
-      ${state.loginError ? `<div class="alert alert-danger">${state.loginError}</div>` : ''}
+  '/': () => `<header class="topbar"><a class="brand" href="#/"><span class="logo">15</span><span><b>Nhóm 15 Food</b><small>${ic('walk')}Đặt trước · Tự đến lấy</small></span></a>
+        ${role() === 'CUSTOMER' ? cartBtn() : `<a class="link-btn" href="#/login">Đăng nhập</a>`}</header>
+      <div class="hero"><img src="${IMG('1568901346375-23c9450c58cd', 900)}" alt=""><div><strong>Đặt trước, đến là có</strong><span>Chọn giờ nhận, cửa hàng làm sẵn cho bạn.</span></div></div>
+      <nav class="chips" aria-label="Nhóm món">${menu.map((c) => `<button class="chip ${state.category === c.name ? 'active' : ''}" data-cat="${c.name}">${c.name}</button>`).join('')}</nav>
+      <div class="content" style="padding-top:0">
+      ${menu.map((c) => `<h2 class="section-title" id="cat-${c.name}">${c.name}</h2>${c.items.map((i) => `
+        <div class="item ${i.available ? '' : 'off'}" ${i.available ? `data-open="${i.id}"` : ''}>
+          ${thumb(i)}
+          <div class="item-body"><b>${i.name}</b><p>${i.desc ?? ''}</p><span class="price">${money(i.price)}</span>${i.available ? '' : ' <span class="tag">Tạm hết</span>'}</div>
+          ${i.available ? `<button class="add" data-quick="${i.id}" aria-label="Thêm ${i.name} vào giỏ">${ic('plus')}</button>` : ''}
+        </div>`).join('')}`).join('')}
+      </div>`,
+  '/login': () => `<div class="login-hero"><img src="${IMG('1626082927389-6cd097cdc6ec', 900)}" alt=""></div>
+    <div class="content" style="margin-top:-30px;position:relative">
+      <h1 style="font-size:26px;margin:0 0 4px;font-weight:800">Chào bạn</h1>
+      <p class="muted" style="margin:0 0 20px">Đăng nhập để đặt món và theo dõi đơn.</p>
+      ${state.loginError ? alertBox('danger', state.loginError) : ''}
       <label class="field"><span>Email hoặc số điện thoại</span><input id="loginId" value="khach1@example.com" autocomplete="username"></label>
-      <label class="field"><span>Mật khẩu</span><input id="password" type="password" autocomplete="current-password"></label>
-      <button class="btn btn-primary" style="width:100%" id="doLogin">Đăng nhập</button>
-      <p class="muted">Prototype: mật khẩu trống → báo lỗi E1; nhập bất kỳ → đăng nhập theo vai trò đang chọn ở thanh trên.</p>
+      <label class="field"><span>Mật khẩu</span><input id="password" type="password" autocomplete="current-password" placeholder="Nhập mật khẩu"></label>
+      <button class="btn btn-primary btn-block" id="doLogin">Đăng nhập</button>
+      <p class="muted" style="font-size:12px;margin-top:16px">Prototype: để trống mật khẩu → lỗi E1; nhập bất kỳ → vào theo vai trò ở bảng ⚙.</p>
     </div>`,
   '/cart': () => {
-    if (!state.cart.length) return `<h1>Giỏ hàng</h1><div class="card">Giỏ hàng trống. <a href="#/">Xem menu</a></div>
-      <div class="actions"><button class="btn btn-primary" disabled>Chọn giờ nhận</button></div>`;
-    return `<h1>Giỏ hàng</h1>
-      ${state.notice ? `<div class="alert alert-warning">${state.notice}</div>` : ''}
-      <div class="card"><table>
-        <thead><tr><th>Món</th><th>Số lượng</th><th class="num hide-sm">Đơn giá</th><th class="num">Thành tiền</th><th></th></tr></thead>
-        <tbody>${state.cart.map((l) => `<tr><td>${itemOf(l.id).name}</td>
-          <td><span class="qty"><button aria-label="Bớt" data-dec="${l.id}">−</button>${l.qty}<button aria-label="Thêm" data-inc="${l.id}">+</button></span></td>
-          <td class="num hide-sm">${money(l.price)}</td><td class="num">${money(l.qty * l.price)}</td>
-          <td class="num"><button class="btn" data-del="${l.id}">Bỏ</button></td></tr>`).join('')}</tbody>
-      </table><div class="total">Tổng tiền: ${money(cartTotal())}</div></div>
-      <div class="actions"><a class="btn" href="#/" style="text-decoration:none">Tiếp tục chọn món</a><button class="btn btn-primary" data-go="/checkout">Chọn giờ nhận</button></div>`;
+    if (!state.cart.length) return topbar('Giỏ hàng', '/') + `<div class="empty">${ic('bag')}<p><b>Giỏ hàng trống</b><br>Chọn vài món ngon nhé.</p><a class="btn btn-primary" href="#/">Xem thực đơn</a></div>`;
+    return topbar('Giỏ hàng', '/') + `<div class="steps"><div class="on"><i></i><span>Giỏ hàng</span></div><div><i></i><span>Giờ nhận</span></div><div><i></i><span>Xong</span></div></div>
+      <div class="content">
+      ${state.notice ? alertBox('warning', state.notice) : ''}
+      ${state.cart.map((l) => { const i = itemOf(l.id); return `<div class="cart-line">${thumb(i)}
+        <div class="grow"><b>${i.name}</b><span class="price">${money(l.price)}</span><br><button class="remove" data-del="${l.id}">Bỏ món</button></div>
+        <div class="stepper"><button data-dec="${l.id}" aria-label="Bớt">${ic('minus')}</button><span>${l.qty}</span><button data-inc="${l.id}" aria-label="Thêm">${ic('plus')}</button></div></div>`; }).join('')}
+      <div class="card soft rows" style="margin-top:16px">
+        <div class="row"><span class="muted">Tạm tính (${cartCount()} món)</span><span>${money(cartTotal())}</span></div>
+        <div class="row"><span class="muted">Thanh toán</span><span>Tại quầy khi nhận</span></div>
+        <div class="row total"><span>Tổng</span><span>${money(cartTotal())}</span></div>
+      </div></div>
+      <div class="dock"><div class="dock-inner"><div class="bottom-cta"><button class="btn btn-primary btn-block" data-go="/checkout">${ic('clock')}Chọn giờ nhận</button></div></div></div>`;
   },
   '/checkout': () => {
     const c = $('slotCase').value;
     const msg = { E2: 'Hôm nay không còn khung nhận. Giỏ hàng vẫn được giữ.', E3: 'Hôm nay đã hết chỗ. Bạn có thể bớt món rồi thử lại.', E4: 'Đơn quá lớn cho một khung giờ. Vui lòng bớt món hoặc liên hệ cửa hàng.' }[c];
-    const list = msg ? `<div class="alert alert-warning">${msg}</div>` : `
-      <p class="muted">Tình trạng chỉ để tham khảo; cửa hàng xác nhận khi bạn bấm "Xác nhận đặt".</p>
-      <div class="slots">${slots.map(([t, ok]) => `<button class="slot ${state.slot === t ? 'selected' : ''}" ${ok ? '' : 'disabled'} data-slot="${t}">
-        <strong>${t} – ${endOf(t)}</strong><span class="${ok ? 's-ok' : 's-full'}">${ok ? 'Đặt được' : 'Không đủ chỗ'}</span></button>`).join('')}</div>`;
-    return `<h1>Chọn giờ nhận hôm nay</h1>
-      ${state.notice ? `<div class="alert alert-danger">${state.notice}</div>` : ''}
+    const hours = [...new Set(SLOTS.map(([t]) => t.slice(0, 2)))];
+    const list = msg ? alertBox('warning', msg) : hours.map((h) => `<div class="hour">${h} GIỜ</div><div class="slots">${SLOTS.filter(([t]) => t.startsWith(h)).map(([t, ok]) =>
+      `<button class="slot ${state.slot === t ? 'selected' : ''}" ${ok ? '' : 'disabled'} data-slot="${t}" aria-label="${t} đến ${endOf(t)}, ${ok ? 'đặt được' : 'không đủ chỗ'}"><b>${t}</b><small>${ok ? 'Đặt được' : 'Hết chỗ'}</small></button>`).join('')}</div>`).join('');
+    return topbar('Chọn giờ nhận', '/cart') + `<div class="steps"><div class="on"><i></i><span>Giỏ hàng</span></div><div class="on"><i></i><span>Giờ nhận</span></div><div><i></i><span>Xong</span></div></div>
+      <div class="content">
+      ${state.notice ? alertBox('danger', state.notice) : ''}
+      <h2 class="section-title" style="margin-top:4px">Hôm nay, bạn đến lấy lúc nào?</h2>
+      <p class="muted" style="margin-top:-6px">Mỗi khung 15 phút. Tình trạng chỉ để tham khảo; cửa hàng xác nhận khi bạn đặt.</p>
       ${list}
-      <h2>Tóm tắt đơn</h2>
-      <div class="card"><table><tbody>
-        ${state.cart.map((l) => `<tr><td>${itemOf(l.id).name} × ${l.qty}</td><td class="num">${money(l.qty * l.price)}</td></tr>`).join('')}
-        <tr><td><strong>Tổng tiền</strong></td><td class="num"><strong>${money(cartTotal())}</strong></td></tr>
-      </tbody></table>
-      <dl class="info" style="margin-top:12px"><dt>Giờ nhận</dt><dd>${state.slot ? `${state.slot} – ${endOf(state.slot)} hôm nay` : 'Chưa chọn'}</dd>
-      <dt>Thanh toán</dt><dd>Tại quầy khi nhận món</dd></dl></div>
-      <div class="actions"><button class="btn" data-go="/cart">Quay lại giỏ</button>
-      <button class="btn btn-primary" id="submit" ${state.slot && !msg ? '' : 'disabled'}>Xác nhận đặt</button></div>`;
+      <h2 class="section-title">Tóm tắt đơn</h2>
+      <div class="card rows">
+        ${state.cart.map((l) => `<div class="row"><span>${l.qty} × ${itemOf(l.id).name}</span><span>${money(l.qty * l.price)}</span></div>`).join('')}
+        <div class="row"><span class="muted">Giờ nhận</span><span><b>${state.slot ? `${state.slot} – ${endOf(state.slot)} hôm nay` : 'Chưa chọn'}</b></span></div>
+        <div class="row"><span class="muted">Thanh toán</span><span>Tại quầy khi nhận</span></div>
+        <div class="row total"><span>Tổng</span><span>${money(cartTotal())}</span></div>
+      </div></div>
+      <div class="dock"><div class="dock-inner"><div class="bottom-cta"><button class="btn btn-primary btn-block" id="submit" ${state.slot && !msg ? '' : 'disabled'}>Xác nhận đặt · ${money(cartTotal())}</button></div></div></div>`;
   },
   '/orders': () => {
-    const open = state.orders.filter((o) => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.status)).sort((a, b) => toMin(a.slot) - toMin(b.slot));
-    const done = state.orders.filter((o) => !open.includes(o));
-    const rows = (list) => list.map((o) => `<tr class="clickable" data-order="${o.id}"><td><strong>${o.code}</strong></td><td>${o.slot}, ${o.date}</td><td>${badge(o.status)}</td>
-      <td class="hide-sm">${o.paid ? 'Đã thanh toán' : 'Chưa'}</td><td class="num">${money(o.lines.reduce((s, l) => s + l.qty * l.price, 0))}</td></tr>`).join('');
-    const head = `<thead><tr><th>Mã nhận</th><th>Giờ nhận</th><th>Trạng thái</th><th class="hide-sm">Thanh toán</th><th class="num">Tổng</th></tr></thead>`;
-    if (!state.orders.length) return `<h1>Đơn của tôi</h1><div class="card">Bạn chưa có đơn. <a href="#/">Xem menu</a></div>`;
-    return `<div class="toolbar"><h1>Đơn của tôi</h1><button class="btn" data-go="/orders">Tải lại</button></div>
-      <h2>Đang xử lý</h2><div class="card">${open.length ? `<table>${head}<tbody>${rows(open)}</tbody></table>` : '<span class="muted">Không có đơn đang xử lý.</span>'}</div>
-      <h2>Đã kết thúc</h2><div class="card">${done.length ? `<table>${head}<tbody>${rows(done)}</tbody></table>` : '<span class="muted">Chưa có.</span>'}</div>`;
+    const isOpen = (o) => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.status);
+    const open = state.orders.filter(isOpen).sort((a, b) => toMin(a.slot) - toMin(b.slot));
+    const done = state.orders.filter((o) => !isOpen(o));
+    const list = state.orderTab === 'open' ? open : done;
+    const total = (o) => o.lines.reduce((s, l) => s + l.qty * l.price, 0);
+    if (!state.orders.length) return topbar('Đơn của tôi') + `<div class="empty">${ic('receipt')}<p><b>Bạn chưa có đơn</b></p><a class="btn btn-primary" href="#/">Xem thực đơn</a></div>`;
+    return topbar('Đơn của tôi') + `<div class="content">
+      <div class="seg"><button class="${state.orderTab === 'open' ? 'on' : ''}" data-tab="open">Đang xử lý (${open.length})</button><button class="${state.orderTab === 'done' ? 'on' : ''}" data-tab="done">Đã kết thúc</button></div>
+      ${list.map((o) => `<div class="order-card" data-order="${o.id}">
+        ${thumb(itemOf(o.lines[0].id))}
+        <div class="grow"><div class="code-s">${o.code}</div><div class="muted">${ic('clock')}${o.date}, ${o.slot} – ${endOf(o.slot)}</div><div style="margin-top:4px">${badge(o.status)}</div></div>
+        <b>${money(total(o))}</b></div>`).join('') || '<p class="muted">Không có đơn.</p>'}
+      <button class="btn btn-outline btn-block" data-go="/orders">${ic('refresh')}Tải lại</button></div>`;
   },
   '/kitchen': () => {
     const now = toMin(NOW);
     const list = $('kitchenCase').value === 'empty' ? [] : state.kitchen.filter((o) => o.status === 'CONFIRMED' || o.status === 'PREPARING');
     const sorted = [...list].sort((a, b) => toMin(a.slot) - toMin(b.slot) || toMin(a.confirmed) - toMin(b.confirmed));
     const groups = [
-      ['Đang làm', sorted.filter((o) => o.status === 'PREPARING')],
-      ['Cần chuẩn bị', sorted.filter((o) => o.status === 'CONFIRMED' && now >= toMin(o.slot) - 15)],
-      ['Sắp tới', sorted.filter((o) => o.status === 'CONFIRMED' && now < toMin(o.slot) - 15)],
+      ['Đang làm', '#D97706', 'PREP', sorted.filter((o) => o.status === 'PREPARING')],
+      ['Cần chuẩn bị', 'var(--primary)', 'DUE', sorted.filter((o) => o.status === 'CONFIRMED' && now >= toMin(o.slot) - 15)],
+      ['Sắp tới', '#A8A29E', 'UP', sorted.filter((o) => o.status === 'CONFIRMED' && now < toMin(o.slot) - 15)],
     ];
-    const card = (o) => { const late = now >= toMin(o.slot); return `<div class="k-card ${late ? 'late' : ''}">
-      <div class="k-head"><span class="k-code">${o.code}</span><span>${o.slot} – ${endOf(o.slot)}</span></div>
-      <div>${late ? '<span class="badge b-late">TRỄ</span> ' : ''}<span class="muted">Pre-order · xác nhận ${o.confirmed}</span></div>
-      <ul>${o.lines.map((l) => `<li>${l}</li>`).join('')}</ul>
-      ${o.status === 'CONFIRMED' ? `<button class="btn ${now >= toMin(o.slot) - 15 ? 'btn-primary' : ''}" data-start="${o.code}">Bắt đầu</button>` : `<button class="btn btn-primary" data-done="${o.code}">Hoàn tất</button>`}
-    </div>`; };
-    return `<div class="toolbar"><h1>Hàng chờ bếp</h1><span class="muted">Cập nhật lúc ${NOW}:05 · tự làm mới mỗi 30 giây <button class="btn" data-go="/kitchen">Tải lại</button></span></div>
-      ${state.kitchenNotice ? `<div class="alert alert-success">${state.kitchenNotice}</div>` : ''}
-      ${list.length ? `<div class="board">${groups.map(([name, os]) => `<section class="col"><h2>${name} (${os.length})</h2>${os.map(card).join('') || '<p class="muted">Không có đơn.</p>'}</section>`).join('')}</div>`
-        : '<div class="card">Chưa có đơn cần làm.</div>'}`;
+    const card = (o, g) => { const late = now >= toMin(o.slot); return `<article class="k-card g-${g}">
+      <div class="k-head"><span class="k-code">${o.code}</span><span class="k-time">${o.slot} – ${endOf(o.slot)}</span></div>
+      <div class="k-meta">${late ? '<span class="late">TRỄ</span> · ' : ''}Pre-order · xác nhận ${o.confirmed}</div>
+      <ul>${o.lines.map(([q, n]) => `<li><b>${q}×</b>${n}</li>`).join('')}</ul>
+      ${o.status === 'CONFIRMED' ? `<button class="btn ${g === 'DUE' ? 'btn-primary' : 'btn-outline'}" data-start="${o.code}">Bắt đầu</button>` : `<button class="btn btn-primary" data-done="${o.code}">${ic('check')}Hoàn tất</button>`}
+    </article>`; };
+    return `<header class="k-top"><div class="k-top-inner"><span class="logo">15</span><h1>Hàng chờ bếp</h1>
+        <span class="clock">${ic('clock')}Cập nhật ${NOW}:05 · tự làm mới 30 giây</span>
+        <button class="btn" data-go="/kitchen">${ic('refresh')}Tải lại</button><a class="btn" href="#/logout">Đăng xuất</a></div></header>
+      ${list.length ? `<div class="board">${groups.map(([name, color, g, os]) => `<section class="col"><h2><i style="background:${color}"></i>${name}<em>${os.length}</em></h2>${os.map((o) => card(o, g)).join('') || '<p class="muted">Không có đơn.</p>'}</section>`).join('')}</div>`
+        : `<div class="empty">${ic('chef')}<p><b>Chưa có đơn cần làm</b></p></div>`}`;
   },
-  '/forbidden': () => `<h1>Không có quyền</h1><div class="card">Tài khoản của bạn không dùng được chức năng này. <a href="#/">Về trang chính</a></div>`,
+  '/forbidden': () => topbar('Không có quyền') + `<div class="empty">${ic('alert')}<p><b>Tài khoản của bạn không dùng được chức năng này.</b></p><a class="btn btn-primary" href="#/">Về trang chính</a></div>`,
 };
 
 function orderDetail(id, fresh) {
   const o = state.orders.find((x) => x.id === id);
-  if (!o) return `<h1>Không tìm thấy đơn</h1><div class="card"><a href="#/orders">Về Đơn của tôi</a></div>`;
+  if (!o) return topbar('Không tìm thấy đơn', '/orders') + `<div class="empty"><a class="btn" href="#/orders">Về Đơn của tôi</a></div>`;
   const total = o.lines.reduce((s, l) => s + l.qty * l.price, 0);
-  return `${fresh ? '<div class="alert alert-success"><strong>Đặt đơn thành công.</strong> Đọc mã nhận tại quầy khi tới lấy món.</div>' : ''}
-    <div class="card"><div class="toolbar"><div><div class="muted">Mã nhận</div><div class="code">${o.code}</div></div>${badge(o.status)}</div>
-    <dl class="info"><dt>Giờ nhận</dt><dd>${o.slot} – ${endOf(o.slot)}, ${o.date}</dd>
-    <dt>Thanh toán</dt><dd>${o.paid ? 'Đã thanh toán · Tiền mặt' : 'Chưa thanh toán · Thanh toán tại quầy khi nhận'}</dd>
-    <dt>Đặt lúc</dt><dd>10:52, 17/10/2026</dd></dl></div>
-    <div class="card"><table><thead><tr><th>Món</th><th class="num">SL</th><th class="num hide-sm">Đơn giá</th><th class="num">Thành tiền</th></tr></thead><tbody>
-    ${o.lines.map((l) => `<tr><td>${l.name}</td><td class="num">${l.qty}</td><td class="num hide-sm">${money(l.price)}</td><td class="num">${money(l.qty * l.price)}</td></tr>`).join('')}
-    </tbody></table><div class="total">Tổng: ${money(total)}</div></div>
-    <div class="actions"><a class="btn" href="#/orders" style="text-decoration:none">Về Đơn của tôi</a><button class="btn" data-go="/orders/${o.id}">Tải lại trạng thái</button></div>`;
+  const stage = { CONFIRMED: 0, PREPARING: 1, READY: 2, PICKED_UP: 3 }[o.status] ?? -1;
+  return topbar(fresh ? 'Đặt thành công' : 'Chi tiết đơn', '/orders') + `<div class="content">
+    ${fresh ? alertBox('success', '<b>Cửa hàng đã nhận đơn của bạn.</b> Đến quầy đúng giờ và đọc mã nhận.') : ''}
+    <div class="ticket"><div class="label">Mã nhận · đọc tại quầy</div><div class="code">${o.code}</div>
+      <div class="when">${ic('clock')}${o.date}, ${o.slot} – ${endOf(o.slot)}</div></div>
+    <div class="track" aria-label="Tiến trình đơn">
+      ${['Đã xác nhận', 'Đang chuẩn bị', 'Sẵn sàng nhận', 'Đã nhận'].map((s, i) => `<div class="${i <= stage ? 'on' : ''}">${s}</div>`).join('')}</div>
+    <h2 class="section-title">Món đã đặt</h2>
+    ${o.lines.map((l) => { const i = itemOf(l.id); return `<div class="cart-line">${thumb(i)}<div class="grow"><b>${i.name}</b><span class="muted">${l.qty} × ${money(l.price)}</span></div><b>${money(l.qty * l.price)}</b></div>`; }).join('')}
+    <div class="card soft rows" style="margin-top:16px">
+      <div class="row"><span class="muted">Thanh toán</span><span>${o.paid ? 'Đã thanh toán · Tiền mặt' : '<b>Chưa thanh toán</b> · trả tại quầy'}</span></div>
+      <div class="row"><span class="muted">Đặt lúc</span><span>${o.at}, ${o.date.toLowerCase()}</span></div>
+      <div class="row total"><span>Tổng</span><span>${money(total)}</span></div>
+    </div>
+    <button class="btn btn-outline btn-block" data-go="/orders/${o.id}">${ic('refresh')}Tải lại trạng thái</button></div>`;
+}
+
+function sheet() {
+  const i = itemOf(state.sheet.id);
+  return `<div class="sheet-wrap" data-closesheet="1"><div class="sheet" role="dialog" aria-modal="true" aria-label="${i.name}">
+    <div style="position:relative"><button class="close" data-closesheet="1" aria-label="Đóng">${ic('x')}</button>${i.img ? `<img class="hero-img" src="${IMG(i.img, 900)}" alt="">` : '<div style="height:64px"></div>'}</div>
+    <div class="sheet-body"><h2>${i.name}</h2><div class="price" style="font-size:18px;margin:4px 0 10px">${money(i.price)}</div><p class="muted" style="margin:0">${i.desc ?? ''}</p></div>
+    <div class="sheet-foot"><div class="stepper"><button data-sdec="1" aria-label="Bớt">${ic('minus')}</button><span>${state.sheet.qty}</span><button data-sinc="1" aria-label="Thêm">${ic('plus')}</button></div>
+      <button class="btn btn-primary" style="flex:1" data-sadd="1">Thêm vào giỏ · ${money(i.price * state.sheet.qty)}</button></div>
+  </div></div>`;
 }
 
 function guard(path) {
-  const needCustomer = ['/cart', '/checkout', '/orders'].some((p) => path === p || path.startsWith('/orders/'));
-  if (needCustomer && role() === 'guest') return '/login';
+  const needCustomer = path === '/cart' || path === '/checkout' || path.startsWith('/orders');
+  if ((needCustomer || path === '/kitchen') && role() === 'guest') return '/login';
   if (needCustomer && role() !== 'CUSTOMER') return '/forbidden';
-  if (path === '/kitchen' && role() === 'guest') return '/login';
   if (path === '/kitchen' && role() !== 'KITCHEN') return '/forbidden';
   return null;
 }
@@ -343,31 +483,41 @@ function guard(path) {
 function render() {
   let path = location.hash.slice(1) || '/';
   if (path === '/logout') { $('role').value = 'guest'; state.notice = null; go('/'); return; }
+  if (role() === 'KITCHEN' && path === '/') path = '/kitchen';
   const redirect = guard(path);
   if (redirect) { path = redirect; history.replaceState(null, '', '#' + redirect); }
-  renderNav(path.startsWith('/orders/') ? '/orders' : path);
-  const app = $('app');
-  app.className = path === '/kitchen' ? 'wide' : '';
   const m = path.match(/^\/orders\/(\d+)(\?new)?$/);
-  app.innerHTML = m ? orderDetail(Number(m[1]), !!m[2]) : (pages[path] || pages['/'])();
+  const body = m ? orderDetail(Number(m[1]), !!m[2]) : (pages[path] || pages['/'])();
+  const withDock = role() !== 'KITCHEN' && (['/', '/orders', '/login', '/forbidden'].includes(path) || m);
+  $('root').innerHTML = `<div class="app ${path === '/kitchen' ? 'wide' : ''}">${body}</div>${withDock ? dock(m ? '/orders' : path) : ''}${state.sheet ? sheet() : ''}${state.toast ? `<div class="toast" role="status">${ic('check')}${state.toast}</div>` : ''}`;
+}
+
+function addToCart(id, qty) {
+  const line = state.cart.find((l) => l.id === id);
+  if (line) line.qty += qty; else state.cart.push({ id, qty, price: itemOf(id).price });
+  state.sheet = null; toast(`Đã thêm ${qty} ${itemOf(id).name}`);
 }
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('button, tr[data-order]');
+  const t = e.target.closest('button, [data-open], [data-order], [data-closesheet]');
   if (!t) return;
   const d = t.dataset;
-  if (d.cat) { state.category = d.cat; render(); }
-  if (d.add) {
+  if (d.closesheet) { if (e.target === t || t.tagName === 'BUTTON') { state.sheet = null; render(); } return; }
+  if (d.quick || d.open) {
     if (role() === 'guest') { go('/login'); return; } // UC-03 A3: món chưa được thêm
-    const id = Number(d.add); const line = state.cart.find((l) => l.id === id);
-    if (line) line.qty += 1; else state.cart.push({ id, qty: 1, price: itemOf(id).price });
-    state.notice = `Đã thêm ${itemOf(id).name} vào giỏ.`; render();
+    if (d.quick) addToCart(Number(d.quick), 1); else { state.sheet = { id: Number(d.open), qty: 1 }; render(); }
+    return;
   }
+  if (d.sinc) { state.sheet.qty += 1; render(); }
+  if (d.sdec) { if (state.sheet.qty > 1) state.sheet.qty -= 1; render(); }
+  if (d.sadd) addToCart(state.sheet.id, state.sheet.qty);
+  if (d.cat) { state.category = d.cat; render(); $('cat-' + d.cat)?.scrollIntoView({ behavior: 'smooth' }); }
   if (d.inc) { state.cart.find((l) => l.id === Number(d.inc)).qty += 1; render(); }
   if (d.dec) { const l = state.cart.find((x) => x.id === Number(d.dec)); if (l.qty > 1) l.qty -= 1; render(); }
   if (d.del) { state.cart = state.cart.filter((l) => l.id !== Number(d.del)); render(); }
-  if (d.go) { state.notice = null; state.kitchenNotice = null; if (location.hash === '#' + d.go) render(); else go(d.go); }
+  if (d.go) { state.notice = null; if (location.hash === '#' + d.go) render(); else go(d.go); }
   if (d.slot) { state.slot = d.slot; render(); }
+  if (d.tab) { state.orderTab = d.tab; render(); }
   if (d.order) go('/orders/' + d.order);
   if (t.id === 'doLogin') {
     if (!$('password').value) { state.loginError = 'Thông tin đăng nhập không đúng.'; render(); return; }
@@ -379,36 +529,35 @@ document.addEventListener('click', (e) => {
   if (d.start || d.done) {
     const o = state.kitchen.find((x) => x.code === (d.start || d.done));
     o.status = d.start ? 'PREPARING' : 'READY';
-    state.kitchenNotice = d.start ? `Đã bắt đầu đơn ${o.code}.` : `Đơn ${o.code} đã sẵn sàng; đã rời hàng chờ.`;
-    render();
+    toast(d.start ? `Đã bắt đầu ${o.code}` : `${o.code} sẵn sàng, đã rời hàng chờ`);
   }
 });
 
 function submit() {
   const c = $('submitCase').value;
   const msgs = {
-    E5: 'Bạn đang có 3 đơn chưa hoàn tất, chưa đặt thêm được. Xem ở <a href="#/orders">Đơn của tôi</a>. Giỏ hàng vẫn được giữ.',
-    E6: 'Khung bạn chọn không còn đặt được (cần đặt trước ít nhất 30 phút). Danh sách khung đã được cập nhật, vui lòng chọn lại.',
-    E8: 'Khung bạn chọn vừa hết chỗ. Danh sách khung đã được cập nhật, vui lòng chọn khung khác.',
-    E10: 'Có lỗi hệ thống, đơn chưa được tạo. Bạn có thể bấm "Xác nhận đặt" lại; hệ thống không tạo trùng đơn.',
+    E5: 'Bạn đang có 3 đơn chưa hoàn tất nên chưa đặt thêm được. Xem ở <a href="#/orders">Đơn của tôi</a>. Giỏ hàng vẫn được giữ.',
+    E6: 'Khung bạn chọn không còn đặt được (cần đặt trước ít nhất 30 phút). Danh sách đã cập nhật, vui lòng chọn lại.',
+    E8: 'Khung bạn chọn vừa hết chỗ. Danh sách đã cập nhật, vui lòng chọn khung khác.',
+    E10: 'Có lỗi hệ thống, đơn chưa được tạo. Bạn có thể bấm đặt lại; hệ thống không tạo trùng đơn.',
   };
   if (msgs[c]) { state.notice = msgs[c]; if (c === 'E6' || c === 'E8') state.slot = null; render(); window.scrollTo(0, 0); return; }
   if (c === 'E7') {
-    state.cart.find((l) => l.id === 12) && (state.cart.find((l) => l.id === 12).price = 47000);
-    state.notice = 'Một số món đã thay đổi, vui lòng xem lại rồi đặt lại:<ul><li>Burger bò: giá mới 47.000 đ</li></ul>';
+    const l = state.cart.find((x) => x.id === 12); if (l) l.price = 47000;
+    state.notice = 'Một số món đã thay đổi, vui lòng xem lại rồi đặt lại:<ul><li>Burger bò: giá mới 47.000đ</li></ul>';
     go('/cart'); return;
   }
   if (c === 'E9') { state.notice = 'Đơn quá lớn cho một khung giờ. Vui lòng bớt món hoặc liên hệ cửa hàng.'; go('/cart'); return; }
   const id = 41;
   state.orders = state.orders.filter((o) => o.id !== id);
-  state.orders.push({ id, code: 'K7M3QX', slot: state.slot, date: 'hôm nay', status: 'CONFIRMED', paid: false,
-    lines: state.cart.map((l) => ({ name: itemOf(l.id).name, qty: l.qty, price: l.price })) });
+  state.orders.push({ id, code: 'K7M3QX', slot: state.slot, date: 'Hôm nay', status: 'CONFIRMED', paid: false, at: '10:52', lines: state.cart.map((l) => ({ ...l })) });
   state.cart = []; state.slot = null; state.notice = null;
   go(`/orders/${id}?new`);
 }
 
-['role', 'slotCase', 'kitchenCase'].forEach((id) => $(id).addEventListener('change', () => { state.notice = null; render(); }));
-window.addEventListener('hashchange', () => { state.kitchenNotice = null; if (!location.hash.startsWith('#/cart') && !location.hash.startsWith('#/checkout')) state.notice = null; render(); });
+$('demoToggle').addEventListener('click', () => { const open = $('demo').classList.toggle('open'); $('demoToggle').setAttribute('aria-expanded', String(open)); });
+['role', 'slotCase', 'kitchenCase'].forEach((id) => $(id).addEventListener('change', () => { state.notice = null; state.sheet = null; render(); }));
+window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/cart') && !location.hash.startsWith('#/checkout')) state.notice = null; state.sheet = null; render(); window.scrollTo(0, 0); });
 render();
 </script>
 </body>

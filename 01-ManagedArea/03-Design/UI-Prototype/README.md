@@ -1,5 +1,5 @@
 # UI Prototype
-Trạng thái: Lập ở task T-11 (Sprint 1) ngày 2026-10-17 cho 7 màn hình Sprint 1. **Chưa đánh giá, chưa được chấp thuận** (mục 6, 7): người dùng là stakeholder duy nhất hiện có và chưa xem prototype.
+Trạng thái: Lập ở task T-11 (Sprint 1) ngày 2026-10-17 cho 7 màn hình Sprint 1. Đã qua một vòng góp ý của người dùng: bản phối màu v1 bị đánh giá là quá trơn, làm lại thành **prototype v2** theo phong cách người dùng chọn (mục 6). **Chưa được chấp thuận** (mục 7).
 
 Bước 14 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): kiểm tra giao diện và luồng đi **trước khi** đầu tư code. Thứ tự: bố cục → wireframe đơn sắc → phối màu → navigation → đánh giá → sửa → bản được chấp thuận.
 
@@ -25,9 +25,12 @@ Giao diện không thêm chức năng hay quy tắc nào ngoài đặc tả. Ch�
 Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-02 mục phân quyền), nên chưa có màn hình riêng.
 
 ## 2. Bố cục và các quyết định giao diện
-**Bố cục chung**: thanh điều hướng trên cùng (tên cửa hàng, liên kết theo vai trò, đăng xuất), nội dung một cột ở giữa.
-- Màn của khách rộng tối đa 720 px, ưu tiên điện thoại: khách đặt từ thiết bị cá nhân (SRS B.1). Bảng hẹp lại thì ẩn cột phụ (đơn giá, thanh toán).
-- Hàng chờ bếp rộng tối đa 1080 px, ba cột cạnh nhau: bếp thường dùng màn hình lớn hoặc máy tính bảng đặt cố định. Trên màn hẹp, ba cột xếp chồng.
+**Bố cục chung (v2)**: màn của khách là một cột kiểu ứng dụng điện thoại, rộng tối đa 520 px, nằm giữa màn hình khi mở trên máy tính. Khách đặt từ thiết bị cá nhân (SRS B.1), nên thiết kế cho điện thoại trước.
+- Thanh trên: tên cửa hàng và "Đặt trước · Tự đến lấy", biểu tượng giỏ có số món. Trang con có nút quay lại.
+- Thanh tab ở đáy: Thực đơn, Đơn của tôi, Đăng xuất (khách vãng lai: Thực đơn, Đăng nhập).
+- Thanh giỏ màu tối dính đáy trang thực đơn khi giỏ có món: số món, tổng tiền, nút "Xem giỏ".
+- Nút hành động chính của Giỏ và Chọn giờ nhận dính ở đáy màn, luôn bấm được mà không phải cuộn.
+- Hàng chờ bếp rộng tối đa 1240 px, ba cột cạnh nhau, chữ món và mã lớn để đọc từ xa: bếp thường dùng màn hình lớn hoặc máy tính bảng đặt cố định. Màn hẹp thì ba cột xếp chồng.
 
 | Đặc tả để UI quyết định | Quyết định | Lý do |
 |---|---|---|
@@ -36,7 +39,11 @@ Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-0
 | Kết quả đặt thành công (UC-04 bước 11) | Dùng lại màn Chi tiết đơn, thêm khung "Đặt đơn thành công" | Một màn hiển thị đơn thay vì hai; khách lưu được địa chỉ trang |
 | Lỗi khi gửi đơn | E7, E9 → về Giỏ kèm khung cảnh báo; E6, E8 → ở lại, tải lại danh sách khung; E5, E10 → ở lại, báo lỗi, giữ giỏ | Theo đúng nơi quay về trong Activity Diagram UC-04 |
 | Khung "Không đủ chỗ" | Vẫn hiện, xám, không bấm được | BR-36 |
-| Món tạm hết | Hiện nhãn "Tạm hết", không có nút thêm | UC-03 bước 2, BR-04 |
+| Món tạm hết | Ảnh xám, nhãn "Tạm hết", không có nút thêm | UC-03 bước 2, BR-04 |
+| Thêm món vào giỏ (UC-04 bước 1–2) | Nút "+" tròn thêm ngay 1 phần; bấm vào dòng món mở bảng trượt từ đáy (ảnh lớn, mô tả, chọn số lượng, nút "Thêm vào giỏ · giá") | Hai cách cho hai nhu cầu: thêm nhanh và xem kỹ. Theo mẫu The Coffee House |
+| Chọn khung giờ | Lưới nút giờ, nhóm theo giờ (11 giờ, 12 giờ…); khung hết chỗ bị gạch ngang | Dễ quét bằng mắt hơn danh sách dài |
+| Mã nhận | Thẻ "vé" nền tối, mã 6 ký tự cỡ lớn, kèm thanh tiến trình 4 bước của đơn | Mã nhận là thứ khách cần đọc tại quầy (UC-05 bước 4) |
+| Món không có ảnh | Ô màu kem với biểu tượng | Ảnh là tùy chọn (BR-01) |
 | Khách vãng lai bấm "Thêm vào giỏ" | Chuyển tới Đăng nhập, món không tự thêm | UC-03 A3 |
 | Nút thao tác chính của bếp | Đơn "Cần chuẩn bị" có nút Bắt đầu màu chính; đơn "Sắp tới" nút viền | Gợi ý thứ tự làm, nhưng vẫn cho bắt đầu sớm (BR-21) |
 | Đơn trễ | Nhãn đỏ "TRỄ" và viền trái đỏ trên thẻ | BR-26: chỉ để nhìn, không chặn thao tác |
@@ -53,26 +60,36 @@ Vẽ bằng PlantUML Salt, chỉ có bố cục và nội dung, không màu. Dò
 ![wf-07](wireframes/wf-07_hang-cho-bep.svg)
 
 ## 4. Bản phối màu
-Tông cam đất cho nút và điểm nhấn, nền kem nhạt: hợp cửa hàng đồ ăn nhanh, chữ trắng trên nút vẫn đủ tương phản. Màu trạng thái dùng thống nhất ở mọi màn: xanh dương = đã xác nhận, vàng nâu = đang làm/cảnh báo, xanh lá = sẵn sàng/đặt được, đỏ = lỗi/trễ/hủy, xám = đã kết thúc/không chọn được.
+**v2 (hiện hành).** Hướng do người dùng chọn ngày 2026-10-17 sau khi xem thử các trang đặt món đang chạy: kết hợp **The Coffee House** (`order.thecoffeehouse.com`: khung app điện thoại, món dạng dòng có ảnh và nút "+", bảng thêm món trượt từ đáy, thanh tab đáy) và **Starbucks** (`starbucks.com/menu`: nhiều khoảng trắng, tiêu đề đậm, thanh màu tối dính đáy). Chỉ mượn cách bố trí, không dùng màu, logo hay hình ảnh của hai thương hiệu.
+
+- **Màu**: cam đất làm màu chính (nút, giá, điểm nhấn), nền trắng và kem ấm, xanh rêu rất đậm cho thanh giỏ và thẻ mã nhận. Màu trạng thái dùng thống nhất ở mọi màn: xanh dương = đã xác nhận, vàng nâu = đang làm/cảnh báo, xanh lá = sẵn sàng/đặt được, đỏ = lỗi/trễ/hủy, xám = đã kết thúc/không chọn được.
+- **Font**: Be Vietnam Pro (Google Fonts, giấy phép OFL), thiết kế riêng cho tiếng Việt nên dấu hiển thị đẹp. Trong code (T-13) cài qua npm (`@fontsource/be-vietnam-pro`) để không phụ thuộc mạng ngoài.
+- **Hình khối**: góc bo lớn (16–24 px), bóng đổ nhẹ, biểu tượng nét mảnh tự vẽ bằng SVG.
+- **Ảnh món**: prototype dùng ảnh từ Unsplash (giấy phép Unsplash, dùng tự do) chỉ để minh họa. Sản phẩm thật dùng ảnh của cửa hàng qua trường `image_url` của món (BR-01), không bắt buộc.
 
 | Token (biến CSS) | Màu | Dùng cho |
 |---|---|---|
-| `--color-bg` | `#FAF7F2` | Nền trang |
-| `--color-surface` | `#FFFFFF` | Thẻ, bảng, thanh điều hướng |
-| `--color-border` | `#E5E7EB` | Viền |
-| `--color-text` | `#1F2937` | Chữ chính |
-| `--color-text-muted` | `#5B6472` | Chữ phụ |
-| `--color-primary` / `-hover` | `#C2410C` / `#9A3412` | Nút chính, liên kết, khung đang chọn |
-| `--color-primary-soft` | `#FFEDD5` | Nền mục đang chọn |
-| `--color-info` / `-bg` | `#1D4ED8` / `#DBEAFE` | Trạng thái Đã xác nhận |
-| `--color-warning` / `-bg` | `#92400E` / `#FEF3C7` | Đang chuẩn bị, cảnh báo |
-| `--color-success` / `-bg` | `#166534` / `#DCFCE7` | Sẵn sàng nhận, "Đặt được", thông báo thành công |
-| `--color-danger` / `-bg` | `#B91C1C` / `#FEE2E2` | Lỗi, trễ, đã hủy |
-| `--color-neutral` / `-bg` | `#374151` / `#F3F4F6` | Đã nhận, không đến nhận, khung không đủ chỗ |
+| `--bg` | `#F7F5F2` | Nền ngoài khung app, khối tóm tắt |
+| `--surface` | `#FFFFFF` | Nền khung app, thẻ |
+| `--cream` | `#FFF4E6` | Ô ảnh của món không có ảnh |
+| `--border` | `#ECE8E3` | Viền, đường kẻ |
+| `--ink` / `--ink-2` / `--ink-3` | `#1C1917` / `#57534E` / `#6D6661` | Chữ chính / chữ phụ / chữ mờ |
+| `--primary` / `-hover` | `#C2410C` / `#9A3412` | Nút chính, giá, khung giờ đang chọn |
+| `--primary-soft` | `#FFEDD5` | Nền nút "+", mục đang chọn |
+| `--dark` | `#1F2A24` | Thanh giỏ, thẻ mã nhận, đầu trang bếp |
+| `--info` / `-bg` | `#1D4ED8` / `#DBEAFE` | Đã xác nhận |
+| `--warning` / `-bg` | `#92400E` / `#FEF3C7` | Đang chuẩn bị, cảnh báo |
+| `--success` / `-bg` | `#166534` / `#DCFCE7` | Sẵn sàng nhận, "Đặt được", thông báo thành công |
+| `--danger` / `-bg` | `#B91C1C` / `#FEE2E2` | Lỗi, trễ, đã hủy |
+| `--neutral` / `-bg` | `#44403C` / `#F5F5F4` | Đã nhận, không đến nhận, khung hết chỗ |
 
-Đã tính độ tương phản theo WCAG 2.1 (ngày 2026-10-17, script tính độ sáng tương đối): mọi cặp chữ/nền ở bảng trên ≥ 4,5:1 (mức AA cho chữ thường). Thấp nhất là chữ trắng trên nút chính 5,18:1; cao nhất chữ chính trên nền trắng 14,68:1. Nút bị khóa không thuộc yêu cầu tương phản. Không dùng màu làm tín hiệu duy nhất: trạng thái luôn có chữ ("Đặt được", "TRỄ"…).
+Độ tương phản theo WCAG 2.1, tính bằng script ngày 2026-10-17: mọi cặp chữ/nền dùng trong prototype ≥ 4,5:1 (mức AA). Thấp nhất là chữ cam trên nền nút "+" 4,52:1; chữ trắng trên nút chính 5,18:1; chữ mờ `--ink-3` trên nền `--bg` 5,18:1 (màu này được làm đậm hơn sau khi lần tính đầu chỉ đạt 4,41:1). Nút bị khóa không thuộc yêu cầu tương phản. Không dùng màu làm tín hiệu duy nhất: trạng thái luôn có chữ ("Đặt được", "Hết chỗ", "TRỄ").
 
-**Prototype có màu, bấm thử được:** [prototype/index.html](prototype/index.html). Một file HTML, dữ liệu giả, không gọi backend. Cách mở: double-click file, hoặc chạy `python -m http.server` trong thư mục `prototype` rồi mở `http://localhost:8000`. Thanh đen trên cùng là bảng điều khiển của prototype (không thuộc giao diện thật): đổi vai trò, chọn tình huống lỗi E2–E10, hàng chờ trống. Cùng bộ biến màu sẽ được chép vào `frontend/src/index.css` ở T-13.
+**Prototype có màu, bấm thử được:** [prototype/index.html](prototype/index.html). Một file HTML, dữ liệu giả, không gọi backend; cần mạng để tải font và ảnh. Cách mở: double-click file, hoặc chạy `python -m http.server` trong thư mục `prototype` rồi mở `http://localhost:8000`. Nút "⚙ Prototype" ở góc dưới bên trái mở bảng điều khiển của prototype (không thuộc giao diện thật): đổi vai trò, chọn tình huống lỗi E2–E10, hàng chờ trống. Bộ biến màu được chép vào `frontend/src/index.css` ở T-13.
+
+**v1** (thanh điều hướng trên, bảng đơn giản, không ảnh) còn trong lịch sử Git, commit `c3f4dec`.
+
+**Wireframe ở mục 3 là bố cục v1.** Nội dung và luồng từng màn không đổi; v2 chỉ đổi cách trình bày (thanh tab đáy, bảng thêm món, thanh giỏ dính đáy, thẻ mã nhận). Khi người dùng chấp thuận hướng v2, cập nhật wireframe cho khớp.
 
 ## 5. Navigation Flow
 ![Navigation Flow](navigation-flow.svg)
@@ -83,17 +100,21 @@ Quy tắc chung (UC-02):
 - Đăng xuất → Menu.
 
 ## 6. Đánh giá prototype
-Theo 5 câu hỏi của nguồn. **Chưa có đánh giá của stakeholder.** Cột "Tự kiểm" là AI đối chiếu prototype với đặc tả, không thay cho đánh giá của người dùng.
+Theo 5 câu hỏi của nguồn.
 
-| Câu hỏi | Tự kiểm (AI, 2026-10-17) | Đánh giá của người dùng |
+**Vòng 1 (2026-10-17), góp ý của người dùng:** wireframe và bản phối màu v1 "rất xấu, không thể chấp nhận". Người dùng xem thử các trang đặt món đang chạy (ShopeeFood, GrabFood, KFC, McDonald's, Lotteria, Jollibee, Domino's, The Coffee House, Starbucks, Chipotle, sweetgreen, Pizza 4P's) và chọn hướng The Coffee House kết hợp Starbucks. Đã làm lại thành v2 (mục 2, 4). Nội dung, luồng và quy tắc nghiệp vụ không đổi.
+
+**Vòng 2 (v2): chưa đánh giá.** Cột "Tự kiểm" là AI đối chiếu prototype v2 với đặc tả, không thay cho đánh giá của người dùng.
+
+| Câu hỏi | Tự kiểm v2 (AI, 2026-10-17) | Đánh giá của người dùng |
 |---|---|---|
-| Có đáp ứng yêu cầu không? | Mọi luồng chính, A, E của UC-02, 03, 04, 05, 12 có chỗ hiển thị (bảng mục 1, 2). Đã bấm thử trong trình duyệt: đặt thành công, E3, E7, E8, bếp bắt đầu đơn, chặn khách vãng lai vào giỏ, chặn bếp vào Đơn của tôi | Chưa đánh giá |
-| Thông tin/chức năng có dễ tìm không? | Mỗi vai trò chỉ thấy liên kết của mình; giỏ có số lượng trên thanh điều hướng; mã nhận là chữ lớn nhất trên chi tiết đơn | Chưa đánh giá |
-| Bố cục có hợp lý không? | Màn khách một cột, không cuộn ngang ở bề rộng 375 px (đã kiểm); bếp ba cột trên màn rộng, xếp chồng trên màn hẹp | Chưa đánh giá |
-| UI có dễ đọc không? | Tương phản đạt AA (mục 4); chữ 16 px; mã nhận dạng chữ đơn cách | Chưa đánh giá |
-| Thao tác có dễ không? | Đặt đơn từ menu: thêm món → Giỏ → Chọn giờ nhận → chọn khung → Xác nhận (5 lần bấm với một món). Nút ±, nút bếp cao ≥ 32 px | Chưa đánh giá |
+| Có đáp ứng yêu cầu không? | Mọi luồng chính, A, E của UC-02, 03, 04, 05, 12 có chỗ hiển thị (bảng mục 1, 2). Đã bấm thử trong trình duyệt: thêm món bằng nút "+" và bảng thêm món, đặt thành công, E4, E7, E8, bếp bắt đầu đơn, chặn khách vãng lai thêm món, chặn bếp vào Đơn của tôi | Chưa đánh giá |
+| Thông tin/chức năng có dễ tìm không? | Giỏ luôn thấy ở thanh trên và thanh giỏ đáy; thanh tab đáy cho hai việc chính; mã nhận là chữ lớn nhất trên chi tiết đơn | Chưa đánh giá |
+| Bố cục có hợp lý không? | Khách một cột kiểu app, không cuộn ngang ở 375 px (đo bằng JS); nút chính dính đáy; bếp ba cột ở 1280 px, xếp chồng khi hẹp | Chưa đánh giá |
+| UI có dễ đọc không? | Tương phản AA (mục 4); font Be Vietnam Pro; mã nhận chữ đơn cách cỡ lớn | Chưa đánh giá |
+| Thao tác có dễ không? | Đặt một món: "+" → Xem giỏ → Chọn giờ nhận → chọn khung → Xác nhận đặt (5 lần bấm). Nút bấm cao ≥ 32 px | Chưa đánh giá |
 
-Cách đánh giá đề xuất cho người dùng: mở prototype trên điện thoại và máy tính, tự đóng vai khách đặt một đơn và vai bếp xử lý đơn đó, thử ít nhất 3 tình huống lỗi; ghi điều chưa hợp lý vào cột cuối. Có góp ý thì sửa wireframe/prototype (vòng Feedback → Redesign của nguồn) rồi đánh giá lại.
+Cách đánh giá đề xuất: mở prototype trên điện thoại và máy tính, đóng vai khách đặt một đơn và vai bếp xử lý đơn đó, thử ít nhất 3 tình huống lỗi; ghi điều chưa hợp lý vào cột cuối. Có góp ý thì sửa tiếp (Feedback → Redesign) rồi đánh giá lại.
 
 ## 7. Phiên bản được chấp thuận
 Chưa có. Khi người dùng chấp thuận, ghi ngày và phiên bản (commit) tại đây. Bản chấp thuận là căn cứ cho T-13, T-15, T-17, T-19, T-20, T-21.
