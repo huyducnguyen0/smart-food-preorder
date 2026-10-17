@@ -1,5 +1,5 @@
 # Activity Diagrams
-Trạng thái: Lập ở task T-06 (Sprint 1) ngày 2026-10-12 cho hai luồng Sprint 1; người dùng chưa review.
+Trạng thái: Lập ở task T-06 (Sprint 1) ngày 2026-10-12 cho hai luồng Sprint 1; người dùng review ngày 2026-10-17.
 
 Mỗi sơ đồ phải tham chiếu một hoặc nhiều Use Case và thể hiện:
 
@@ -42,7 +42,7 @@ Từ [đặc tả UC-12](../Use-Cases/specifications/UC-12-xu-ly-don-tai-bep.md)
 | Nhánh trên sơ đồ | Luồng trong đặc tả |
 |---|---|
 | Có đơn? → không | A1 |
-| Đơn đang ở CONFIRMED? / PREPARING? → không | E1 (trạng thái đã đổi, ví dụ hai người bếp cùng bấm) |
+| Đơn đang ở CONFIRMED? / PREPARING? → không | E1 (trạng thái đã đổi, ví dụ hai người bếp cùng bấm): báo trạng thái hiện tại, làm mới hàng chờ |
 | Ghi chú | E2 sai vai trò, E3 lỗi tải/cập nhật, E4 phiên hết hạn |
 
 ## Cách đọc sơ đồ

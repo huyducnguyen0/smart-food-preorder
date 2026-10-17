@@ -27,7 +27,8 @@ repeat
       :Chuyển PREPARING, ghi thời điểm và người thực hiện,
       đơn sang nhóm "Đang làm" (bước 5);
     else (không)
-      :E1: không đổi đơn, báo trạng thái hiện tại;
+      :E1: không đổi đơn, báo trạng thái hiện tại,
+      làm mới hàng chờ;
     endif
   case (Hoàn tất một đơn PREPARING)
     |Hệ thống|
@@ -36,7 +37,8 @@ repeat
       đơn rời hàng chờ bếp,
       khách thấy "Sẵn sàng nhận" (UC-05) (bước 7);
     else (không)
-      :E1: không đổi đơn, báo trạng thái hiện tại;
+      :E1: không đổi đơn, báo trạng thái hiện tại,
+      làm mới hàng chờ;
     endif
   case (Tải lại)
   endswitch
