@@ -1,0 +1,21 @@
+@startsalt wf-06_don-cua-toi
+title Wireframe 06 — Đơn của tôi (UC-05 bước 1–2) · /orders
+{+
+  {* <b>Nhóm 15 Food</b> | Menu | Giỏ | <b>Đơn của tôi</b> | Khách Một ▾ }
+  ==
+  { <b>Đơn của tôi</b> | [ Tải lại ] }
+  <b>Đang xử lý</b>
+  {#
+    <b>Mã nhận</b> | <b>Giờ nhận</b>    | <b>Trạng thái</b> | <b>Thanh toán</b> | <b>Tổng</b>
+    B5H2NE         | 11:00 hôm nay      | Sẵn sàng nhận     | Chưa              | 45.000 đ
+    K7M3QX         | 12:30 hôm nay      | Đã xác nhận       | Chưa              | 114.000 đ
+  }
+  <b>Đã kết thúc</b>
+  {#
+    <b>Mã nhận</b> | <b>Ngày</b>        | <b>Trạng thái</b> | <b>Thanh toán</b> | <b>Tổng</b>
+    H8R2ZC         | 16/10/2026         | Đã nhận           | Đã thanh toán     | 65.000 đ
+  }
+  --
+  <i>Bấm một dòng → Chi tiết đơn. Chưa có đơn: "Bạn chưa có đơn" + liên kết Menu (A1).</i>
+}
+@endsalt

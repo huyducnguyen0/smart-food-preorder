@@ -1,0 +1,45 @@
+@startuml navigation-flow
+!include ../_style.iuml
+title Navigation Flow — Sprint 1
+hide empty description
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+state "Menu  /" as Menu
+state "Đăng nhập  /login" as Login
+state "Giỏ hàng  /cart" as Cart
+state "Chọn giờ nhận  /checkout" as Checkout
+state "Chi tiết đơn  /orders/:id" as Detail
+state "Đơn của tôi  /orders" as MyOrders
+state "Hàng chờ bếp  /kitchen" as Kitchen
+
+[*] --> Menu : mở trang
+Menu --> Login : "Đăng nhập" / khách vãng lai\nbấm "Thêm vào giỏ" (A3)
+Login --> Menu : Khách, Quầy, Quản lý
+Login --> Kitchen : Nhân viên bếp
+Login --> Cart : quay lại trang đang mở (E4),\nví dụ giỏ
+
+Menu --> Cart : "Giỏ" trên thanh điều hướng
+Cart --> Menu : "Tiếp tục chọn món"
+Cart --> Checkout : "Chọn giờ nhận"\n(giỏ không trống)
+Checkout --> Cart : "Quay lại giỏ" / E7, E9
+Checkout --> Checkout : E6, E8: tải lại danh sách khung
+Checkout --> Detail : đặt thành công / A1\n(xóa giỏ)
+Checkout --> MyOrders : E5: liên kết "Đơn của tôi"
+
+Menu --> MyOrders : "Đơn của tôi"
+MyOrders --> Detail : chọn một đơn
+Detail --> MyOrders : "Về Đơn của tôi"
+
+Kitchen --> Kitchen : Bắt đầu / Hoàn tất / tự làm mới
+
+note right of Login
+  Mọi trang trừ Menu, Đăng nhập cần đăng nhập.
+  Chưa đăng nhập hoặc phiên hết hạn → Đăng nhập,
+  xong quay về trang đang mở (UC-02 E4).
+  Sai vai trò → trang "Không có quyền" (UC-02 E5).
+  "Đăng xuất" ở mọi trang → Menu (UC-02 bước 8).
+end note
+@enduml

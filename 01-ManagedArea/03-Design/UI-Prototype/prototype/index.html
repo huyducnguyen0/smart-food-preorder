@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prototype — Đặt món trước (Sprint 1)</title>
+<style>
+/* Bảng màu (UI-Prototype README mục 4). T-13 chép các biến này sang frontend/src/index.css. */
+:root {
+  --color-bg: #FAF7F2;
+  --color-surface: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-text: #1F2937;
+  --color-text-muted: #5B6472;
+  --color-primary: #C2410C;
+  --color-primary-hover: #9A3412;
+  --color-primary-soft: #FFEDD5;
+  --color-success: #166534;  --color-success-bg: #DCFCE7;
+  --color-warning: #92400E;  --color-warning-bg: #FEF3C7;
+  --color-danger: #B91C1C;   --color-danger-bg: #FEE2E2;
+  --color-info: #1D4ED8;     --color-info-bg: #DBEAFE;
+  --color-neutral: #374151;  --color-neutral-bg: #F3F4F6;
+  --radius: 10px;
+  --space: 16px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { font: inherit; cursor: pointer; }
+a { color: var(--color-primary); }
+
+.demo { background: #111827; color: #F9FAFB; font-size: 13px; padding: 8px var(--space); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+.demo label { display: flex; gap: 6px; align-items: center; }
+.demo select { font: inherit; font-size: 13px; }
+
+.nav { background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+.nav-inner { max-width: 1080px; margin: 0 auto; padding: 0 var(--space); display: flex; align-items: center; gap: 4px; min-height: 56px; flex-wrap: wrap; }
+.brand { font-weight: 700; color: var(--color-primary); margin-right: auto; text-decoration: none; }
+.nav a.link { color: var(--color-text); text-decoration: none; padding: 8px 10px; border-radius: 8px; }
+.nav a.link.active { background: var(--color-primary-soft); color: var(--color-primary-hover); font-weight: 600; }
+.count { background: var(--color-primary); color: #fff; border-radius: 999px; padding: 0 7px; font-size: 12px; margin-left: 4px; }
+
+main { max-width: 720px; margin: 0 auto; padding: var(--space); }
+main.wide { max-width: 1080px; }
+h1 { font-size: 22px; margin: 8px 0 16px; }
+h2 { font-size: 17px; margin: 20px 0 8px; }
+.muted { color: var(--color-text-muted); font-size: 14px; }
+.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--space); margin-bottom: 12px; }
+
+.btn { border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); border-radius: 8px; padding: 9px 16px; }
+.btn:hover { background: var(--color-neutral-bg); }
+.btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: #fff; font-weight: 600; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn:disabled { background: var(--color-neutral-bg); color: #9CA3AF; border-color: var(--color-border); cursor: not-allowed; }
+.btn:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 12px; }
+
+.alert { border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; border: 1px solid transparent; }
+.alert-danger { background: var(--color-danger-bg); color: var(--color-danger); border-color: #FCA5A5; }
+.alert-warning { background: var(--color-warning-bg); color: var(--color-warning); border-color: #FCD34D; }
+.alert-success { background: var(--color-success-bg); color: var(--color-success); border-color: #86EFAC; }
+.alert ul { margin: 6px 0 0; padding-left: 20px; }
+
+.badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.b-CONFIRMED { background: var(--color-info-bg); color: var(--color-info); }
+.b-PREPARING { background: var(--color-warning-bg); color: var(--color-warning); }
+.b-READY { background: var(--color-success-bg); color: var(--color-success); }
+.b-PICKED_UP, .b-NO_SHOW { background: var(--color-neutral-bg); color: var(--color-neutral); }
+.b-CANCELLED { background: var(--color-danger-bg); color: var(--color-danger); }
+.b-late { background: var(--color-danger); color: #fff; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.tab { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 999px; padding: 6px 14px; }
+.tab.active { background: var(--color-text); color: #fff; border-color: var(--color-text); }
+
+.item { display: flex; gap: 12px; justify-content: space-between; align-items: center; }
+.item .price { font-weight: 700; white-space: nowrap; }
+.item-off { opacity: .75; }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--color-border); vertical-align: middle; }
+th { font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+.qty { display: inline-flex; align-items: center; gap: 6px; }
+.qty button { width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-surface); }
+.total { text-align: right; font-size: 18px; font-weight: 700; margin-top: 12px; }
+tr.clickable { cursor: pointer; }
+tr.clickable:hover { background: var(--color-neutral-bg); }
+
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.slot { border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 8px; padding: 10px; text-align: left; }
+.slot strong { display: block; font-size: 16px; }
+.slot .s-ok { color: var(--color-success); font-size: 13px; }
+.slot .s-full { color: var(--color-text-muted); font-size: 13px; }
+.slot:disabled { background: var(--color-neutral-bg); color: var(--color-text-muted); cursor: not-allowed; }
+.slot.selected { border: 2px solid var(--color-primary); background: var(--color-primary-soft); }
+
+.code { font-size: 40px; font-weight: 800; letter-spacing: 6px; font-family: ui-monospace, Consolas, monospace; }
+dl.info { display: grid; grid-template-columns: max-content 1fr; gap: 6px 16px; margin: 0; }
+dl.info dt { color: var(--color-text-muted); }
+dl.info dd { margin: 0; }
+
+.form { max-width: 380px; margin: 24px auto; }
+.field { display: block; margin-bottom: 14px; }
+.field span { display: block; font-weight: 600; margin-bottom: 4px; }
+.field input { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: 8px; }
+.field .err { color: var(--color-danger); font-size: 14px; }
+
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: start; }
+.col { background: var(--color-neutral-bg); border-radius: var(--radius); padding: 10px; }
+.col h2 { margin: 2px 4px 10px; font-size: 16px; }
+.k-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+.k-card.late { border-left: 5px solid var(--color-danger); }
+.k-head { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.k-code { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 18px; }
+.k-card ul { margin: 8px 0; padding-left: 18px; }
+.k-card .btn { width: 100%; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+@media (max-width: 760px) {
+  .board { grid-template-columns: 1fr; }
+  .hide-sm { display: none; }
+  .code { font-size: 32px; }
+}
+</style>
+</head>
+<body>
+<div class="demo" aria-label="Điều khiển prototype, không phải giao diện thật">
+  <strong>PROTOTYPE · dữ liệu giả</strong>
+  <label>Vai trò
+    <select id="role">
+      <option value="guest">Khách vãng lai</option>
+      <option value="CUSTOMER" selected>Khách</option>
+      <option value="KITCHEN">Nhân viên bếp</option>
+    </select>
+  </label>
+  <label>Danh sách khung
+    <select id="slotCase">
+      <option value="ok">Bình thường</option>
+      <option value="E2">E2 hết khung trong ngày</option>
+      <option value="E3">E3 mọi khung không đủ chỗ</option>
+      <option value="E4">E4 đơn quá lớn</option>
+    </select>
+  </label>
+  <label>Kết quả gửi đơn
+    <select id="submitCase">
+      <option value="ok">Thành công</option>
+      <option value="E5">E5 đủ 3 đơn</option>
+      <option value="E6">E6 khung hết hạn</option>
+      <option value="E7">E7 món thay đổi</option>
+      <option value="E8">E8 khung vừa hết chỗ</option>
+      <option value="E9">E9 đơn quá lớn</option>
+      <option value="E10">E10 lỗi hệ thống</option>
+    </select>
+  </label>
+  <label>Hàng chờ bếp
+    <select id="kitchenCase">
+      <option value="ok">Có đơn</option>
+      <option value="empty">Trống (A1)</option>
+    </select>
+  </label>
+</div>
+
+<nav class="nav"><div class="nav-inner" id="nav"></div></nav>
+<main id="app"></main>
+
+<script>
+const money = (v) => v.toLocaleString('vi-VN') + ' đ';
+const STATUS = { CONFIRMED: 'Đã xác nhận', PREPARING: 'Đang chuẩn bị', READY: 'Sẵn sàng nhận', PICKED_UP: 'Đã nhận', CANCELLED: 'Đã hủy', NO_SHOW: 'Không đến nhận' };
+const badge = (s) => `<span class="badge b-${s}">${STATUS[s]}</span>`;
+
+const menu = [
+  { name: 'Burger', items: [
+    { id: 12, name: 'Burger bò', desc: 'Bò nướng, rau, sốt nhà làm', price: 45000, available: true },
+    { id: 13, name: 'Burger gà giòn', desc: 'Gà chiên giòn, xà lách', price: 39000, available: false } ] },
+  { name: 'Gà rán', items: [
+    { id: 21, name: 'Gà rán 2 miếng', desc: null, price: 55000, available: true },
+    { id: 22, name: 'Khoai tây chiên', desc: 'Cỡ vừa', price: 25000, available: true } ] },
+  { name: 'Đồ uống', items: [
+    { id: 31, name: 'Trà đào', desc: null, price: 20000, available: true },
+    { id: 32, name: 'Nước ngọt', desc: 'Lon 330 ml', price: 15000, available: true } ] },
+];
+const allItems = menu.flatMap((c) => c.items);
+const slots = [
+  ['11:30', true], ['11:45', true], ['12:00', false], ['12:15', false], ['12:30', true], ['12:45', true],
+  ['13:00', true], ['13:15', true], ['13:30', true], ['13:45', true],
+];
+const endOf = (t) => { const [h, m] = t.split(':').map(Number); const x = h * 60 + m + 15; return `${String(Math.floor(x / 60)).padStart(2, '0')}:${String(x % 60).padStart(2, '0')}`; };
+
+const state = {
+  cart: [{ id: 12, qty: 2, price: 45000 }, { id: 31, qty: 1, price: 20000 }],
+  category: 'Tất cả',
+  slot: null,
+  notice: null,
+  loginError: null,
+  orders: [
+    { id: 40, code: 'B5H2NE', slot: '11:00', date: 'hôm nay', status: 'READY', paid: false, lines: [{ name: 'Burger bò', qty: 1, price: 45000 }] },
+    { id: 35, code: 'H8R2ZC', slot: '18:30', date: '16/10/2026', status: 'PICKED_UP', paid: true, lines: [{ name: 'Gà rán 2 miếng', qty: 1, price: 55000 }, { name: 'Trà đào', qty: 1, price: 20000 }] },
+  ],
+  kitchen: [
+    { code: 'P4W9TD', slot: '11:15', status: 'PREPARING', confirmed: '10:40', lines: ['2 × Burger bò', '1 × Khoai tây chiên'] },
+    { code: 'D3F7KA', slot: '11:30', status: 'CONFIRMED', confirmed: '10:52', lines: ['2 × Burger bò', '1 × Trà đào'] },
+    { code: 'T6N3XV', slot: '11:30', status: 'CONFIRMED', confirmed: '11:05', lines: ['1 × Gà rán 2 miếng'] },
+    { code: 'M2C8QA', slot: '12:15', status: 'CONFIRMED', confirmed: '11:02', lines: ['3 × Gà rán 2 miếng'] },
+  ],
+  kitchenNotice: null,
+};
+const NOW = '11:20';
+const toMin = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+const $ = (id) => document.getElementById(id);
+const role = () => $('role').value;
+const cartCount = () => state.cart.reduce((s, l) => s + l.qty, 0);
+const cartTotal = () => state.cart.reduce((s, l) => s + l.qty * l.price, 0);
+const itemOf = (id) => allItems.find((i) => i.id === id);
+const go = (path) => { location.hash = '#' + path; };
+
+function renderNav(path) {
+  const link = (p, label) => `<a class="link ${path === p ? 'active' : ''}" href="#${p}">${label}</a>`;
+  let html = `<a class="brand" href="#/">Nhóm 15 Food</a>`;
+  if (role() === 'guest') html += link('/', 'Menu') + link('/login', 'Đăng nhập');
+  if (role() === 'CUSTOMER') html += link('/', 'Menu') + link('/cart', `Giỏ<span class="count">${cartCount()}</span>`) + link('/orders', 'Đơn của tôi') + `<span class="link muted hide-sm">Khách Một</span><a class="link" href="#/logout">Đăng xuất</a>`;
+  if (role() === 'KITCHEN') html += link('/kitchen', 'Hàng chờ bếp') + `<span class="link muted hide-sm">Bếp Một</span><a class="link" href="#/logout">Đăng xuất</a>`;
+  $('nav').innerHTML = html;
+}
+
+const pages = {
+  '/': () => {
+    const cats = ['Tất cả', ...menu.map((c) => c.name)];
+    const shown = menu.filter((c) => state.category === 'Tất cả' || c.name === state.category);
+    return `<h1>Menu hôm nay</h1>
+      <div class="tabs" role="tablist">${cats.map((c) => `<button class="tab ${c === state.category ? 'active' : ''}" data-cat="${c}">${c}</button>`).join('')}</div>
+      ${state.notice ? `<div class="alert alert-success">${state.notice}</div>` : ''}
+      ${shown.map((c) => `<h2>${c.name}</h2>${c.items.map((i) => `
+        <div class="card item ${i.available ? '' : 'item-off'}">
+          <div><strong>${i.name}</strong>${i.desc ? `<div class="muted">${i.desc}</div>` : ''}${i.available ? '' : '<div><span class="badge b-PICKED_UP">Tạm hết</span></div>'}</div>
+          <div style="text-align:right"><div class="price">${money(i.price)}</div>
+          ${i.available ? `<button class="btn btn-primary" data-add="${i.id}" style="margin-top:6px">Thêm vào giỏ</button>` : ''}</div>
+        </div>`).join('')}`).join('')}`;
+  },
+  '/login': () => `<div class="form card">
+      <h1>Đăng nhập</h1>
+      ${state.loginError ? `<div class="alert alert-danger">${state.loginError}</div>` : ''}
+      <label class="field"><span>Email hoặc số điện thoại</span><input id="loginId" value="khach1@example.com" autocomplete="username"></label>
+      <label class="field"><span>Mật khẩu</span><input id="password" type="password" autocomplete="current-password"></label>
+      <button class="btn btn-primary" style="width:100%" id="doLogin">Đăng nhập</button>
+      <p class="muted">Prototype: mật khẩu trống → báo lỗi E1; nhập bất kỳ → đăng nhập theo vai trò đang chọn ở thanh trên.</p>
+    </div>`,
+  '/cart': () => {
+    if (!state.cart.length) return `<h1>Giỏ hàng</h1><div class="card">Giỏ hàng trống. <a href="#/">Xem menu</a></div>
+      <div class="actions"><button class="btn btn-primary" disabled>Chọn giờ nhận</button></div>`;
+    return `<h1>Giỏ hàng</h1>
+      ${state.notice ? `<div class="alert alert-warning">${state.notice}</div>` : ''}
+      <div class="card"><table>
+        <thead><tr><th>Món</th><th>Số lượng</th><th class="num hide-sm">Đơn giá</th><th class="num">Thành tiền</th><th></th></tr></thead>
+        <tbody>${state.cart.map((l) => `<tr><td>${itemOf(l.id).name}</td>
+          <td><span class="qty"><button aria-label="Bớt" data-dec="${l.id}">−</button>${l.qty}<button aria-label="Thêm" data-inc="${l.id}">+</button></span></td>
+          <td class="num hide-sm">${money(l.price)}</td><td class="num">${money(l.qty * l.price)}</td>
+          <td class="num"><button class="btn" data-del="${l.id}">Bỏ</button></td></tr>`).join('')}</tbody>
+      </table><div class="total">Tổng tiền: ${money(cartTotal())}</div></div>
+      <div class="actions"><a class="btn" href="#/" style="text-decoration:none">Tiếp tục chọn món</a><button class="btn btn-primary" data-go="/checkout">Chọn giờ nhận</button></div>`;
+  },
+  '/checkout': () => {
+    const c = $('slotCase').value;
+    const msg = { E2: 'Hôm nay không còn khung nhận. Giỏ hàng vẫn được giữ.', E3: 'Hôm nay đã hết chỗ. Bạn có thể bớt món rồi thử lại.', E4: 'Đơn quá lớn cho một khung giờ. Vui lòng bớt món hoặc liên hệ cửa hàng.' }[c];
+    const list = msg ? `<div class="alert alert-warning">${msg}</div>` : `
+      <p class="muted">Tình trạng chỉ để tham khảo; cửa hàng xác nhận khi bạn bấm "Xác nhận đặt".</p>
+      <div class="slots">${slots.map(([t, ok]) => `<button class="slot ${state.slot === t ? 'selected' : ''}" ${ok ? '' : 'disabled'} data-slot="${t}">
+        <strong>${t} – ${endOf(t)}</strong><span class="${ok ? 's-ok' : 's-full'}">${ok ? 'Đặt được' : 'Không đủ chỗ'}</span></button>`).join('')}</div>`;
+    return `<h1>Chọn giờ nhận hôm nay</h1>
+      ${state.notice ? `<div class="alert alert-danger">${state.notice}</div>` : ''}
+      ${list}
+      <h2>Tóm tắt đơn</h2>
+      <div class="card"><table><tbody>
+        ${state.cart.map((l) => `<tr><td>${itemOf(l.id).name} × ${l.qty}</td><td class="num">${money(l.qty * l.price)}</td></tr>`).join('')}
+        <tr><td><strong>Tổng tiền</strong></td><td class="num"><strong>${money(cartTotal())}</strong></td></tr>
+      </tbody></table>
+      <dl class="info" style="margin-top:12px"><dt>Giờ nhận</dt><dd>${state.slot ? `${state.slot} – ${endOf(state.slot)} hôm nay` : 'Chưa chọn'}</dd>
+      <dt>Thanh toán</dt><dd>Tại quầy khi nhận món</dd></dl></div>
+      <div class="actions"><button class="btn" data-go="/cart">Quay lại giỏ</button>
+      <button class="btn btn-primary" id="submit" ${state.slot && !msg ? '' : 'disabled'}>Xác nhận đặt</button></div>`;
+  },
+  '/orders': () => {
+    const open = state.orders.filter((o) => ['CONFIRMED', 'PREPARING', 'READY'].includes(o.status)).sort((a, b) => toMin(a.slot) - toMin(b.slot));
+    const done = state.orders.filter((o) => !open.includes(o));
+    const rows = (list) => list.map((o) => `<tr class="clickable" data-order="${o.id}"><td><strong>${o.code}</strong></td><td>${o.slot}, ${o.date}</td><td>${badge(o.status)}</td>
+      <td class="hide-sm">${o.paid ? 'Đã thanh toán' : 'Chưa'}</td><td class="num">${money(o.lines.reduce((s, l) => s + l.qty * l.price, 0))}</td></tr>`).join('');
+    const head = `<thead><tr><th>Mã nhận</th><th>Giờ nhận</th><th>Trạng thái</th><th class="hide-sm">Thanh toán</th><th class="num">Tổng</th></tr></thead>`;
+    if (!state.orders.length) return `<h1>Đơn của tôi</h1><div class="card">Bạn chưa có đơn. <a href="#/">Xem menu</a></div>`;
+    return `<div class="toolbar"><h1>Đơn của tôi</h1><button class="btn" data-go="/orders">Tải lại</button></div>
+      <h2>Đang xử lý</h2><div class="card">${open.length ? `<table>${head}<tbody>${rows(open)}</tbody></table>` : '<span class="muted">Không có đơn đang xử lý.</span>'}</div>
+      <h2>Đã kết thúc</h2><div class="card">${done.length ? `<table>${head}<tbody>${rows(done)}</tbody></table>` : '<span class="muted">Chưa có.</span>'}</div>`;
+  },
+  '/kitchen': () => {
+    const now = toMin(NOW);
+    const list = $('kitchenCase').value === 'empty' ? [] : state.kitchen.filter((o) => o.status === 'CONFIRMED' || o.status === 'PREPARING');
+    const sorted = [...list].sort((a, b) => toMin(a.slot) - toMin(b.slot) || toMin(a.confirmed) - toMin(b.confirmed));
+    const groups = [
+      ['Đang làm', sorted.filter((o) => o.status === 'PREPARING')],
+      ['Cần chuẩn bị', sorted.filter((o) => o.status === 'CONFIRMED' && now >= toMin(o.slot) - 15)],
+      ['Sắp tới', sorted.filter((o) => o.status === 'CONFIRMED' && now < toMin(o.slot) - 15)],
+    ];
+    const card = (o) => { const late = now >= toMin(o.slot); return `<div class="k-card ${late ? 'late' : ''}">
+      <div class="k-head"><span class="k-code">${o.code}</span><span>${o.slot} – ${endOf(o.slot)}</span></div>
+      <div>${late ? '<span class="badge b-late">TRỄ</span> ' : ''}<span class="muted">Pre-order · xác nhận ${o.confirmed}</span></div>
+      <ul>${o.lines.map((l) => `<li>${l}</li>`).join('')}</ul>
+      ${o.status === 'CONFIRMED' ? `<button class="btn ${now >= toMin(o.slot) - 15 ? 'btn-primary' : ''}" data-start="${o.code}">Bắt đầu</button>` : `<button class="btn btn-primary" data-done="${o.code}">Hoàn tất</button>`}
+    </div>`; };
+    return `<div class="toolbar"><h1>Hàng chờ bếp</h1><span class="muted">Cập nhật lúc ${NOW}:05 · tự làm mới mỗi 30 giây <button class="btn" data-go="/kitchen">Tải lại</button></span></div>
+      ${state.kitchenNotice ? `<div class="alert alert-success">${state.kitchenNotice}</div>` : ''}
+      ${list.length ? `<div class="board">${groups.map(([name, os]) => `<section class="col"><h2>${name} (${os.length})</h2>${os.map(card).join('') || '<p class="muted">Không có đơn.</p>'}</section>`).join('')}</div>`
+        : '<div class="card">Chưa có đơn cần làm.</div>'}`;
+  },
+  '/forbidden': () => `<h1>Không có quyền</h1><div class="card">Tài khoản của bạn không dùng được chức năng này. <a href="#/">Về trang chính</a></div>`,
+};
+
+function orderDetail(id, fresh) {
+  const o = state.orders.find((x) => x.id === id);
+  if (!o) return `<h1>Không tìm thấy đơn</h1><div class="card"><a href="#/orders">Về Đơn của tôi</a></div>`;
+  const total = o.lines.reduce((s, l) => s + l.qty * l.price, 0);
+  return `${fresh ? '<div class="alert alert-success"><strong>Đặt đơn thành công.</strong> Đọc mã nhận tại quầy khi tới lấy món.</div>' : ''}
+    <div class="card"><div class="toolbar"><div><div class="muted">Mã nhận</div><div class="code">${o.code}</div></div>${badge(o.status)}</div>
+    <dl class="info"><dt>Giờ nhận</dt><dd>${o.slot} – ${endOf(o.slot)}, ${o.date}</dd>
+    <dt>Thanh toán</dt><dd>${o.paid ? 'Đã thanh toán · Tiền mặt' : 'Chưa thanh toán · Thanh toán tại quầy khi nhận'}</dd>
+    <dt>Đặt lúc</dt><dd>10:52, 17/10/2026</dd></dl></div>
+    <div class="card"><table><thead><tr><th>Món</th><th class="num">SL</th><th class="num hide-sm">Đơn giá</th><th class="num">Thành tiền</th></tr></thead><tbody>
+    ${o.lines.map((l) => `<tr><td>${l.name}</td><td class="num">${l.qty}</td><td class="num hide-sm">${money(l.price)}</td><td class="num">${money(l.qty * l.price)}</td></tr>`).join('')}
+    </tbody></table><div class="total">Tổng: ${money(total)}</div></div>
+    <div class="actions"><a class="btn" href="#/orders" style="text-decoration:none">Về Đơn của tôi</a><button class="btn" data-go="/orders/${o.id}">Tải lại trạng thái</button></div>`;
+}
+
+function guard(path) {
+  const needCustomer = ['/cart', '/checkout', '/orders'].some((p) => path === p || path.startsWith('/orders/'));
+  if (needCustomer && role() === 'guest') return '/login';
+  if (needCustomer && role() !== 'CUSTOMER') return '/forbidden';
+  if (path === '/kitchen' && role() === 'guest') return '/login';
+  if (path === '/kitchen' && role() !== 'KITCHEN') return '/forbidden';
+  return null;
+}
+
+function render() {
+  let path = location.hash.slice(1) || '/';
+  if (path === '/logout') { $('role').value = 'guest'; state.notice = null; go('/'); return; }
+  const redirect = guard(path);
+  if (redirect) { path = redirect; history.replaceState(null, '', '#' + redirect); }
+  renderNav(path.startsWith('/orders/') ? '/orders' : path);
+  const app = $('app');
+  app.className = path === '/kitchen' ? 'wide' : '';
+  const m = path.match(/^\/orders\/(\d+)(\?new)?$/);
+  app.innerHTML = m ? orderDetail(Number(m[1]), !!m[2]) : (pages[path] || pages['/'])();
+}
+
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('button, tr[data-order]');
+  if (!t) return;
+  const d = t.dataset;
+  if (d.cat) { state.category = d.cat; render(); }
+  if (d.add) {
+    if (role() === 'guest') { go('/login'); return; } // UC-03 A3: món chưa được thêm
+    const id = Number(d.add); const line = state.cart.find((l) => l.id === id);
+    if (line) line.qty += 1; else state.cart.push({ id, qty: 1, price: itemOf(id).price });
+    state.notice = `Đã thêm ${itemOf(id).name} vào giỏ.`; render();
+  }
+  if (d.inc) { state.cart.find((l) => l.id === Number(d.inc)).qty += 1; render(); }
+  if (d.dec) { const l = state.cart.find((x) => x.id === Number(d.dec)); if (l.qty > 1) l.qty -= 1; render(); }
+  if (d.del) { state.cart = state.cart.filter((l) => l.id !== Number(d.del)); render(); }
+  if (d.go) { state.notice = null; state.kitchenNotice = null; if (location.hash === '#' + d.go) render(); else go(d.go); }
+  if (d.slot) { state.slot = d.slot; render(); }
+  if (d.order) go('/orders/' + d.order);
+  if (t.id === 'doLogin') {
+    if (!$('password').value) { state.loginError = 'Thông tin đăng nhập không đúng.'; render(); return; }
+    state.loginError = null;
+    if (role() === 'guest') $('role').value = 'CUSTOMER';
+    go(role() === 'KITCHEN' ? '/kitchen' : '/');
+  }
+  if (t.id === 'submit') submit();
+  if (d.start || d.done) {
+    const o = state.kitchen.find((x) => x.code === (d.start || d.done));
+    o.status = d.start ? 'PREPARING' : 'READY';
+    state.kitchenNotice = d.start ? `Đã bắt đầu đơn ${o.code}.` : `Đơn ${o.code} đã sẵn sàng; đã rời hàng chờ.`;
+    render();
+  }
+});
+
+function submit() {
+  const c = $('submitCase').value;
+  const msgs = {
+    E5: 'Bạn đang có 3 đơn chưa hoàn tất, chưa đặt thêm được. Xem ở <a href="#/orders">Đơn của tôi</a>. Giỏ hàng vẫn được giữ.',
+    E6: 'Khung bạn chọn không còn đặt được (cần đặt trước ít nhất 30 phút). Danh sách khung đã được cập nhật, vui lòng chọn lại.',
+    E8: 'Khung bạn chọn vừa hết chỗ. Danh sách khung đã được cập nhật, vui lòng chọn khung khác.',
+    E10: 'Có lỗi hệ thống, đơn chưa được tạo. Bạn có thể bấm "Xác nhận đặt" lại; hệ thống không tạo trùng đơn.',
+  };
+  if (msgs[c]) { state.notice = msgs[c]; if (c === 'E6' || c === 'E8') state.slot = null; render(); window.scrollTo(0, 0); return; }
+  if (c === 'E7') {
+    state.cart.find((l) => l.id === 12) && (state.cart.find((l) => l.id === 12).price = 47000);
+    state.notice = 'Một số món đã thay đổi, vui lòng xem lại rồi đặt lại:<ul><li>Burger bò: giá mới 47.000 đ</li></ul>';
+    go('/cart'); return;
+  }
+  if (c === 'E9') { state.notice = 'Đơn quá lớn cho một khung giờ. Vui lòng bớt món hoặc liên hệ cửa hàng.'; go('/cart'); return; }
+  const id = 41;
+  state.orders = state.orders.filter((o) => o.id !== id);
+  state.orders.push({ id, code: 'K7M3QX', slot: state.slot, date: 'hôm nay', status: 'CONFIRMED', paid: false,
+    lines: state.cart.map((l) => ({ name: itemOf(l.id).name, qty: l.qty, price: l.price })) });
+  state.cart = []; state.slot = null; state.notice = null;
+  go(`/orders/${id}?new`);
+}
+
+['role', 'slotCase', 'kitchenCase'].forEach((id) => $(id).addEventListener('change', () => { state.notice = null; render(); }));
+window.addEventListener('hashchange', () => { state.kitchenNotice = null; if (!location.hash.startsWith('#/cart') && !location.hash.startsWith('#/checkout')) state.notice = null; render(); });
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+@startsalt wf-03_gio-hang
+title Wireframe 03 — Giỏ hàng (UC-04.1 bước 3–4, A2, E7) · /cart
+{+
+  {* <b>Nhóm 15 Food</b> | Menu | Giỏ (3) | Đơn của tôi | Khách Một ▾ }
+  ==
+  <b>Giỏ hàng</b>
+  {+
+    <i>(!) Một số món đã thay đổi, vui lòng xem lại:</i>
+    <i>· Burger bò: giá mới 47.000 đ</i>
+    <i>· Burger gà giòn: đã tạm hết, đã bỏ khỏi giỏ</i>
+  }
+  {#
+    <b>Món</b>       | <b>Số lượng</b>   | <b>Đơn giá</b> | <b>Thành tiền</b> | .
+    Burger bò        | { [−] | 2 | [+] }   | 47.000 đ       | 94.000 đ          | [Bỏ]
+    Trà đào          | { [−] | 1 | [+] }   | 20.000 đ       | 20.000 đ          | [Bỏ]
+  }
+  { . | <b>Tổng tiền: 114.000 đ</b> }
+  .
+  { [ Tiếp tục chọn món ] | [ <b>Chọn giờ nhận</b> ] }
+  --
+  <i>Giỏ trống: "Giỏ hàng trống" + liên kết về Menu; nút "Chọn giờ nhận" bị khóa (A2).</i>
+  <i>Khung cảnh báo chỉ hiện khi quay về từ lỗi E7 hoặc E9.</i>
+}
+@endsalt
