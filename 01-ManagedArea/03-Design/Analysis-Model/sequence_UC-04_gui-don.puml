@@ -1,0 +1,89 @@
+@startuml sequence_UC-04_gui-don
+!include ../_style.iuml
+title Sequence (phân tích) — UC-04.2 bước 7–11: Gửi đơn, include UC-17 Kiểm tra và giữ quota
+autonumber
+
+actor "Khách" as C
+boundary CheckoutScreen as UI
+control PlaceOrderControl as PO
+control QuotaControl as QC
+entity Order as O
+entity MenuItem as MI
+entity StoreSettings as SS
+entity TimeSlot as TS
+
+C -> UI : "Xác nhận đặt" (bước 7)
+UI -> PO : đặt đơn(mã yêu cầu, khung, dòng giỏ: món, số lượng, giá đã thấy)
+activate PO
+note over PO, TS #FFFFFF
+  Từ đây tới bước tạo đơn là **một giao dịch**: hoặc tất cả thành công,
+  hoặc không thay đổi gì (BR-10). Các yêu cầu đặt của **cùng một khách**
+  được xử lý lần lượt, để hai lần gửi đồng thời không cùng vượt qua
+  kiểm tra A1 và BR-37 (cách làm: xem Class Design).
+end note
+
+PO -> O : tìm đơn theo (khách, mã yêu cầu) (bước 8d)
+alt đã có đơn (A1, BR-17)
+  PO --> UI : kết quả của đơn đã tạo (không tạo mới, không giữ thêm quota)
+else chưa có
+  PO -> O : đếm đơn chưa kết thúc của khách (bước 8a)
+  opt ≥ N = 3 (E5, BR-37)
+    PO --> UI : từ chối, hướng dẫn xem "Đơn của tôi"
+  end
+  PO -> SS : giờ mở cửa
+  PO -> PO : khung thuộc hôm nay, đúng mốc 15 phút,\ntrong giờ mở cửa, ≥ hiện tại + 30 phút (bước 8b)
+  opt không thỏa (E6, BR-15)
+    PO --> UI : khung không còn đặt được
+  end
+  PO -> MI : tình trạng, giá, điểm hiện tại của các món
+  PO -> PO : so với giỏ: còn bán, đang bán, giá bằng giá đã thấy (bước 8c)
+  opt có món khác (E7, BR-04, BR-35)
+    PO --> UI : danh sách món thay đổi (giá mới / không còn bán)
+  end
+
+  group UC-17 Kiểm tra và giữ quota (bước 9)
+    PO -> QC : giữ quota(khung, dòng đơn)
+    activate QC
+    QC -> QC : điểm đơn = Σ điểm món × số lượng (BR-08)
+    alt điểm đơn = 0 (BR-13)
+      QC --> PO : giữ được, điểm 0 (không chiếm quota)
+    else điểm đơn > 0
+      QC -> SS : quota mặc định
+      QC -> TS : quota riêng của khung (nếu có), điểm đang giữ
+      alt điểm đơn > quota của khung (UC-17 E1)
+        QC --> PO : vượt sức chứa một khung
+        PO --> UI : E9: đơn quá lớn, liên hệ cửa hàng (BR-12)
+      else điểm đơn > quota − điểm đang giữ (UC-17 E2)
+        QC --> PO : khung không đủ chỗ
+        PO --> UI : E8: khung vừa hết chỗ\n(điểm mở rộng UC-18, Sprint sau)
+      else đủ chỗ
+        QC -> TS : điểm đang giữ += điểm đơn
+        note right of TS
+          Kiểm tra và cộng là
+          **một thao tác không chen ngang**
+          (NFR-01).
+        end note
+        QC --> PO : giữ được, điểm đơn
+      end
+    end
+    deactivate QC
+  end
+
+  PO -> O : tạo đơn CONFIRMED, UNPAID, nguồn pre-order,\ndòng đơn với giá lưu, điểm đơn, mã nhận 6 ký tự,\nmã yêu cầu (bước 10; BR-28, BR-35, BR-08, BR-38)
+  alt lỗi khi giữ quota hoặc tạo đơn (E10, UC-17 E3)
+    PO -> PO : hủy mọi thay đổi (BR-10)
+    PO --> UI : lỗi hệ thống; gửi lại an toàn nhờ A1
+  else thành công
+    PO --> UI : đơn đã tạo
+  end
+end
+deactivate PO
+
+UI -> C : mã nhận, khung, món, tổng tiền, "Đã xác nhận",\nnhắc thanh toán tại quầy; xóa giỏ (bước 11)
+note right of UI
+  Khi nhận lỗi: E5, E10 giữ giỏ, kết thúc;
+  E6, E8 quay lại danh sách khung (bước 6);
+  E7, E9 quay lại giỏ (bước 3–4).
+  Bước 11 chỉ chạy khi có đơn (thành công hoặc A1).
+end note
+@enduml

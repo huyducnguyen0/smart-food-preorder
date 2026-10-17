@@ -1,0 +1,31 @@
+' Kiểu dùng chung cho sơ đồ thiết kế (T-07–T-10). Được !include trong từng file .puml.
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam ArrowColor #333333
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+  HeaderBackgroundColor #F5F5F5
+}
+skinparam package {
+  BorderColor #777777
+  FontStyle bold
+}
+skinparam sequence {
+  LifeLineBorderColor #999999
+  ParticipantBackgroundColor #FFFFFF
+  ParticipantBorderColor #333333
+  ActorBorderColor #333333
+  ActorBackgroundColor #FFFFFF
+  BoxBorderColor #999999
+  GroupBorderColor #777777
+  GroupBackgroundColor #F5F5F5
+}
+skinparam note {
+  BackgroundColor #FFFDE7
+  BorderColor #999999
+}
+skinparam entity {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
