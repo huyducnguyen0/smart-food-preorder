@@ -1,0 +1,34 @@
+@startuml architecture-overview
+!include ../_style.iuml
+title Kiến trúc tổng thể — Sprint 1
+
+node "Trình duyệt (khách, nhân viên)" as Browser {
+  component "React SPA\n(View)" as SPA
+  database "localStorage\n(giỏ hàng)" as LS
+}
+
+node "Máy chủ ứng dụng" as AppServer {
+  component "Spring Boot\nREST API /api/**" as API {
+    [Spring Security\n(phiên, vai trò, CSRF)] as Sec
+    [Controller\n(nhận HTTP, DTO)] as Ctl
+    [Service\n(quy tắc nghiệp vụ, giao dịch)] as Svc
+    [Repository\n(SQL qua JdbcTemplate)] as Repo
+  }
+}
+
+database "PostgreSQL 18\n(schema quản lý bằng Flyway)" as DB
+
+SPA --> LS : đọc/ghi giỏ
+SPA --> Sec : HTTP JSON, cookie phiên\n(dev: qua Vite proxy, cùng origin)
+Sec --> Ctl
+Ctl --> Svc
+Svc --> Repo
+Repo --> DB : JDBC
+
+note as MVC
+  Ánh xạ MVC của nguồn:
+  View = React SPA
+  Controller = Controller + Service
+  Model = record nghiệp vụ, Repository, database
+end note
+@enduml

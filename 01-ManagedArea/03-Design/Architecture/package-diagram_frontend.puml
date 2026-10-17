@@ -1,0 +1,57 @@
+@startuml package-diagram_frontend
+!include ../_style.iuml
+title Package Diagram — frontend src/ (Sprint 1)
+top to bottom direction
+
+package "src" {
+  package "app" as app {
+    [App, router,\nRequireRole] as router
+  }
+  package "features" as features {
+    package "auth" as fAuth {
+      [LoginPage\nAuthProvider, useAuth] as auth
+    }
+    package "menu" as fMenu {
+      [MenuPage] as menu
+    }
+    package "cart" as fCart {
+      [CartPage\nCartProvider, useCart] as cart
+    }
+    package "checkout" as fCheckout {
+      [CheckoutPage] as checkout
+    }
+    package "orders" as fOrders {
+      [MyOrdersPage\nOrderDetailPage] as orders
+    }
+    package "kitchen" as fKitchen {
+      [KitchenQueuePage] as kitchen
+    }
+  }
+  package "api" as api {
+    [client.ts\n(fetch, CSRF, lỗi ProblemDetail)] as client
+    [auth.ts, menu.ts, slots.ts,\norders.ts, kitchen.ts] as apis
+  }
+  package "components" as components {
+    [Layout, NavBar,\nMoney, StatusBadge, ErrorMessage] as comps
+  }
+}
+
+router --> auth
+router --> menu
+router --> cart
+router --> checkout
+router --> orders
+router --> kitchen
+
+menu ..> cart : thêm vào giỏ
+checkout ..> cart : đọc giỏ, xóa giỏ
+features ..> apis
+features ..> comps
+apis --> client
+
+note right of api
+  Chỉ thư mục api gọi fetch.
+  Mỗi file khai báo kiểu dữ liệu khớp
+  với DTO của backend (mục REST API).
+end note
+@enduml
