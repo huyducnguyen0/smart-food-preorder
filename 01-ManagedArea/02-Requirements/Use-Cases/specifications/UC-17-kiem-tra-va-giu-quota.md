@@ -36,7 +36,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 ## Ghi chú và giới hạn
 - Hoàn quota (BR-14) không thuộc use case này: thực hiện khi hủy đơn (UC-06, UC-11, Sprint sau). Đơn `CONFIRMED`, `PREPARING`, `READY`, `PICKED_UP`, `NO_SHOW` tiếp tục giữ quota.
 - Điểm món dùng ở bước 1 là giá trị tại thời điểm xác nhận; sửa điểm món sau đó không làm đổi điểm đơn đã lưu (BR-08).
-- Cách hiện thực "không thể chen ngang" ở bước 4–5 (khóa dòng, câu cập nhật có điều kiện...) chọn ở T-16, phải chứng minh bằng test đồng thời theo NFR-01, không chỉ bằng lập luận.
+- Cách hiện thực "không thể chen ngang" ở bước 4–5: câu cập nhật có điều kiện trên dòng khung ([Class Design](../../../03-Design/Class-Design/README.md) mục 3, T-10). T-16 phải chứng minh bằng test đồng thời theo NFR-01, không chỉ bằng lập luận.
 
 ## Output chuyển giao
 Dùng cho Analysis/Sequence giữ quota (T-07), Database (T-09), service quota và unit test (T-16), white-box test (T-24).
