@@ -65,7 +65,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 - Quyết định 2026-10-10: giỏ hàng lưu **trên trình duyệt** của khách (không lưu trên server); đổi thiết bị hoặc xóa dữ liệu trình duyệt thì mất giỏ. Vì giỏ do trình duyệt giữ, mọi giá trị trong giỏ chỉ là "khách đã thấy"; backend luôn kiểm tra lại ở bước 8.
 - Tổng tiền đơn = Σ (giá lưu của món × số lượng). Không có giảm giá, phí hay thuế trong phạm vi.
 - Tình trạng "Đặt được" ở bước 6 chỉ đúng tại thời điểm hiển thị; quyết định cuối cùng ở bước 9 (BR-36).
-- Thời điểm sinh mã yêu cầu ở A1 và cách lưu để chặn trùng khi đồng thời: thiết kế ở T-08, T-09, hiện thực ở T-18.
+- Mã yêu cầu ở A1: frontend sinh UUID khi khách vào bước 7; backend chặn trùng bằng khóa theo khách và ràng buộc duy nhất ([Class Design](../../../03-Design/Class-Design/README.md) mục 3, [Database Design](../../../03-Design/Database/DATABASE_DESIGN.md) bảng `orders`); hiện thực ở T-18.
 
 ## Output chuyển giao
 Dùng cho Activity "Đặt pre-order" (T-06), Analysis/Sequence (T-07), Database (T-09), UI giỏ và đặt đơn (T-11), API đặt đơn (T-18), màn chọn khung và gửi đơn (T-19), Test Case (T-23).

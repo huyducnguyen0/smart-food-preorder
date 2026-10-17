@@ -1,0 +1,77 @@
+@startuml erd_conceptual
+!include ../_style.iuml
+hide circle
+hide empty methods
+title ER Diagram (mức khái niệm) — Sprint 1
+
+entity "Tài khoản\n(Account)" as Account {
+  {field} định danh đăng nhập (email/SĐT)
+  {field} mật khẩu (băm)
+  {field} tên hiển thị
+  {field} vai trò
+  {field} bị khóa
+}
+
+entity "Nhóm món\n(MenuCategory)" as Category {
+  {field} tên nhóm
+  {field} thứ tự hiển thị
+}
+
+entity "Món\n(MenuItem)" as Item {
+  {field} tên, mô tả, hình ảnh
+  {field} giá
+  {field} điểm công việc
+  {field} còn bán / tạm hết
+  {field} đang bán / ngừng bán
+}
+
+entity "Cấu hình cửa hàng\n(StoreSettings)" as Settings {
+  {field} giờ mở cửa, giờ đóng cửa
+  {field} quota mặc định
+}
+
+entity "Khung giờ\n(TimeSlot)" as Slot {
+  {field} ngày
+  {field} giờ bắt đầu
+  {field} quota riêng (nếu có)
+  {field} điểm đang giữ
+}
+
+entity "Đơn\n(Order)" as Order {
+  {field} nguồn (pre-order / walk-in)
+  {field} trạng thái
+  {field} trạng thái thanh toán, phương thức
+  {field} điểm đơn
+  {field} tổng tiền
+  {field} mã nhận
+  {field} mã yêu cầu
+  {field} thời điểm xác nhận
+  {field} thời điểm bắt đầu, hoàn tất
+}
+
+entity "Dòng đơn\n(OrderLine)" as Line {
+  {field} tên món lúc đặt
+  {field} giá lúc đặt
+  {field} số lượng
+}
+
+Category ||--o{ Item : gồm
+Account |o--o{ Order : "đặt (khách)"
+Slot ||--o{ Order : "nhận tại"
+Order ||--|{ Line : gồm
+Item ||--o{ Line : "được đặt trong"
+Account |o--o{ Order : "bắt đầu (bếp)"
+Account |o--o{ Order : "hoàn tất (bếp)"
+
+note right of Settings
+  Chỉ có một bản ghi.
+  Khung giờ không có quota riêng
+  dùng quota mặc định.
+end note
+
+note bottom of Slot
+  Một khung = 15 phút của một ngày.
+  Chỉ lưu khung đã có quota riêng
+  hoặc đã có đơn giữ quota.
+end note
+@enduml

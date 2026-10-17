@@ -1,0 +1,111 @@
+@startuml analysis-class_UC-04_dat-pre-order
+!include ../_style.iuml
+allowmixing
+hide empty methods
+title Analysis Class — UC-04 Đặt pre-order (gồm UC-04.1, UC-04.2, include UC-17)
+left to right direction
+
+actor "Khách" as Customer
+
+package "Boundary" {
+  class MenuScreen <<(B,#FFFFFF) boundary>> {
+    {field} món theo nhóm, giá, còn bán/tạm hết
+    {field} nút "Thêm vào giỏ"
+  }
+  class CartScreen <<(B,#FFFFFF) boundary>> {
+    {field} dòng giỏ, đơn giá, thành tiền, tổng tiền
+    {field} đổi số lượng, bỏ món
+  }
+  class CheckoutScreen <<(B,#FFFFFF) boundary>> {
+    {field} danh sách khung "Đặt được"/"Không đủ chỗ"
+    {field} tóm tắt đơn, nút "Xác nhận đặt"
+    {field} thông báo lỗi E2–E10
+  }
+  class OrderDetailScreen <<(B,#FFFFFF) boundary>> {
+    {field} mã nhận, khung, món, tổng tiền,
+    {field} trạng thái, nhắc thanh toán tại quầy
+  }
+}
+
+package "Control" {
+  class CartControl <<(C,#FFFFFF) control>> {
+    {field} thêm/đổi/bỏ món trong giỏ (UC-04.1)
+    {field} tính tổng tiền
+  }
+  class MenuControl <<(C,#FFFFFF) control>> {
+    {field} trả món đang bán (UC-03)
+    {field} kiểm tra một món còn bán (E1)
+  }
+  class SlotAvailabilityControl <<(C,#FFFFFF) control>> {
+    {field} liệt kê khung hợp lệ hôm nay (BR-06, BR-15)
+    {field} đánh dấu theo điểm giỏ (BR-36)
+    {field} nhận ra E2, E3, E4
+  }
+  class PlaceOrderControl <<(C,#FFFFFF) control>> {
+    {field} điều phối bước 8–11
+    {field} chống trùng theo mã yêu cầu (BR-17)
+    {field} kiểm tra N đơn (BR-37), khung (BR-15),
+    {field} món và giá (BR-04, BR-35)
+    {field} tạo đơn, cấp mã nhận (BR-28, BR-38)
+  }
+  class QuotaControl <<(C,#FFFFFF) control>> {
+    {field} UC-17: tính điểm đơn (BR-08, BR-13)
+    {field} kiểm tra và giữ quota không chen ngang
+    {field} (BR-09, BR-12, NFR-01)
+  }
+}
+
+package "Entity" {
+  class Cart <<(E,#FFFFFF) entity>> {
+    {field} dòng: món, số lượng, giá đã thấy
+    ..
+    {field} (lưu trên trình duyệt)
+  }
+  class MenuItem <<(E,#FFFFFF) entity>> {
+    {field} tên, nhóm, giá, điểm công việc,
+    {field} còn bán/tạm hết, đang bán/ngừng bán
+  }
+  class StoreSettings <<(E,#FFFFFF) entity>> {
+    {field} giờ mở cửa, quota mặc định
+  }
+  class TimeSlot <<(E,#FFFFFF) entity>> {
+    {field} ngày, giờ bắt đầu,
+    {field} quota riêng (nếu có), điểm đang giữ
+  }
+  class Order <<(E,#FFFFFF) entity>> {
+    {field} khách, khung, trạng thái, thanh toán,
+    {field} điểm đơn, tổng tiền, mã nhận, mã yêu cầu
+  }
+  class OrderLine <<(E,#FFFFFF) entity>> {
+    {field} món, số lượng, giá lưu khi xác nhận
+  }
+}
+
+Customer -- MenuScreen
+Customer -- CartScreen
+Customer -- CheckoutScreen
+Customer -- OrderDetailScreen
+
+MenuScreen --> CartControl
+MenuScreen --> MenuControl
+CartScreen --> CartControl
+CheckoutScreen --> SlotAvailabilityControl
+CheckoutScreen --> PlaceOrderControl
+
+CartControl --> Cart
+CartControl --> MenuControl : kiểm tra món khi thêm
+MenuControl --> MenuItem
+SlotAvailabilityControl --> MenuItem : điểm món
+SlotAvailabilityControl --> StoreSettings
+SlotAvailabilityControl --> TimeSlot
+PlaceOrderControl --> Order
+PlaceOrderControl --> MenuItem
+PlaceOrderControl --> StoreSettings
+PlaceOrderControl --> QuotaControl : include UC-17
+QuotaControl --> TimeSlot
+QuotaControl --> StoreSettings : quota mặc định
+
+Order "1" *-- "1..*" OrderLine
+OrderLine "*" --> "1" MenuItem
+Order "*" --> "1" TimeSlot
+@enduml

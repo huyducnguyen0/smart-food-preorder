@@ -7,4 +7,4 @@ Theo Bước 11–14:
 3. Detailed Design: ERD, Relational Schema và Detailed Class Diagram.
 4. UI Prototype: layout, wireframe, phối màu, navigation, đánh giá và chỉnh sửa.
 
-Các output được làm rõ cho phạm vi triển khai và cập nhật qua các Sprint.
+Các output được làm rõ cho phạm vi triển khai và cập nhật qua các Sprint. Sprint 1: lập ở T-07 → T-11 ngày 2026-10-17. Kiểu chung của sơ đồ PlantUML ở `_style.iuml`.

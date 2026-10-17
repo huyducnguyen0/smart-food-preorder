@@ -1,0 +1,201 @@
+@startuml class-diagram_dat-don-quota
+!include ../_style.iuml
+title Detailed Class Diagram — đặt đơn và giữ quota (module order, slot, menu)
+hide empty members
+skinparam classAttributeIconSize 0
+
+package "order" {
+  class OrderController <<RestController>> {
+    + placeOrder(req : PlaceOrderRequest, user : CurrentUser) : ResponseEntity<OrderDetailResponse>
+    + listMyOrders(user : CurrentUser) : OrderListResponse
+    + getMyOrder(id : long, user : CurrentUser) : OrderDetailResponse
+  }
+  class PlaceOrderService <<Service>> {
+    - orderRepository : OrderRepository
+    - menuService : MenuService
+    - slotAvailabilityService : SlotAvailabilityService
+    - quotaService : QuotaService
+    - pickupCodeGenerator : PickupCodeGenerator
+    - properties : OrderingProperties
+    - clock : Clock
+    + placeOrder(customerId : long, cmd : PlaceOrderCommand) : PlaceOrderResult
+    - checkItems(cmd, items : Map<Long, MenuItem>) : void
+  }
+  class MyOrderService <<Service>> {
+    + listOrders(customerId : long) : List<OrderSummary>
+    + getOrder(customerId : long, orderId : long) : OrderDetail
+  }
+  class OrderStatusService <<Service>> {
+    + startPreparing(orderId : long, staffId : long) : OrderStatus
+    + markReady(orderId : long, staffId : long) : OrderStatus
+  }
+  class PickupCodeGenerator <<Component>> {
+    - {static} ALPHABET : String = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+    - random : SecureRandom
+    + generate() : String
+  }
+  class OrderRepository <<Repository>> {
+    + lockCustomer(customerId : long) : void
+    + findIdByRequest(customerId : long, requestId : UUID) : Optional<Long>
+    + countOpenOrders(customerId : long) : int
+    + pickupCodeExists(code : String) : boolean
+    + insert(order : NewOrder) : long
+    + findDetail(orderId : long, customerId : long) : Optional<OrderDetail>
+    + findSummaries(customerId : long) : List<OrderSummary>
+    + updateStatus(orderId : long, from : OrderStatus, to : OrderStatus, staffId : long, at : OffsetDateTime) : boolean
+  }
+  class PlaceOrderCommand <<record>> {
+    requestId : UUID
+    slotStart : LocalDateTime
+    lines : List<RequestedLine>
+  }
+  class RequestedLine <<record>> {
+    menuItemId : long
+    quantity : int
+    unitPrice : int
+  }
+  class PlaceOrderResult <<record>> {
+    order : OrderDetail
+    created : boolean
+  }
+  class NewOrder <<record>> {
+    customerId : Long
+    source : OrderSource
+    timeSlotId : long
+    workloadPoints : int
+    totalAmount : int
+    pickupCode : String
+    requestId : UUID
+    confirmedAt : OffsetDateTime
+    lines : List<NewOrderLine>
+  }
+  class OrderDetail <<record>> {
+    id, pickupCode, slotStart, slotEnd,
+    status, paymentStatus, paymentMethod,
+    totalAmount, confirmedAt, lines
+  }
+  enum OrderStatus {
+    CONFIRMED
+    PREPARING
+    READY
+    PICKED_UP
+    CANCELLED
+    NO_SHOW
+    + isOpen() : boolean
+  }
+  enum OrderSource {
+    PRE_ORDER
+    WALK_IN
+  }
+}
+
+package "slot" {
+  class SlotController <<RestController>> {
+    + listSlots(lines : String, user : CurrentUser) : SlotListResponse
+  }
+  class SlotAvailabilityService <<Service>> {
+    - storeSettingsRepository : StoreSettingsRepository
+    - slotRepository : SlotRepository
+    - menuService : MenuService
+    - properties : OrderingProperties
+    - clock : Clock
+    + listSlots(lines : List<CartLine>) : SlotList
+    + checkBookable(slotStart : LocalDateTime) : void
+    - candidateStartTimes(settings : StoreSettings, now : LocalDateTime) : List<LocalTime>
+  }
+  class QuotaService <<Service>> {
+    - slotRepository : SlotRepository
+    - storeSettingsRepository : StoreSettingsRepository
+    + reserve(date : LocalDate, start : LocalTime, lines : List<QuotaLine>) : QuotaReservation
+    + {static} orderPoints(lines : List<QuotaLine>) : int
+  }
+  class SlotRepository <<Repository>> {
+    + findByDate(date : LocalDate) : List<TimeSlot>
+    + ensureExists(date : LocalDate, start : LocalTime) : long
+    + tryHold(date : LocalDate, start : LocalTime, points : int, defaultQuota : int) : Optional<Long>
+    + find(date : LocalDate, start : LocalTime) : Optional<TimeSlot>
+  }
+  class StoreSettingsRepository <<Repository>> {
+    + get() : StoreSettings
+  }
+  class TimeSlot <<record>> {
+    id : long
+    slotDate : LocalDate
+    startTime : LocalTime
+    quotaOverride : Integer
+    heldPoints : int
+    + quota(defaultQuota : int) : int
+  }
+  class StoreSettings <<record>> {
+    openTime : LocalTime
+    closeTime : LocalTime
+    defaultQuotaPoints : int
+  }
+  class QuotaLine <<record>> {
+    workloadPoints : int
+    quantity : int
+  }
+  class QuotaReservation <<record>> {
+    timeSlotId : long
+    points : int
+  }
+}
+
+package "menu" {
+  class MenuService <<Service>> {
+    + getMenu() : List<MenuCategoryView>
+    + getOrderableItem(id : long) : MenuItem
+    + findItems(ids : Collection<Long>) : Map<Long, MenuItem>
+  }
+  class MenuItem <<record>> {
+    id : long
+    categoryId : long
+    name : String
+    price : int
+    workloadPoints : int
+    available : boolean
+    discontinued : boolean
+    + isOrderable() : boolean
+  }
+}
+
+package "config" {
+  class OrderingProperties <<ConfigurationProperties>> {
+    slotMinutes : int = 15
+    minLeadMinutes : int = 30
+    prepWindowMinutes : int = 15
+    maxOpenOrdersPerCustomer : int = 3
+  }
+}
+
+OrderController --> PlaceOrderService
+OrderController --> MyOrderService
+PlaceOrderService --> OrderRepository
+PlaceOrderService --> PickupCodeGenerator
+PlaceOrderService --> MenuService
+PlaceOrderService --> SlotAvailabilityService
+PlaceOrderService --> QuotaService
+PlaceOrderService ..> PlaceOrderCommand
+PlaceOrderService ..> PlaceOrderResult
+PlaceOrderService ..> NewOrder
+PlaceOrderCommand *-- "1..*" RequestedLine
+MyOrderService --> OrderRepository
+OrderStatusService --> OrderRepository
+OrderRepository ..> OrderDetail
+OrderDetail --> OrderStatus
+
+SlotController --> SlotAvailabilityService
+SlotAvailabilityService --> SlotRepository
+SlotAvailabilityService --> StoreSettingsRepository
+SlotAvailabilityService --> MenuService
+QuotaService --> SlotRepository
+QuotaService --> StoreSettingsRepository
+QuotaService ..> QuotaLine
+QuotaService ..> QuotaReservation
+SlotRepository ..> TimeSlot
+StoreSettingsRepository ..> StoreSettings
+
+MenuService ..> MenuItem
+PlaceOrderService --> OrderingProperties
+SlotAvailabilityService --> OrderingProperties
+@enduml

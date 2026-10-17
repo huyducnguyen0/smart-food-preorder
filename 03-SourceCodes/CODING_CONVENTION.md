@@ -1,5 +1,5 @@
 # Coding Convention
-Trạng thái: Chốt ở task T-02 (Sprint 1) ngày 2026-10-09 theo lựa chọn của người dùng. Bổ sung khi có quy ước mới; quy ước tổ chức package/module chốt ở Architecture (T-08), quy ước bảng/cột ở Database Design (T-09).
+Trạng thái: Chốt ở task T-02 (Sprint 1) ngày 2026-10-09 theo lựa chọn của người dùng. Bổ sung khi có quy ước mới. Ngày 2026-10-17 thêm mục Tổ chức mã nguồn (từ Architecture, T-08) và Database (từ Database Design, T-09).
 
 Theo Bước 15 của [quy trình IT3180](../00-References/IT3180_PROJECT_PROCESS.md): thống nhất indentation, whitespace, line length, naming, declaration, expression, comment, documentation. Project mẫu của nguồn tham khảo convention của Sun; dự án giữ cách thụt 4 space của Sun cho Java, còn định dạng chi tiết giao cho formatter tự động.
 
@@ -31,6 +31,19 @@ Cấu hình đi kèm:
 - **Thuật ngữ**: dịch nhất quán theo mục Thuật ngữ của [SRS](../01-ManagedArea/02-Requirements/SRS/SRS.md); một khái niệm chỉ có một tên trong toàn bộ code. Tên lớp miền (entity) chốt ở Class Design (T-10).
 - **Truy vết**: khi code hiện thực một quy tắc nghiệp vụ, ghi mã quy tắc trong comment, ví dụ `// BR-09: chỉ xác nhận khi điểm đơn ≤ quota còn lại`.
 - **Không commit** code bị comment bỏ, `System.out.println`, `console.log` dùng để debug, hoặc bí mật (xem Git workflow trong README).
+
+## Tổ chức mã nguồn
+Chi tiết và lý do ở [Architecture](../01-ManagedArea/03-Design/Architecture/ARCHITECTURE.md) mục 2 và 6.
+- **Backend**: một package cho mỗi module nghiệp vụ dưới `vn.nhom15.preorder` (`auth`, `menu`, `slot`, `order`, `kitchen`), cộng `common` và `config`. Trong module: `...Controller` → `...Service` → `...Repository`, cùng record và enum nghiệp vụ.
+- Controller không chứa quy tắc nghiệp vụ và không gọi repository; service không biết HTTP; module khác chỉ gọi service, không gọi repository của nhau.
+- Chỉ module `order` ghi bảng `orders`, `order_lines` (chuyển trạng thái qua `OrderStatusService`); chỉ module `slot` ghi điểm đang giữ của khung (qua `QuotaService`).
+- **Frontend**: `src/app` (route), `src/features/<nhóm màn hình>`, `src/api` (nơi duy nhất gọi `fetch`), `src/components` (dùng chung).
+
+## Database
+Chi tiết ở [Database Design](../01-ManagedArea/03-Design/Database/DATABASE_DESIGN.md).
+- Tên bảng snake_case số nhiều (`menu_items`); cột snake_case số ít; khóa chính `id`; khóa ngoại `<tên số ít>_id` (`menu_item_id`).
+- Ràng buộc đặt tên: `pk_<bảng>`, `fk_<bảng>_<cột>`, `uq_<bảng>_<cột>`, `ck_<bảng>_<ý nghĩa>`, chỉ mục `ix_<bảng>_<cột>`.
+- Mỗi thay đổi schema là một migration Flyway mới `V<n>__<mo_ta>.sql`; không sửa migration đã chạy.
 
 ## 1. Indentation
 | | Java | TypeScript/React, CSS, JSON |
