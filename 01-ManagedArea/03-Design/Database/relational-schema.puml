@@ -1,0 +1,101 @@
+@startuml relational-schema
+!include ../_style.iuml
+hide circle
+hide empty methods
+skinparam linetype ortho
+title Relational Schema — Sprint 1 (PostgreSQL)
+
+entity user_accounts {
+  * id : bigint <<PK>>
+  --
+  * login_id : varchar(100) <<UQ>>
+  * password_hash : varchar(100)
+  * display_name : varchar(100)
+  * role : varchar(20)
+  * locked : boolean
+  * created_at : timestamptz
+}
+
+entity menu_categories {
+  * id : bigint <<PK>>
+  --
+  * name : varchar(50) <<UQ>>
+  * sort_order : integer
+}
+
+entity menu_items {
+  * id : bigint <<PK>>
+  --
+  * category_id : bigint <<FK>>
+  * name : varchar(100)
+  description : varchar(500)
+  image_url : varchar(500)
+  * price : integer
+  * workload_points : integer
+  * available : boolean
+  * discontinued : boolean
+  * created_at : timestamptz
+  * updated_at : timestamptz
+}
+
+entity store_settings {
+  * id : smallint <<PK>> (= 1)
+  --
+  * open_time : time
+  * close_time : time
+  * default_quota_points : integer
+  * updated_at : timestamptz
+}
+
+entity time_slots {
+  * id : bigint <<PK>>
+  --
+  * slot_date : date
+  * start_time : time
+  quota_override : integer
+  * held_points : integer
+  ..
+  <<UQ>> (slot_date, start_time)
+}
+
+entity orders {
+  * id : bigint <<PK>>
+  --
+  customer_id : bigint <<FK>>
+  * source : varchar(10)
+  * time_slot_id : bigint <<FK>>
+  * status : varchar(12)
+  * payment_status : varchar(6)
+  payment_method : varchar(15)
+  * workload_points : integer
+  * total_amount : integer
+  * pickup_code : char(6) <<UQ>>
+  request_id : uuid
+  * confirmed_at : timestamptz
+  preparing_at : timestamptz
+  preparing_by : bigint <<FK>>
+  ready_at : timestamptz
+  ready_by : bigint <<FK>>
+  ..
+  <<UQ>> (customer_id, request_id)
+}
+
+entity order_lines {
+  * id : bigint <<PK>>
+  --
+  * order_id : bigint <<FK>>
+  * menu_item_id : bigint <<FK>>
+  * item_name : varchar(100)
+  * unit_price : integer
+  * quantity : integer
+  ..
+  <<UQ>> (order_id, menu_item_id)
+}
+
+menu_categories ||--o{ menu_items
+user_accounts |o--o{ orders : customer_id
+time_slots ||--o{ orders
+orders ||--|{ order_lines
+menu_items ||--o{ order_lines
+user_accounts |o..o{ orders : preparing_by,\nready_by
+@enduml
