@@ -1,0 +1,58 @@
+@startuml UC-12_xu-ly-don-tai-bep_activity
+!include _style.iuml
+title Activity — UC-12 Xử lý đơn tại bếp (gồm UC-12.1, UC-12.2)
+
+|Nhân viên bếp|
+start
+:Mở "Hàng chờ bếp" (bước 1);
+repeat
+  |Hệ thống|
+  :Lấy đơn CONFIRMED và PREPARING của ngày hiện tại,
+  từ cả pre-order và walk-in (NT7);
+  if (Có đơn? ) then (không)
+    :A1: hiển thị "Chưa có đơn cần làm";
+  else (có)
+    :Chia nhóm (BR-21):
+    - Đang làm: PREPARING
+    - Cần chuẩn bị: CONFIRMED, hiện tại ≥ giờ khung − 15 phút
+    - Sắp tới: CONFIRMED còn lại;
+    :Sắp theo giờ bắt đầu khung, cùng khung theo thời điểm xác nhận (BR-22),
+    đánh dấu trễ nếu hiện tại ≥ giờ bắt đầu khung (BR-26) (bước 2);
+  endif
+  |Nhân viên bếp|
+  switch (Thao tác?)
+  case (Bắt đầu một đơn CONFIRMED)
+    |Hệ thống|
+    if (Đơn đang ở CONFIRMED?) then (có)
+      :Chuyển PREPARING, ghi thời điểm và người thực hiện,
+      đơn sang nhóm "Đang làm" (bước 5);
+    else (không)
+      :E1: không đổi đơn, báo trạng thái hiện tại,
+      làm mới hàng chờ;
+    endif
+  case (Hoàn tất một đơn PREPARING)
+    |Hệ thống|
+    if (Đơn đang ở PREPARING?) then (có)
+      :Chuyển READY, ghi thời điểm và người thực hiện,
+      đơn rời hàng chờ bếp,
+      khách thấy "Sẵn sàng nhận" (UC-05) (bước 7);
+    else (không)
+      :E1: không đổi đơn, báo trạng thái hiện tại,
+      làm mới hàng chờ;
+    endif
+  case (Tải lại)
+  endswitch
+  |Nhân viên bếp|
+repeat while (Tiếp tục làm việc?) is (có — làm mới hàng chờ) not (không)
+stop
+
+floating note right
+  Mọi thao tác kiểm tra vai trò Nhân viên bếp
+  tại backend; vai trò khác bị từ chối (E2, BR-33).
+  Chỉ hai chuyển trạng thái được phép cho bếp:
+  CONFIRMED → PREPARING, PREPARING → READY (SRS B.5).
+  Không có hoàn tác khi bấm nhầm (xác nhận 2026-10-11).
+  E3: lỗi tải hoặc cập nhật → báo lỗi, trạng thái đơn không đổi.
+  E4: phiên hết hạn → đăng nhập lại (UC-02 E4).
+end note
+@enduml
