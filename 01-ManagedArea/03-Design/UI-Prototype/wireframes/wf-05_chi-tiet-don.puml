@@ -1,0 +1,29 @@
+@startsalt wf-05_chi-tiet-don
+title Wireframe 05 — Kết quả đặt / Chi tiết đơn (UC-04 bước 11, UC-05 bước 4) · /orders/:id
+{+
+  {* <b>Nhóm 15 Food</b> | Menu | Giỏ | Đơn của tôi | Khách Một ▾ }
+  ==
+  {+
+    <b>Đặt đơn thành công</b>
+    <i>Chỉ hiện ngay sau khi đặt (UC-04 bước 11)</i>
+  }
+  { Mã nhận | . }
+  { <size:28><b>K7M3QX</b></size> | [ Đã xác nhận ] }
+  <i>Đọc mã này tại quầy khi nhận món</i>
+  --
+  {#
+    Giờ nhận    | 12:30 – 12:45, 17/10/2026
+    Thanh toán  | Chưa thanh toán · Thanh toán tại quầy khi nhận
+    Đặt lúc     | 10:52, 17/10/2026
+  }
+  {#
+    <b>Món</b>   | <b>SL</b> | <b>Đơn giá</b> | <b>Thành tiền</b>
+    Burger bò    | 2         | 47.000 đ       | 94.000 đ
+    Trà đào      | 1         | 20.000 đ       | 20.000 đ
+    <b>Tổng</b>  | .         | .              | <b>114.000 đ</b>
+  }
+  { [ Về Đơn của tôi ] | [ Tải lại trạng thái ] }
+  --
+  <i>Đơn bị cửa hàng hủy: thêm dòng "Lý do hủy" (Sprint sau).</i>
+}
+@endsalt

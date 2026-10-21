@@ -1,0 +1,40 @@
+@startuml sequence_UC-04_chon-khung
+!include ../_style.iuml
+title Sequence (phân tích) — UC-04.2 bước 5–7: Chọn khung giờ nhận
+autonumber
+
+actor "Khách" as C
+boundary CheckoutScreen as UI
+control SlotAvailabilityControl as SA
+entity MenuItem as MI
+entity StoreSettings as SS
+entity TimeSlot as TS
+
+C -> UI : chọn "Chọn giờ nhận" (bước 5)
+note right of UI
+  A2: giỏ trống thì nút không khả dụng,
+  không gửi yêu cầu.
+end note
+UI -> SA : lấy khung(dòng giỏ: món, số lượng)
+activate SA
+SA -> MI : điểm công việc hiện tại của các món
+SA -> SA : điểm giỏ = Σ điểm × số lượng (BR-08)
+SA -> SS : giờ mở cửa, quota mặc định
+SA -> SA : chia khung 15 phút hôm nay, giữ khung\nbắt đầu ≥ hiện tại + 30 phút (BR-06, BR-15)
+SA -> TS : quota riêng, điểm đang giữ của các khung đó
+SA -> SA : mỗi khung: "Đặt được" nếu điểm giỏ ≤\nquota khung − điểm đang giữ, ngược lại "Không đủ chỗ" (BR-36)
+SA --> UI : danh sách khung (giờ, tình trạng) + lý do nếu không chọn được
+deactivate SA
+
+alt không còn khung hợp lệ (E2)
+  UI -> C : "Hôm nay không còn khung nhận", giỏ được giữ
+else không khung nào "Đặt được", điểm giỏ ≤ quota của ít nhất một khung (E3)
+  UI -> C : báo hết chỗ trong ngày, gợi ý bớt món
+else điểm giỏ > quota của mọi khung (E4)
+  UI -> C : báo đơn quá lớn cho một khung, liên hệ cửa hàng (BR-12)
+else có khung "Đặt được"
+  UI -> C : hiển thị khung; khung "Không đủ chỗ" không chọn được\n(không hiển thị con số quota, BR-36)
+  C -> UI : chọn khung, xem tóm tắt (bước 7)
+  UI -> UI : tạo mã yêu cầu mới cho lần xác nhận này (A1)
+end
+@enduml

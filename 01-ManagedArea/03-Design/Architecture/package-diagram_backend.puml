@@ -1,0 +1,65 @@
+@startuml package-diagram_backend
+!include ../_style.iuml
+title Package Diagram — backend vn.nhom15.preorder (Sprint 1)
+top to bottom direction
+
+package "vn.nhom15.preorder" {
+  package "auth" as auth {
+    [AuthController] as authC
+    [AuthService\nCurrentUser] as authS
+    [AccountRepository] as authR
+  }
+  package "menu" as menu {
+    [MenuController] as menuC
+    [MenuService] as menuS
+    [MenuRepository] as menuR
+  }
+  package "slot" as slot {
+    [SlotController] as slotC
+    [SlotAvailabilityService\nQuotaService] as slotS
+    [SlotRepository\nStoreSettingsRepository] as slotR
+  }
+  package "order" as order {
+    [OrderController] as orderC
+    [PlaceOrderService\nMyOrderService\nOrderStatusService] as orderS
+    [OrderRepository] as orderR
+  }
+  package "kitchen" as kitchen {
+    [KitchenController] as kitC
+    [KitchenService] as kitS
+    [KitchenQueueRepository] as kitR
+  }
+  package "common" as common {
+    [ApiException, ErrorCode\nGlobalExceptionHandler] as com
+  }
+  package "config" as config {
+    [TimeConfig\nSecurityConfig\nOrderingProperties] as cfg
+  }
+  package "health" as health {
+    [HealthController ...] as hc
+  }
+}
+
+authC --> authS
+authS --> authR
+menuC --> menuS
+menuS --> menuR
+slotC --> slotS
+slotS --> slotR
+orderC --> orderS
+orderS --> orderR
+kitC --> kitS
+kitS --> kitR
+
+slotS ..> menuS : điểm công việc của món
+orderS ..> slotS : kiểm tra khung, giữ quota (UC-17)
+orderS ..> menuS : tình trạng, giá món
+kitS ..> orderS : chuyển trạng thái\n(OrderStatusService)
+orderC ..> authS : khách đang đăng nhập
+kitC ..> authS : người thực hiện
+
+note bottom of common
+  Mọi module dùng common và config;
+  không vẽ các mũi tên này cho gọn.
+end note
+@enduml

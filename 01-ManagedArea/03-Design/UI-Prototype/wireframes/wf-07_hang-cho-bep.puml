@@ -1,0 +1,45 @@
+@startsalt wf-07_hang-cho-bep
+title Wireframe 07 — Hàng chờ bếp (UC-12) · /kitchen
+{+
+  {* <b>Nhóm 15 Food · Bếp</b> | <b>Hàng chờ bếp</b> | Bếp Một ▾ }
+  ==
+  { Cập nhật lúc 11:20:05 · tự làm mới mỗi 30 giây | [ Tải lại ] }
+  {
+    <b>Đang làm (1)</b> | <b>Cần chuẩn bị (2)</b> | <b>Sắp tới (1)</b>
+    {+
+      <b>P4W9TD</b> · 11:15
+      <b>[TRỄ]</b> · Pre-order
+      2 × Burger bò
+      1 × Khoai tây
+      Xác nhận 10:40
+      [ <b>Hoàn tất</b> ]
+    } | {+
+      <b>D3F7KA</b> · 11:30
+      Pre-order
+      2 × Burger bò
+      1 × Trà đào
+      Xác nhận 10:52
+      [ <b>Bắt đầu</b> ]
+    } | {+
+      <b>M2C8QA</b> · 12:15
+      Pre-order
+      3 × Gà rán
+      .
+      Xác nhận 11:02
+      [ Bắt đầu ]
+    }
+    . | {+
+      <b>T6N3XV</b> · 11:30
+      Pre-order
+      1 × Burger gà giòn
+      .
+      Xác nhận 11:05
+      [ <b>Bắt đầu</b> ]
+    } | .
+  }
+  --
+  <i>Mỗi cột sắp theo giờ khung, cùng khung theo giờ xác nhận (BR-22). Không hiển thị giá, thanh toán.</i>
+  <i>[TRỄ]: đã qua giờ bắt đầu khung (BR-26), chỉ để nhìn, không chặn thao tác.</i>
+  <i>Hàng chờ trống: "Chưa có đơn cần làm" (A1). Bấm khi đơn đã đổi: báo trạng thái hiện tại, tải lại (E1).</i>
+}
+@endsalt

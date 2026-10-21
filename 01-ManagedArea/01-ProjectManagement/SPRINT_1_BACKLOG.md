@@ -1,5 +1,5 @@
 # Sprint 1
-Trạng thái: Kế hoạch lập ngày 2026-10-08, người dùng tạm duyệt ngày 2026-10-09 (có thể điều chỉnh khi thực hiện). T-01, T-03, T-02 (2026-10-09), T-04 và T-05 (2026-10-10) được làm sớm, trước ngày bắt đầu Sprint; T-06 làm ngày 2026-10-12, ngày đầu Sprint.
+Trạng thái: Kế hoạch lập ngày 2026-10-08, người dùng tạm duyệt ngày 2026-10-09 (có thể điều chỉnh khi thực hiện). T-01, T-03, T-02 (2026-10-09), T-04 và T-05 (2026-10-10) được làm sớm, trước ngày bắt đầu Sprint; T-06 làm ngày 2026-10-12, ngày đầu Sprint; T-07 → T-11 làm ngày 2026-10-17 trong một PR thiết kế.
 
 Quyết định 2026-10-09: người dùng bỏ estimate theo giờ khỏi Sprint 1 (sức chứa giờ, estimate giờ từng task, giờ thực tế). Lượng việc chọn theo cỡ S-M-L trong Product Backlog và theo dõi qua Task Board. Đây là lựa chọn của người dùng, gọn hơn mục "chia task, estimate" của Bước 6 trong nguồn.
 
@@ -49,12 +49,12 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-03 | — (WBS 1.4, 4.13) | Khung dự án: Spring Boot, React, PostgreSQL bằng Docker Compose, migration database; frontend gọi được backend (`/api/health`); hướng dẫn chạy trong [03-SourceCodes](../../03-SourceCodes/README.md). Dữ liệu mẫu chuyển sang các task tạo bảng (T-12, T-15, T-16) vì schema thiết kế ở T-09 | Người dùng, AI hỗ trợ | T-01 | Done |
 | T-04 | Tất cả | Use Case Model: Actor List, Use Case List toàn hệ thống, sơ đồ tổng quan ([Use Cases](../02-Requirements/Use-Cases/README.md), PlantUML) | Người dùng, AI hỗ trợ | — | Done |
 | T-05 | PB-01, 02, 06, 07, 08, 12, 13 | Use Case Specification: Đăng nhập; Đặt pre-order (gồm xem menu, giỏ); Xem đơn; Xử lý đơn tại bếp. Thực hiện thành 6 file (tách UC-03 Xem menu, UC-17 Giữ quota để walk-in dùng lại), xem [Use Cases](../02-Requirements/Use-Cases/README.md) mục 5 | Người dùng, AI hỗ trợ | T-04 | Done |
-| T-06 | PB-07, PB-13 | Activity Diagram: Đặt pre-order; Xử lý đơn tại bếp ([Activity Diagrams](../02-Requirements/Activity-Diagrams/README.md)) | Người dùng, AI hỗ trợ | T-05 | Review |
-| T-07 | PB-05, PB-07 | Analysis Model (Boundary/Controller/Entity) và Sequence Diagram cho Đặt pre-order có giữ quota | Người dùng, AI hỗ trợ | T-05 | To Do |
-| T-08 | Tất cả | Architecture: tầng backend, module frontend, REST API, Package Diagram, trách nhiệm thành phần (NFR-05) | Người dùng, AI hỗ trợ | T-07 | To Do |
-| T-09 | PB-01, 02, 05, 07 | ERD và Relational Schema: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn | Người dùng, AI hỗ trợ | T-07 | To Do |
-| T-10 | PB-05, PB-07, PB-13 | Detailed Class Diagram backend phần Sprint 1 | Người dùng, AI hỗ trợ | T-08, T-09 | To Do |
-| T-11 | PB-01, 02, 06, 07, 08, 12 | UI wireframe và navigation: đăng nhập, menu và giỏ, chọn khung và đặt, đơn của tôi, hàng chờ bếp | Người dùng, AI hỗ trợ | T-05 | To Do |
+| T-06 | PB-07, PB-13 | Activity Diagram: Đặt pre-order; Xử lý đơn tại bếp ([Activity Diagrams](../02-Requirements/Activity-Diagrams/README.md)) | Người dùng, AI hỗ trợ | T-05 | Done |
+| T-07 | PB-05, PB-07 | Analysis Model (Boundary/Controller/Entity) và Sequence Diagram cho Đặt pre-order có giữ quota ([Analysis Model](../03-Design/Analysis-Model/README.md)) | Người dùng, AI hỗ trợ | T-05 | Review |
+| T-08 | Tất cả | Architecture: tầng backend, module frontend, REST API, Package Diagram, trách nhiệm thành phần (NFR-05) ([Architecture](../03-Design/Architecture/ARCHITECTURE.md)) | Người dùng, AI hỗ trợ | T-07 | Review |
+| T-09 | PB-01, 02, 05, 07 | ERD và Relational Schema: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn ([Database Design](../03-Design/Database/DATABASE_DESIGN.md)) | Người dùng, AI hỗ trợ | T-07 | Review |
+| T-10 | PB-05, PB-07, PB-13 | Detailed Class Diagram backend phần Sprint 1 ([Class Design](../03-Design/Class-Design/README.md)) | Người dùng, AI hỗ trợ | T-08, T-09 | Review |
+| T-11 | PB-01, 02, 06, 07, 08, 12 | UI wireframe và navigation: đăng nhập, menu và giỏ, chọn khung và đặt, đơn của tôi, hàng chờ bếp ([UI Prototype](../03-Design/UI-Prototype/README.md)); chờ người dùng đánh giá prototype | Người dùng, AI hỗ trợ | T-05 | Review |
 | T-12 | PB-01 | Backend: xác thực, mật khẩu băm (NFR-06), vai trò, kiểm tra quyền tại API, tài khoản mẫu | Người dùng, AI hỗ trợ | T-03, T-09 | To Do |
 | T-13 | PB-01 | Frontend: đăng nhập, đăng xuất, điều hướng theo vai trò | Người dùng, AI hỗ trợ | T-12, T-11 | To Do |
 | T-14 | PB-01 | Test tự động phân quyền: gọi API ngoài vai trò, đơn của khách khác (NFR-03) | Người dùng, AI hỗ trợ | T-12 | To Do |

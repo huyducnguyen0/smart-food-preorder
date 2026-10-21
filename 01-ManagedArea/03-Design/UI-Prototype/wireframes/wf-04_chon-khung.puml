@@ -1,0 +1,28 @@
+@startsalt wf-04_chon-khung
+title Wireframe 04 — Chọn giờ nhận và xác nhận (UC-04.2 bước 5–7) · /checkout
+{+
+  {* <b>Nhóm 15 Food</b> | Menu | Giỏ (3) | Đơn của tôi | Khách Một ▾ }
+  ==
+  <b>Chọn giờ nhận hôm nay</b>
+  <i>Tình trạng chỉ để tham khảo; cửa hàng xác nhận khi bạn đặt.</i>
+  {
+    [ 11:30 · Đặt được ] | [ 11:45 · Đặt được ] | [ 12:00 · Không đủ chỗ ]
+    [ 12:15 · Không đủ chỗ ] | [ <b>12:30 · Đặt được</b> ] | [ 12:45 · Đặt được ]
+  }
+  --
+  <b>Tóm tắt đơn</b>
+  {#
+    Burger bò × 2  | 94.000 đ
+    Trà đào × 1    | 20.000 đ
+    <b>Tổng tiền</b> | <b>114.000 đ</b>
+    Giờ nhận        | 12:30 – 12:45 hôm nay
+    Thanh toán      | Tại quầy khi nhận
+  }
+  { [ Quay lại giỏ ] | [ <b>Xác nhận đặt</b> ] }
+  --
+  <i>Khung "Không đủ chỗ" hiện nhưng không bấm được (BR-36).</i>
+  <i>Thông báo thay cho danh sách khung: E2 "Hôm nay không còn khung nhận";</i>
+  <i>E3 "Hết chỗ trong ngày, bạn có thể bớt món"; E4 "Đơn quá lớn cho một khung, liên hệ cửa hàng".</i>
+  <i>Lỗi khi gửi hiện ở đầu trang: E5 (kèm liên kết Đơn của tôi), E6/E8 (danh sách khung được tải lại), E10.</i>
+}
+@endsalt

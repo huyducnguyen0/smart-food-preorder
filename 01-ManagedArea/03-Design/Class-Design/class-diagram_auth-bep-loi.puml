@@ -1,0 +1,143 @@
+@startuml class-diagram_auth-bep-loi
+!include ../_style.iuml
+title Detailed Class Diagram — xác thực, bếp, xử lý lỗi (module auth, kitchen, common, config)
+hide empty members
+skinparam classAttributeIconSize 0
+
+package "auth" {
+  class AuthController <<RestController>> {
+    + login(req : LoginRequest, request : HttpServletRequest, response : HttpServletResponse) : CurrentUser
+    + logout(request : HttpServletRequest) : ResponseEntity<Void>
+    + me(user : CurrentUser) : CurrentUser
+  }
+  class AuthService <<Service>> {
+    - accountRepository : AccountRepository
+    - passwordEncoder : PasswordEncoder
+    + authenticate(loginId : String, password : String) : CurrentUser
+    + {static} normalizeLoginId(raw : String) : String
+  }
+  class AccountRepository <<Repository>> {
+    + findByLoginId(loginId : String) : Optional<Account>
+  }
+  class Account <<record>> {
+    id : long
+    loginId : String
+    passwordHash : String
+    displayName : String
+    role : Role
+    locked : boolean
+  }
+  class CurrentUser <<record>> {
+    id : long
+    displayName : String
+    role : Role
+  }
+  enum Role {
+    CUSTOMER
+    COUNTER
+    KITCHEN
+    MANAGER
+  }
+}
+
+package "kitchen" {
+  class KitchenController <<RestController>> {
+    + getQueue() : KitchenQueueResponse
+    + start(id : long, user : CurrentUser) : StatusResponse
+    + complete(id : long, user : CurrentUser) : StatusResponse
+  }
+  class KitchenService <<Service>> {
+    - kitchenQueueRepository : KitchenQueueRepository
+    - orderStatusService : OrderStatusService
+    - properties : OrderingProperties
+    - clock : Clock
+    + getQueue() : KitchenQueue
+    + start(orderId : long, staffId : long) : OrderStatus
+    + complete(orderId : long, staffId : long) : OrderStatus
+    ~ groupOf(order : KitchenOrderRow, now : LocalDateTime) : KitchenGroup
+    ~ isLate(order : KitchenOrderRow, now : LocalDateTime) : boolean
+  }
+  class KitchenQueueRepository <<Repository>> {
+    + findActiveOrders(date : LocalDate) : List<KitchenOrderRow>
+  }
+  class KitchenOrderRow <<record>> {
+    id, pickupCode, slotStart, slotEnd,
+    source, status, confirmedAt, lines
+  }
+  class KitchenQueue <<record>> {
+    serverTime : OffsetDateTime
+    preparing : List<KitchenOrder>
+    dueSoon : List<KitchenOrder>
+    upcoming : List<KitchenOrder>
+  }
+  enum KitchenGroup {
+    PREPARING
+    DUE_SOON
+    UPCOMING
+  }
+}
+
+package "order" {
+  class OrderStatusService <<Service>> {
+    + startPreparing(orderId : long, staffId : long) : OrderStatus
+    + markReady(orderId : long, staffId : long) : OrderStatus
+  }
+}
+
+package "common" {
+  enum ErrorCode {
+    VALIDATION_ERROR
+    UNAUTHENTICATED
+    INVALID_CREDENTIALS
+    ACCOUNT_LOCKED
+    FORBIDDEN
+    MENU_ITEM_NOT_FOUND
+    ORDER_NOT_FOUND
+    OPEN_ORDER_LIMIT_REACHED
+    SLOT_NOT_BOOKABLE
+    ITEMS_CHANGED
+    ORDER_TOO_LARGE
+    SLOT_FULL
+    INVALID_STATUS_TRANSITION
+    INTERNAL_ERROR
+    + status() : HttpStatus
+  }
+  class ApiException <<RuntimeException>> {
+    - code : ErrorCode
+    - properties : Map<String, Object>
+    + ApiException(code : ErrorCode, detail : String)
+    + with(key : String, value : Object) : ApiException
+  }
+  class GlobalExceptionHandler <<RestControllerAdvice>> {
+    + handleApi(e : ApiException) : ProblemDetail
+    + handleValidation(e : MethodArgumentNotValidException) : ProblemDetail
+    + handleUnexpected(e : Exception) : ProblemDetail
+  }
+}
+
+package "config" {
+  class SecurityConfig <<Configuration>> {
+    + securityFilterChain(http : HttpSecurity) : SecurityFilterChain
+    + passwordEncoder() : PasswordEncoder
+    + securityContextRepository() : SecurityContextRepository
+  }
+}
+
+AuthController --> AuthService
+AuthController --> SecurityConfig : lưu SecurityContext\nvào session
+AuthService --> AccountRepository
+AccountRepository ..> Account
+AuthService ..> CurrentUser
+Account --> Role
+CurrentUser --> Role
+
+KitchenController --> KitchenService
+KitchenService --> KitchenQueueRepository
+KitchenService --> OrderStatusService
+KitchenService ..> KitchenQueue
+KitchenQueueRepository ..> KitchenOrderRow
+KitchenService ..> KitchenGroup
+
+ApiException --> ErrorCode
+GlobalExceptionHandler ..> ApiException
+@enduml

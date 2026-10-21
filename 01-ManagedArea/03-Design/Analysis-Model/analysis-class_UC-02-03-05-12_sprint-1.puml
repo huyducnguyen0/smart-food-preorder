@@ -1,0 +1,97 @@
+@startuml analysis-class_UC-02-03-05-12_sprint-1
+!include ../_style.iuml
+allowmixing
+hide empty methods
+title Analysis Class — các use case còn lại của Sprint 1 (UC-02, UC-03, UC-05, UC-12)
+left to right direction
+
+actor "Người dùng" as User
+actor "Khách vãng lai,\nKhách, Quầy" as Viewer
+actor "Khách" as Customer
+actor "Nhân viên bếp" as Kitchen
+
+package "Boundary" {
+  class LoginScreen <<(B,#FFFFFF) boundary>> {
+    {field} định danh, mật khẩu, nút "Đăng nhập"
+    {field} lỗi E1–E3; nút "Đăng xuất" ở thanh điều hướng
+  }
+  class MenuScreen <<(B,#FFFFFF) boundary>> {
+    {field} món theo nhóm, lọc theo nhóm (UC-03)
+  }
+  class MyOrdersScreen <<(B,#FFFFFF) boundary>> {
+    {field} danh sách đơn của khách (UC-05)
+  }
+  class OrderDetailScreen <<(B,#FFFFFF) boundary>> {
+    {field} chi tiết một đơn, mã nhận (UC-05)
+  }
+  class KitchenQueueScreen <<(B,#FFFFFF) boundary>> {
+    {field} 3 nhóm, dấu trễ, nút "Bắt đầu"/"Hoàn tất"
+  }
+}
+
+package "Control" {
+  class AuthControl <<(C,#FFFFFF) control>> {
+    {field} UC-02: chuẩn hóa định danh, so mật khẩu băm,
+    {field} từ chối tài khoản khóa, tạo/hủy phiên
+    {field} kiểm tra vai trò ở mọi yêu cầu (BR-33)
+  }
+  class MenuControl <<(C,#FFFFFF) control>> {
+    {field} UC-03: món đang bán theo nhóm (BR-03, BR-04)
+  }
+  class MyOrdersControl <<(C,#FFFFFF) control>> {
+    {field} UC-05: chỉ đơn của khách đang đăng nhập,
+    {field} sắp xếp; đơn người khác = không tồn tại (E1)
+  }
+  class KitchenQueueControl <<(C,#FFFFFF) control>> {
+    {field} UC-12.1: đơn hôm nay CONFIRMED/PREPARING,
+    {field} chia nhóm (BR-21), sắp xếp (BR-22), trễ (BR-26)
+  }
+  class OrderProgressControl <<(C,#FFFFFF) control>> {
+    {field} UC-12.2: CONFIRMED → PREPARING → READY
+    {field} chỉ khi trạng thái hiện tại đúng (E1, SRS B.5)
+  }
+}
+
+package "Entity" {
+  class Account <<(E,#FFFFFF) entity>> {
+    {field} định danh, mật khẩu băm, tên, vai trò, bị khóa
+  }
+  class MenuItem <<(E,#FFFFFF) entity>>
+  class MenuCategory <<(E,#FFFFFF) entity>> {
+    {field} tên nhóm, thứ tự hiển thị
+  }
+  class Order <<(E,#FFFFFF) entity>> {
+    {field} như UC-04; thêm thời điểm và người
+    {field} bắt đầu, hoàn tất (UC-12.2)
+  }
+  class OrderLine <<(E,#FFFFFF) entity>>
+  class TimeSlot <<(E,#FFFFFF) entity>>
+}
+
+User -- LoginScreen
+Viewer -- MenuScreen
+Customer -- MyOrdersScreen
+Customer -- OrderDetailScreen
+Kitchen -- KitchenQueueScreen
+
+LoginScreen --> AuthControl
+MenuScreen --> MenuControl
+MyOrdersScreen --> MyOrdersControl
+OrderDetailScreen --> MyOrdersControl
+KitchenQueueScreen --> KitchenQueueControl
+KitchenQueueScreen --> OrderProgressControl
+
+AuthControl --> Account
+MenuControl --> MenuItem
+MenuControl --> MenuCategory
+MyOrdersControl --> Order
+KitchenQueueControl --> Order
+OrderProgressControl --> Order
+OrderProgressControl --> Account : người thực hiện
+
+MenuItem "*" --> "1" MenuCategory
+Order "1" *-- "1..*" OrderLine
+OrderLine "*" --> "1" MenuItem
+Order "*" --> "1" TimeSlot
+Order "*" --> "0..1" Account : khách
+@enduml

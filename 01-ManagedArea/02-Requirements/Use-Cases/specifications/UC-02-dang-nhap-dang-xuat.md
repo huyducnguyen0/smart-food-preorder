@@ -22,7 +22,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 3. Hệ thống: chuẩn hóa định danh (bỏ khoảng trắng đầu cuối; email không phân biệt hoa thường) và tìm tài khoản.
 4. Hệ thống: kiểm tra mật khẩu bằng cách so với bản băm đã lưu (NFR-06).
 5. Hệ thống: kiểm tra tài khoản không bị khóa (BR-32), tạo phiên đăng nhập gắn với tài khoản và vai trò.
-6. Hệ thống: chuyển người dùng tới màn hình chính của vai trò; nếu được chuyển tới từ một thao tác cần đăng nhập (E4) thì quay về trang trước đó. Màn hình chính từng vai trò xác định ở UI Prototype (T-11).
+6. Hệ thống: chuyển người dùng tới màn hình chính của vai trò; nếu được chuyển tới từ một thao tác cần đăng nhập (E4) thì quay về trang trước đó. Màn hình chính từng vai trò: khách, quầy, quản lý vào Menu; bếp vào Hàng chờ bếp ([UI Prototype](../../../03-Design/UI-Prototype/README.md) mục 2, T-11).
 
 **Đăng xuất**
 7. Người dùng: chọn "Đăng xuất".
@@ -53,7 +53,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 ## Ghi chú và giới hạn
 - Quyết định 2026-10-10: Sprint 1 **chưa** tạm khóa tài khoản khi nhập sai mật khẩu nhiều lần; chỉ khóa khi quản lý khóa. Rủi ro đoán mật khẩu ghi ở RISK-13, xét lại trước khi triển khai công khai.
 - Người dùng xác nhận ngày 2026-10-11: tài khoản nhân viên và quản lý cũng đăng nhập bằng email hoặc số điện thoại như khách; UC-15 tạo tài khoản nhân viên theo định danh này.
-- Cơ chế phiên (session hay token), thời gian hết hạn phiên: quyết định ở Architecture (T-08) và T-12.
+- Cơ chế phiên: session phía server, hết hạn sau 30 phút không hoạt động ([Architecture](../../../03-Design/Architecture/ARCHITECTURE.md) mục 3, T-08); cấu hình cụ thể ở T-12.
 
 ## Output chuyển giao
 Dùng cho Activity, Analysis/Sequence, UI đăng nhập (T-11), backend xác thực (T-12), frontend (T-13), test phân quyền (T-14) và Test Case (T-23).

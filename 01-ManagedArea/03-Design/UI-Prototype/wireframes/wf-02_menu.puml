@@ -1,0 +1,30 @@
+@startsalt wf-02_menu
+title Wireframe 02 — Menu (UC-03, UC-04.1 bước 1) · /
+{+
+  {* <b>Nhóm 15 Food</b> | Menu | Giỏ (3) | Đơn của tôi | Khách Một ▾ }
+  ==
+  <b>Menu hôm nay</b>
+  {/ <b>Tất cả</b> | Burger | Gà rán | Đồ uống }
+  --
+  <b>Burger</b>
+  {+
+    <b>Burger bò</b>               | .
+    Bò nướng, rau, sốt nhà làm     | <b>45.000 đ</b>
+    .                              | [ Thêm vào giỏ ]
+  }
+  {+
+    <b>Burger gà giòn</b>          | .
+    .                              | <b>39.000 đ</b>
+    <i>Tạm hết</i>                 | .
+  }
+  <b>Đồ uống</b>
+  {+
+    <b>Trà đào</b>                 | .
+    .                              | <b>20.000 đ</b>
+    .                              | [ Thêm vào giỏ ]
+  }
+  --
+  <i>Khách chưa đăng nhập: thanh trên chỉ có Menu và Đăng nhập;</i>
+  <i>bấm "Thêm vào giỏ" chuyển tới Đăng nhập (UC-03 A3).</i>
+}
+@endsalt
