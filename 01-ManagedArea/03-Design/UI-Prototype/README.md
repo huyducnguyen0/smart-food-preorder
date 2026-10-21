@@ -1,5 +1,5 @@
 # UI Prototype
-Trạng thái: Lập ở task T-11 (Sprint 1) ngày 2026-10-17 cho 7 màn hình Sprint 1. Đã qua một vòng góp ý của người dùng: bản phối màu v1 bị đánh giá là quá trơn, làm lại thành **prototype v2** theo phong cách người dùng chọn (mục 6). **Chưa được chấp thuận** (mục 7).
+Trạng thái: Lập ở task T-11 (Sprint 1) ngày 2026-10-17 cho 7 màn hình Sprint 1. Đã qua một vòng góp ý của người dùng: bản phối màu v1 bị đánh giá là quá trơn, làm lại thành **prototype v2** theo phong cách người dùng chọn (mục 6). Người dùng đã chấp thuận prototype v2 ngày 2026-10-21 (mục 7).
 
 Bước 14 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): kiểm tra giao diện và luồng đi **trước khi** đầu tư code. Thứ tự: bố cục → wireframe đơn sắc → phối màu → navigation → đánh giá → sửa → bản được chấp thuận.
 
@@ -117,7 +117,9 @@ Theo 5 câu hỏi của nguồn.
 Cách đánh giá đề xuất: mở prototype trên điện thoại và máy tính, đóng vai khách đặt một đơn và vai bếp xử lý đơn đó, thử ít nhất 3 tình huống lỗi; ghi điều chưa hợp lý vào cột cuối. Có góp ý thì sửa tiếp (Feedback → Redesign) rồi đánh giá lại.
 
 ## 7. Phiên bản được chấp thuận
-Chưa có. Khi người dùng chấp thuận, ghi ngày và phiên bản (commit) tại đây. Bản chấp thuận là căn cứ cho T-13, T-15, T-17, T-19, T-20, T-21.
+Ngày 2026-10-21, người dùng xem và bấm thử prototype v2 (`prototype/index.html`, commit `be36609`), nhận xét "khá ổn", rồi duyệt cùng các phần thiết kế khác khi merge PR #7. Đây là bản được chấp thuận, làm căn cứ cho T-13, T-15, T-17, T-19, T-20, T-21.
+
+Đây là sự chấp thuận của một người dùng (nhóm trưởng), không có đánh giá độc lập của người dùng cuối hoặc giảng viên. Wireframe đơn sắc ở mục 3 vẫn là bố cục v1, chưa vẽ lại; khi cần dùng wireframe làm tài liệu thì cập nhật cho khớp v2.
 
 ## Công cụ
 Wireframe (`wireframes/*.puml`, cú pháp Salt) và navigation (`navigation-flow.puml`) vẽ bằng PlantUML; cách render như [Analysis Model](../Analysis-Model/README.md) mục Công cụ (làm trong thư mục `UI-Prototype` và `UI-Prototype/wireframes`; wireframe không `!include` file kiểu nên không cần mount thư mục cha).
