@@ -30,3 +30,9 @@ server:
 app:
   # Ràng buộc SRS mục D: thời gian theo múi giờ cửa hàng (UTC+7).
   time-zone: Asia/Ho_Chi_Minh
+  # Các con số nghiệp vụ cấu hình được nhưng không đổi khi vận hành (SRS B.4); giờ mở cửa và quota nằm trong database.
+  ordering:
+    slot-minutes: 15
+    min-lead-minutes: 30
+    prep-window-minutes: 15
+    max-open-orders-per-customer: 3
