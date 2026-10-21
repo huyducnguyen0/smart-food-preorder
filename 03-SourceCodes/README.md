@@ -20,12 +20,15 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend,
 │   └── src/
 │       ├── main/java/vn/nhom15/preorder/
 │       │   ├── PreorderBackendApplication.java
-│       │   ├── config/TimeConfig.java   # Clock theo múi giờ cửa hàng
+│       │   ├── auth/                    # Đăng nhập, đăng xuất, tài khoản (UC-02)
+│       │   ├── common/                  # Mã lỗi, ApiException, xử lý lỗi chung
+│       │   ├── config/                  # TimeConfig (Clock), SecurityConfig (phiên, CSRF, phân quyền)
 │       │   └── health/                  # GET /api/health
 │       ├── main/resources/
 │       │   ├── application.yaml
-│       │   └── db/migration/            # Flyway: V1__init.sql, V2__..., ...
-│       └── test/java/...                # JUnit test
+│       │   ├── db/migration/            # Flyway: cấu trúc bảng V1__init.sql, V2__..., ...
+│       │   └── db/seed/                 # Dữ liệu mẫu R__...sql (chỉ local/demo)
+│       └── test/java/...                # JUnit test; support/TestDatabase = PostgreSQL thật chạy trong test
 └── frontend/             # React + TypeScript (Vite)
     ├── vite.config.ts    # Proxy /api → backend
     ├── .prettierrc.json  # Cấu hình Prettier (format)
@@ -80,7 +83,7 @@ PowerShell: `.\mvnw.cmd spring-boot:run`. Lần đầu sẽ tải Maven và thư
 
 Kiểm tra: mở http://localhost:8080/api/health, kết quả dạng:
 ```json
-{"status":"UP","database":"UP","schemaVersion":"1","serverTime":"2026-10-09T20:15:59+07:00"}
+{"status":"UP","database":"UP","schemaVersion":"2","serverTime":"2026-10-09T20:15:59+07:00"}
 ```
 
 **4. Chạy frontend** (terminal mới, trong `03-SourceCodes/frontend/`)
@@ -100,7 +103,7 @@ Chạy trước mỗi commit/PR (chưa có CI):
 # trong frontend/: định dạng (Prettier) + lint (oxlint) + kiểm tra kiểu và build
 npm run format:check && npm run lint && npm run build
 ```
-Nếu báo lỗi định dạng, chạy `./mvnw spotless:apply` (backend) hoặc `npm run format` (frontend) để tự sửa. Lỗi Checkstyle/oxlint phải sửa tay theo [CODING_CONVENTION.md](CODING_CONVENTION.md). Chỉ chạy test backend: `./mvnw test`. Test backend hiện tại không cần database (giả lập bằng Mockito).
+Nếu báo lỗi định dạng, chạy `./mvnw spotless:apply` (backend) hoặc `npm run format` (frontend) để tự sửa. Lỗi Checkstyle/oxlint phải sửa tay theo [CODING_CONVENTION.md](CODING_CONVENTION.md). Chỉ chạy test backend: `./mvnw test`. Test chạy trên **PostgreSQL 18 thật được khởi động ngay trong test** (thư viện `embedded-postgres`, tự tải bản nhị phân lần đầu), nên **không cần Docker** để chạy test. Lần đầu khởi động PostgreSQL nhúng mất khoảng 15–20 giây. Nếu máy báo lỗi khi khởi động (ví dụ chạy bằng quyền Administrator), xem mục Xử lý sự cố.
 
 ## Cấu hình (.env)
 | Biến | Mặc định mẫu | Dùng bởi |
@@ -117,7 +120,27 @@ Thông tin `DB_NAME`, `DB_USER`, `DB_PASSWORD` chỉ được dùng khi containe
 ## Migration database
 - Flyway chạy khi backend khởi động, áp các file `backend/src/main/resources/db/migration/V<số>__<mô_tả>.sql` theo thứ tự số; lịch sử nằm trong bảng `flyway_schema_history`.
 - Thay đổi schema bằng file mới (`V2__...`, `V3__...`). Không sửa file đã chạy: Flyway kiểm tra checksum và backend sẽ báo lỗi khi khởi động.
-- `V1__init.sql` chỉ xác nhận Flyway hoạt động; bảng nghiệp vụ và dữ liệu mẫu được thêm từ T-09 trở đi.
+- `V1__init.sql` chỉ xác nhận Flyway hoạt động; mỗi bảng nghiệp vụ được tạo ở task đầu tiên cần nó (`V2` tài khoản ở T-12, các bảng khác theo [Database Design](../01-ManagedArea/03-Design/Database/DATABASE_DESIGN.md) mục 5).
+- **Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) nằm riêng ở `backend/src/main/resources/db/seed/` dưới dạng migration lặp `R__<mô_tả>.sql` (chạy lại khi file đổi, dùng `ON CONFLICT DO NOTHING`). `application.yaml` bật cả hai thư mục (`db/migration` và `db/seed`); khi triển khai công khai phải bỏ `db/seed` khỏi `spring.flyway.locations`.
+
+## Tài khoản mẫu (chỉ dùng ở local)
+Đăng nhập bằng email hoặc số điện thoại; mọi tài khoản mẫu dùng chung mật khẩu **`Demo@2026`**.
+| Định danh | Vai trò | Ghi chú |
+|---|---|---|
+| `khach1@example.com` | Khách | |
+| `0901234567` | Khách | Đăng nhập bằng số điện thoại |
+| `khoa@example.com` | Khách | Tài khoản bị khóa, dùng để thử lỗi UC-02 E2 |
+| `bep1@example.com` | Nhân viên bếp | |
+| `quay1@example.com` | Nhân viên quầy | |
+| `quanly@example.com` | Quản lý | |
+
+Thử nhanh bằng dòng lệnh (cần cookie chống CSRF: lấy token rồi gửi lại ở header `X-XSRF-TOKEN`). Với trình duyệt, frontend làm việc này tự động ở T-13.
+```bash
+curl -s -c jar.txt http://localhost:8080/api/auth/me > /dev/null            # nhận cookie XSRF-TOKEN
+TOKEN=$(grep XSRF-TOKEN jar.txt | awk '{print $7}')
+curl -s -b jar.txt -c jar.txt -H "X-XSRF-TOKEN: $TOKEN" -H "Content-Type: application/json"   -d '{"loginId":"khach1@example.com","password":"Demo@2026"}' http://localhost:8080/api/auth/login
+curl -s -b jar.txt http://localhost:8080/api/auth/me
+```
 
 ## Xử lý sự cố
 | Hiện tượng | Nguyên nhân thường gặp | Cách xử lý |
@@ -129,6 +152,7 @@ Thông tin `DB_NAME`, `DB_USER`, `DB_PASSWORD` chỉ được dùng khi containe
 | Backend báo `Port 8080 was already in use` | Backend cũ chưa tắt hoặc chương trình khác dùng 8080 | Tắt tiến trình cũ hoặc đổi `BACKEND_PORT` |
 | Trang báo `HTTP 502` | Backend chưa chạy | Chạy bước 3 |
 | `verify` in cảnh báo `Could not transfer metadata ... jvnet-nexus-releases ... certificate_expired` | Một thư viện cũ mà plugin Checkstyle dùng gián tiếp khai báo kho Maven đã ngừng hoạt động | Vô hại, bỏ qua; thư viện vẫn tải từ Maven Central |
+| `./mvnw test` báo không khởi động được PostgreSQL nhúng | PostgreSQL không chạy được bằng quyền Administrator, hoặc phần mềm diệt virus chặn tiến trình `postgres.exe` | Mở terminal bằng tài khoản thường; thêm thư mục tạm của Windows (`%TEMP%\embedded-pg`) vào danh sách loại trừ của phần mềm diệt virus |
 | `/api/health` trả 503, database `DOWN` (chờ khoảng 30 giây) | Container database đang dừng | `docker compose up -d --wait`; backend tự kết nối lại |
 
 Xóa toàn bộ dữ liệu database local và tạo lại từ migration (**mất hết dữ liệu local**):

@@ -66,8 +66,8 @@ Các quy tắc này được kiểm khi review PR. Chưa dùng công cụ tự �
 | Cơ chế phiên | **Session phía server** của Spring Security; trình duyệt giữ cookie phiên `HttpOnly`, `SameSite=Lax` | Đăng xuất hủy phiên ngay, đúng UC-02 bước 8 ("không dùng lại được"). Token JWT không thu hồi được trước khi hết hạn nếu không thêm danh sách chặn. Frontend và API cùng origin (qua Vite proxy) nên cookie dùng được trực tiếp |
 | Hết hạn phiên | Không hoạt động 30 phút (mặc định của server, cấu hình được) | Đủ cho một lượt đặt đơn; phiên hết hạn xử lý theo UC-02 E4 |
 | Mật khẩu | Băm bằng BCrypt qua `PasswordEncoder` của Spring Security | NFR-06; không tự viết thuật toán băm |
-| CSRF | Bật. Token đặt ở cookie `XSRF-TOKEN`, frontend gửi lại ở header `X-XSRF-TOKEN` cho mọi request thay đổi dữ liệu | Dùng cookie phiên thì phải chống CSRF. Cấu hình cụ thể ở T-12 |
-| Kiểm tra vai trò | Theo đường dẫn API trong `SecurityConfig` (bảng mục 5) | Một chỗ nhìn được toàn bộ quyền, dễ đối chiếu với UC-02 mục "Yêu cầu phân quyền chung" |
+| CSRF | Bật. Token đặt ở cookie `XSRF-TOKEN` (JavaScript đọc được), frontend gửi lại ở header `X-XSRF-TOKEN` cho mọi request thay đổi dữ liệu, kể cả đăng nhập. `CsrfCookieFilter` bảo đảm mọi phản hồi (kể cả 401 đầu tiên) kèm cookie này | Dùng cookie phiên thì phải chống CSRF. Cài ở T-12 (`SecurityConfig`, `CsrfCookieFilter`) |
+| Kiểm tra vai trò | Theo đường dẫn API trong `SecurityConfig` (bảng mục 5). Đường dẫn chưa khai báo **bị từ chối mặc định** (401 nếu chưa đăng nhập, 403 nếu đã đăng nhập) | Một chỗ nhìn được toàn bộ quyền, dễ đối chiếu với UC-02 mục "Yêu cầu phân quyền chung"; thêm API mới mà quên khai báo quyền thì bị chặn thay vì bị mở |
 | Kiểm tra sở hữu đơn | Trong service: truy vấn luôn kèm `customer_id` của người đang đăng nhập; không thấy thì trả 404 | UC-05 E1: không tiết lộ đơn của người khác có tồn tại hay không (NFR-03) |
 | Chưa đăng nhập / sai vai trò | 401 `UNAUTHENTICATED` / 403 `FORBIDDEN` dạng JSON, không chuyển hướng | SPA tự chuyển tới trang đăng nhập (UC-02 E4) hoặc báo không có quyền (E5) |
 
