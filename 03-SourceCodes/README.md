@@ -34,9 +34,12 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend,
     ├── .prettierrc.json  # Cấu hình Prettier (format)
     ├── .oxlintrc.json    # Cấu hình oxlint (lint)
     └── src/
-        ├── api/health.ts # Hàm gọi API
-        ├── App.tsx       # Màn kiểm tra kết nối
-        └── main.tsx
+        ├── main.tsx      # Điểm vào: bộ định tuyến, AuthProvider, font
+        ├── app/          # App.tsx (bảng định tuyến), RequireRole (chặn trang theo vai trò)
+        ├── api/          # client.ts (nơi duy nhất gọi fetch, CSRF, lỗi), auth.ts, errorMessages.ts
+        ├── features/     # Mỗi nhóm màn hình một thư mục: auth, menu, kitchen (các nhóm khác thêm dần)
+        ├── components/   # Dùng chung: AppShell (khung + thanh tab), Alert, Icon
+        └── test/         # Hỗ trợ test (setup, renderWithAuth)
 ```
 
 ## Công nghệ và phiên bản
@@ -48,6 +51,9 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend,
 | PostgreSQL | image `postgres:18-alpine` | Chạy bằng Docker Compose |
 | Node.js | 24 LTS (tối thiểu 22.12) | Yêu cầu của Vite 8 |
 | React / Vite / TypeScript | 19 / 8 / 6 | Chưa dùng thư viện component UI |
+| React Router | 8 | Điều hướng giữa các màn hình |
+| Vitest + Testing Library | 4 / 16 | Test frontend (`npm test`) |
+| Be Vietnam Pro | `@fontsource` | Font thiết kế cho tiếng Việt, cài qua npm nên không cần mạng ngoài |
 
 ## Cài đặt trên máy mới
 Cần cài trước:
@@ -95,13 +101,24 @@ Mở http://localhost:5173. Trang hiển thị Trạng thái chung `UP`, Databas
 
 **Dừng**: `Ctrl+C` ở terminal backend và frontend; `docker compose stop` để dừng database (giữ dữ liệu).
 
+## Chạy nhanh không cần Docker (dùng để phát triển và thử tay)
+Nếu Docker Desktop chưa chạy được, backend vẫn chạy được trên một PostgreSQL 18 thật khởi động ngay trong tiến trình (cùng thư viện với test). Mỗi lần chạy tạo database mới có sẵn dữ liệu mẫu; tắt là mất dữ liệu.
+```bash
+# terminal 1, trong backend/ (lần đầu mất vài phút để tải PostgreSQL nhúng)
+./mvnw spring-boot:test-run -Dspring-boot.run.main-class=vn.nhom15.preorder.DevApplication
+# terminal 2, trong frontend/
+npm install
+npm run dev
+```
+Mở http://localhost:5173 và đăng nhập bằng một tài khoản mẫu (mục Tài khoản mẫu). Không cần tạo `.env` cho cách này. Cách chạy chính thức vẫn là Docker Compose ở trên.
+
 ## Kiểm thử, kiểm tra convention và build
 Chạy trước mỗi commit/PR (chưa có CI):
 ```bash
 # trong backend/: test + kiểm tra định dạng (Spotless) + lint (Checkstyle)
 ./mvnw verify
 # trong frontend/: định dạng (Prettier) + lint (oxlint) + kiểm tra kiểu và build
-npm run format:check && npm run lint && npm run build
+npm run format:check && npm run lint && npm run build && npm test
 ```
 Nếu báo lỗi định dạng, chạy `./mvnw spotless:apply` (backend) hoặc `npm run format` (frontend) để tự sửa. Lỗi Checkstyle/oxlint phải sửa tay theo [CODING_CONVENTION.md](CODING_CONVENTION.md). Chỉ chạy test backend: `./mvnw test`. Test chạy trên **PostgreSQL 18 thật được khởi động ngay trong test** (thư viện `embedded-postgres`, tự tải bản nhị phân lần đầu), nên **không cần Docker** để chạy test. Lần đầu khởi động PostgreSQL nhúng mất khoảng 15–20 giây. Nếu máy báo lỗi khi khởi động (ví dụ chạy bằng quyền Administrator), xem mục Xử lý sự cố.
 
