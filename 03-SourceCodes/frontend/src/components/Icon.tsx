@@ -25,6 +25,7 @@ const PATHS = {
       <path d="M10 22l2-7 3 3v6M8 12l2-4 4 1 3 3" />
     </>
   ),
+  plus: <path d="M12 5v14M5 12h14" />,
   check: <path d="M20 6 9 17l-5-5" />,
   alert: (
     <>

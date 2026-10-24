@@ -144,7 +144,7 @@ package "slot" {
 package "menu" {
   class MenuService <<Service>> {
     + getMenu() : List<MenuCategoryView>
-    + getOrderableItem(id : long) : MenuItem
+    + getVisibleItem(id : long) : MenuItem
     + findItems(ids : Collection<Long>) : Map<Long, MenuItem>
   }
   class MenuItem <<record>> {

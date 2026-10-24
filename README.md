@@ -28,7 +28,8 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - T-12 (backend xác thực) thực hiện ngày 2026-10-21 trên nhánh `feature/PB-01-auth-backend`: đăng nhập, đăng xuất, session phía server, chống CSRF, phân quyền theo đường dẫn, tài khoản mẫu ([03-SourceCodes](03-SourceCodes/README.md)). Test chạy trên PostgreSQL 18 thật khởi động trong test (không cần Docker). Đã merge (PR #8).
 - T-16 (giữ quota, UC-17) thực hiện trên nhánh `feature/PB-05-quota-service`: `QuotaService` giữ quota bằng một câu `UPDATE` có điều kiện trong giao dịch bắt buộc, bảng `store_settings`, `time_slots` (migration V3), dữ liệu mẫu giờ mở cửa và quota. Có test đồng thời trên PostgreSQL thật. Đã merge (PR #9).
 - T-23 (test black-box) thực hiện ngày 2026-10-24 trên nhánh `docs/T-23-black-box-test-cases`: [131 test case](01-ManagedArea/04-Testing/Test-Cases/BLACK_BOX_TEST_CASES.md) cho UC-02, 03, 04, 05, 12, 17, phủ mọi AC của 8 story Sprint 1 và mọi luồng A/E; chưa chạy test nào. Chờ review và merge PR.
-- Tiếp theo: T-13, T-14, T-15 (đều chỉ cần T-12 đã xong), rồi T-17, T-18. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-13 (frontend đăng nhập) và T-15 (menu) thực hiện ngày 2026-10-24: khung React có định tuyến theo vai trò, màn đăng nhập, API và màn xem thực đơn, dữ liệu mẫu 8 món. Có thể chạy toàn bộ ứng dụng không cần Docker (xem [03-SourceCodes](03-SourceCodes/README.md)). Chờ review và merge PR.
+- Tiếp theo: T-14 (test phân quyền), T-24 (white-box quota), rồi T-17, T-18. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 
 ## Cấu trúc
 Cấu trúc chính bám mục 8 của nguồn. `00-References` giữ nguyên tài liệu đầu vào; các file cấu hình Git/editor phục vụ làm việc, không phải tài liệu bàn giao môn học.
