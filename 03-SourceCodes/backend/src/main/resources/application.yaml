@@ -9,11 +9,23 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:preorder}
     username: ${DB_USER:preorder}
     password: ${DB_PASSWORD}
+  # Không để Spring Security tự tạo người dùng mặc định với mật khẩu ngẫu nhiên; tài khoản lấy từ bảng user_accounts.
+  autoconfigure:
+    exclude: org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
   flyway:
-    locations: classpath:db/migration
+    # db/migration: cấu trúc bảng (mọi môi trường). db/seed: dữ liệu mẫu cho local và demo (migration lặp R__);
+    # bỏ db/seed khỏi danh sách này khi triển khai công khai.
+    locations: classpath:db/migration,classpath:db/seed
 
 server:
   port: ${BACKEND_PORT:8080}
+  servlet:
+    session:
+      # Phiên hết hạn sau 30 phút không hoạt động (Architecture mục 3); cookie không đọc được bằng JavaScript.
+      timeout: 30m
+      cookie:
+        http-only: true
+        same-site: lax
 
 app:
   # Ràng buộc SRS mục D: thời gian theo múi giờ cửa hàng (UTC+7).

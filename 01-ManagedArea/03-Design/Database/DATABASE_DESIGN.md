@@ -176,7 +176,7 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 
 Số phiên bản có thể dịch nếu thứ tự task đổi; quy tắc là không sửa migration đã chạy.
 
-**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Cách tách dữ liệu mẫu khỏi migration schema (thư mục Flyway riêng chỉ bật ở local) chốt ở T-12.
+**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
 **Cột dự kiến cho Sprint sau** (chưa tạo):
 | Bảng | Cột | Use case |

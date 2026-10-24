@@ -9,11 +9,17 @@ import java.time.OffsetDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import vn.nhom15.preorder.config.SecurityConfig;
 
-/** Kiểm tra lớp web: mã HTTP và JSON trả về, không cần database thật. */
+/**
+ * Kiểm tra lớp web: mã HTTP và JSON trả về, không cần database thật. Health là đường dẫn công khai (không cần đăng
+ * nhập).
+ */
 @WebMvcTest(HealthController.class)
+@Import(SecurityConfig.class)
 class HealthControllerTest {
 
     private static final OffsetDateTime NOW = OffsetDateTime.parse("2026-10-12T09:00:00+07:00");
