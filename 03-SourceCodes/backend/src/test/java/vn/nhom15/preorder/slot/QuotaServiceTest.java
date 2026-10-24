@@ -113,4 +113,31 @@ class QuotaServiceTest {
         assertThat(new TimeSlot(1, DATE, START, null, 0).quota(20)).isEqualTo(20);
         assertThat(new TimeSlot(1, DATE, START, 12, 0).quota(20)).isEqualTo(12);
     }
+
+    @Test
+    void sumOverflowIsReportedInsteadOfWrappingAround() {
+        // Số học tràn không được âm thầm cho điểm nhỏ (sẽ lọt qua kiểm tra quota); báo lỗi ngay.
+        assertThatThrownBy(() -> QuotaService.orderPoints(List.of(new QuotaLine(Integer.MAX_VALUE, 2))))
+                .isInstanceOf(ArithmeticException.class);
+        assertThatThrownBy(() ->
+                        QuotaService.orderPoints(List.of(new QuotaLine(Integer.MAX_VALUE, 1), new QuotaLine(1, 1))))
+                .isInstanceOf(ArithmeticException.class);
+    }
+
+    @Test
+    void boundaryValuesOfALineAreAccepted() {
+        // Điểm 0 và số lượng 1 là giá trị nhỏ nhất hợp lệ.
+        assertThat(new QuotaLine(0, 1).workloadPoints()).isZero();
+        assertThat(QuotaService.orderPoints(List.of(new QuotaLine(0, 1)))).isZero();
+    }
+
+    @Test
+    void slotMissingRightAfterBeingCreatedIsAnInternalError() {
+        // Không thể xảy ra khi database đúng (dòng khung vừa được tạo cùng giao dịch); nếu xảy ra là lỗi hệ thống,
+        // không được báo nhầm thành "hết chỗ".
+        when(slots.tryHold(DATE, START, 8, DEFAULT_QUOTA)).thenReturn(Optional.empty());
+        when(slots.find(DATE, START)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.reserve(DATE, START, lines(8, 1))).isInstanceOf(IllegalStateException.class);
+    }
 }

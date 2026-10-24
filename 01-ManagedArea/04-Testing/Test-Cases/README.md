@@ -1,5 +1,5 @@
 # Test Cases
-Trạng thái: Black-box Sprint 1 đã thiết kế ở T-23 (2026-10-24): [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md), 131 test case, chưa chạy. White-box chưa thiết kế (T-24).
+Trạng thái: Black-box Sprint 1 đã thiết kế ở T-23 (2026-10-24): [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md), 131 test case, chưa chạy. White-box cho logic giữ quota đã thiết kế ở T-24: [WHITE_BOX_QUOTA.md](WHITE_BOX_QUOTA.md) (Control Flow Graph, 5 đường độc lập, bảng giá trị biên, độ phủ đo được).
 
 ## White-box
 Input: source code / control logic.

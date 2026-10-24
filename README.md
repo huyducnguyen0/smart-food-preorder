@@ -30,7 +30,8 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - T-23 (test black-box) thực hiện ngày 2026-10-24 trên nhánh `docs/T-23-black-box-test-cases`: [131 test case](01-ManagedArea/04-Testing/Test-Cases/BLACK_BOX_TEST_CASES.md) cho UC-02, 03, 04, 05, 12, 17, phủ mọi AC của 8 story Sprint 1 và mọi luồng A/E; chưa chạy test nào. Chờ review và merge PR.
 - T-14 (test phân quyền) ngày 2026-10-24: ma trận 5 vai trò × 13 đường dẫn API (68 ca) chạy trên ứng dụng thật, cộng ca phiên giả mạo và leo thang vai trò. Phần "đơn của khách khác" cần API đơn nên bổ sung ở T-20. Chờ review và merge PR.
 - T-13 (frontend đăng nhập) và T-15 (menu) thực hiện ngày 2026-10-24: khung React có định tuyến theo vai trò, màn đăng nhập, API và màn xem thực đơn, dữ liệu mẫu 8 món. Có thể chạy toàn bộ ứng dụng không cần Docker (xem [03-SourceCodes](03-SourceCodes/README.md)). Chờ review và merge PR.
-- Tiếp theo: T-24 (white-box quota), rồi T-17, T-18. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-24 (white-box quota) ngày 2026-10-24: Control Flow Graph, 5 đường độc lập của `QuotaService.reserve`, bảng giá trị biên của câu SQL giữ quota, độ phủ đo bằng JaCoCo (nhánh 8/8, dòng 24/24); thêm 18 test. Chờ review và merge PR.
+- Tiếp theo: T-17, T-18. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 
 ## Cấu trúc
 Cấu trúc chính bám mục 8 của nguồn. `00-References` giữ nguyên tài liệu đầu vào; các file cấu hình Git/editor phục vụ làm việc, không phải tài liệu bàn giao môn học.
