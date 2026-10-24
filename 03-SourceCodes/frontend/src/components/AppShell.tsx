@@ -1,0 +1,91 @@
+import { Link, NavLink, Outlet, useNavigate } from 'react-router'
+import { useAuth } from '../features/auth/useAuth'
+import { Icon } from './Icon'
+
+function Brand() {
+  return (
+    <Link className="brand" to="/">
+      <span className="logo">15</span>
+      <span>
+        <b>Nhóm 15 Food</b>
+        <small>
+          <Icon name="walk" />
+          Đặt trước · Tự đến lấy
+        </small>
+      </span>
+    </Link>
+  )
+}
+
+/**
+ * Khung chung của mọi trang (UI Prototype mục 2). Khách và khách vãng lai: cột hẹp kiểu ứng dụng điện thoại, thanh
+ * tab ở đáy. Nhân viên bếp: màn rộng, đầu trang tối, không có thanh tab.
+ */
+export function AppShell() {
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/', { replace: true })
+  }
+
+  if (user?.role === 'KITCHEN') {
+    return (
+      <div className="app wide">
+        <header className="k-top">
+          <div className="k-top-inner">
+            <span className="logo">15</span>
+            <h1>Hàng chờ bếp</h1>
+            <span className="muted-light">{user.displayName}</span>
+            <button type="button" className="btn btn-dark" onClick={handleSignOut}>
+              Đăng xuất
+            </button>
+          </div>
+        </header>
+        <main>
+          <Outlet />
+        </main>
+      </div>
+    )
+  }
+
+  return (
+    <div className="app">
+      <header className="topbar">
+        <Brand />
+        {!user && (
+          <Link className="link-btn" to="/login">
+            Đăng nhập
+          </Link>
+        )}
+      </header>
+      <main>
+        <Outlet />
+      </main>
+      <nav className="tabbar" aria-label="Điều hướng chính">
+        <NavLink to="/" end>
+          <Icon name="menu" />
+          Thực đơn
+        </NavLink>
+        {user?.role === 'CUSTOMER' && (
+          <NavLink to="/orders">
+            <Icon name="receipt" />
+            Đơn của tôi
+          </NavLink>
+        )}
+        {user ? (
+          <button type="button" onClick={handleSignOut}>
+            <Icon name="user" />
+            Đăng xuất
+          </button>
+        ) : (
+          <NavLink to="/login">
+            <Icon name="user" />
+            Đăng nhập
+          </NavLink>
+        )}
+      </nav>
+    </div>
+  )
+}

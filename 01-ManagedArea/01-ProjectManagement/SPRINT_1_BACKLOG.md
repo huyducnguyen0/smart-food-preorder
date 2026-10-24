@@ -56,9 +56,9 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-10 | PB-05, PB-07, PB-13 | Detailed Class Diagram backend phần Sprint 1 ([Class Design](../03-Design/Class-Design/README.md)) | Người dùng, AI hỗ trợ | T-08, T-09 | Done |
 | T-11 | PB-01, 02, 06, 07, 08, 12 | UI wireframe và navigation: đăng nhập, menu và giỏ, chọn khung và đặt, đơn của tôi, hàng chờ bếp ([UI Prototype](../03-Design/UI-Prototype/README.md)); người dùng chấp thuận prototype v2 ngày 2026-10-21 | Người dùng, AI hỗ trợ | T-05 | Done |
 | T-12 | PB-01 | Backend: xác thực, mật khẩu băm (NFR-06), vai trò, kiểm tra quyền tại API, tài khoản mẫu | Người dùng, AI hỗ trợ | T-03, T-09 | Done |
-| T-13 | PB-01 | Frontend: đăng nhập, đăng xuất, điều hướng theo vai trò | Người dùng, AI hỗ trợ | T-12, T-11 | To Do |
-| T-14 | PB-01 | Test tự động phân quyền: gọi API ngoài vai trò, đơn của khách khác (NFR-03) | Người dùng, AI hỗ trợ | T-12 | To Do |
-| T-15 | PB-02 | Dữ liệu menu mẫu, API menu, màn xem menu (BR-04) | Người dùng, AI hỗ trợ | T-12 | To Do |
+| T-13 | PB-01 | Frontend: đăng nhập, đăng xuất, điều hướng theo vai trò | Người dùng, AI hỗ trợ | T-12, T-11 | Review |
+| T-14 | PB-01 | Test tự động phân quyền: gọi API ngoài vai trò, đơn của khách khác (NFR-03); ma trận vai trò × API đã xong, phần đơn của khách khác bổ sung cùng T-20 | Người dùng, AI hỗ trợ | T-12 | Review |
+| T-15 | PB-02 | Dữ liệu menu mẫu, API menu, màn xem menu (BR-04) | Người dùng, AI hỗ trợ | T-12 | Review |
 | T-16 | PB-05 | Service tính điểm và giữ quota trong một transaction (BR-08–BR-14); dữ liệu mẫu giờ mở cửa và quota; unit test | Người dùng, AI hỗ trợ | T-09, T-10 | Done |
 | T-17 | PB-06 | Giỏ hàng frontend | Người dùng, AI hỗ trợ | T-15 | To Do |
 | T-18 | PB-07 | API danh sách khung hợp lệ và đặt đơn: BR-12, BR-15, chống trùng BR-17, cấp mã nhận; test | Người dùng, AI hỗ trợ | T-16 | To Do |
