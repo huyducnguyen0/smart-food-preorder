@@ -1,5 +1,5 @@
 # Test Cases
-Trạng thái: Chưa thiết kế test của dự án.
+Trạng thái: Black-box Sprint 1 đã thiết kế ở T-23 (2026-10-24): [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md), 131 test case, chưa chạy. White-box chưa thiết kế (T-24).
 
 ## White-box
 Input: source code / control logic.

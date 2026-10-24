@@ -59,14 +59,14 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-13 | PB-01 | Frontend: đăng nhập, đăng xuất, điều hướng theo vai trò | Người dùng, AI hỗ trợ | T-12, T-11 | To Do |
 | T-14 | PB-01 | Test tự động phân quyền: gọi API ngoài vai trò, đơn của khách khác (NFR-03) | Người dùng, AI hỗ trợ | T-12 | To Do |
 | T-15 | PB-02 | Dữ liệu menu mẫu, API menu, màn xem menu (BR-04) | Người dùng, AI hỗ trợ | T-12 | To Do |
-| T-16 | PB-05 | Service tính điểm và giữ quota trong một transaction (BR-08–BR-14); dữ liệu mẫu giờ mở cửa và quota; unit test | Người dùng, AI hỗ trợ | T-09, T-10 | Review |
+| T-16 | PB-05 | Service tính điểm và giữ quota trong một transaction (BR-08–BR-14); dữ liệu mẫu giờ mở cửa và quota; unit test | Người dùng, AI hỗ trợ | T-09, T-10 | Done |
 | T-17 | PB-06 | Giỏ hàng frontend | Người dùng, AI hỗ trợ | T-15 | To Do |
 | T-18 | PB-07 | API danh sách khung hợp lệ và đặt đơn: BR-12, BR-15, chống trùng BR-17, cấp mã nhận; test | Người dùng, AI hỗ trợ | T-16 | To Do |
 | T-19 | PB-07 | Màn chọn khung, gửi đơn, hiển thị kết quả và lỗi | Người dùng, AI hỗ trợ | T-17, T-18 | To Do |
 | T-20 | PB-08 | API và màn "Đơn của tôi": trạng thái, mã nhận, trạng thái thanh toán | Người dùng, AI hỗ trợ | T-18 | To Do |
 | T-21 | PB-12 | API và màn hàng chờ bếp: nhóm sắp tới / cần chuẩn bị / đang làm, sắp xếp, đánh dấu trễ (BR-21, BR-22, BR-26) | Người dùng, AI hỗ trợ | T-18 | To Do |
 | T-22 | PB-13 | Chuyển trạng thái CONFIRMED → PREPARING → READY, từ chối chuyển sai; nút thao tác; test | Người dùng, AI hỗ trợ | T-21 | To Do |
-| T-23 | Story đã chọn | Black-box Test Cases từ AC | Người dùng, AI hỗ trợ | T-05 | To Do |
+| T-23 | Story đã chọn | Black-box Test Cases từ AC ([Test Cases](../04-Testing/Test-Cases/BLACK_BOX_TEST_CASES.md)) | Người dùng, AI hỗ trợ | T-05 | Review |
 | T-24 | PB-05 | White-box: Control Flow Graph, execution paths, test case cho logic giữ quota | Người dùng, AI hỗ trợ | T-16 | To Do |
 | T-25 | Story đã chọn | Chạy test, ghi Test Results, sửa lỗi phát hiện | Người dùng, AI hỗ trợ | T-14, T-22, T-23, T-24 | To Do |
 | T-26 | — | Sprint Planning (kế hoạch tạm duyệt 2026-10-09) | Người dùng | — | Done |
