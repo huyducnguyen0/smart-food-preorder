@@ -637,6 +637,102 @@ h1 {
   padding-top: 12px;
 }
 
+/* Chọn giờ nhận và kết quả đặt (UC-04.2) */
+.slot-hour {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 16px 0 8px;
+  color: var(--ink-2);
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.slot {
+  padding: 10px 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--success);
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 700;
+}
+
+.slot.selected {
+  background: var(--success);
+  color: #fff;
+}
+
+.slot.full,
+.slot:disabled {
+  border-color: var(--border);
+  background: var(--neutral-bg);
+  color: #8a837d;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.summary li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+}
+
+.notice-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.notice-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.ticket {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 22px 16px;
+  border-radius: 20px;
+  background: var(--dark);
+  color: #fff;
+  text-align: center;
+}
+
+.ticket-label {
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.ticket-code {
+  font-size: 44px;
+  line-height: 1.1;
+  letter-spacing: 6px;
+  font-weight: 800;
+}
+
+.status-pill {
+  margin-top: 6px;
+  padding: 4px 14px;
+  border-radius: 99px;
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

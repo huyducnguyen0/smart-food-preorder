@@ -1,5 +1,6 @@
 import { createContext } from 'react'
 import type { MenuItem } from '../../api/menu'
+import type { ItemChange } from '../../api/orders'
 
 /** Số lượng tối đa của một món trong giỏ; khớp giới hạn của API đặt đơn (Architecture mục 5). */
 export const MAX_QUANTITY = 999
@@ -26,6 +27,8 @@ export type CartContextValue = {
   setQuantity: (menuItemId: number, quantity: number) => void
   /** Bỏ món khỏi giỏ (UC-04 bước 3). */
   remove: (menuItemId: number) => void
+  /** Cập nhật giỏ theo các món backend báo đã đổi: đổi giá thì lấy giá mới, tạm hết hoặc ngừng bán thì bỏ (UC-04 E7). */
+  reprice: (changes: ItemChange[]) => void
   /** Xóa cả giỏ, dùng sau khi đặt thành công (UC-04 bước 11). */
   clear: () => void
 }

@@ -5,7 +5,9 @@ import { LoginPage } from '../features/auth/LoginPage'
 import { useAuth } from '../features/auth/useAuth'
 import { KitchenPage } from '../features/kitchen/KitchenPage'
 import { CartPage } from '../features/cart/CartPage'
+import { CheckoutPage } from '../features/checkout/CheckoutPage'
 import { MenuPage } from '../features/menu/MenuPage'
+import { OrderDetailPage } from '../features/orders/OrderDetailPage'
 import { RequireRole } from './RequireRole'
 
 /** Trang chủ: nhân viên bếp vào thẳng hàng chờ bếp, người khác vào thực đơn (UI Prototype mục 2). */
@@ -58,7 +60,7 @@ export function App() {
           path="checkout"
           element={
             <RequireRole roles={['CUSTOMER']}>
-              <PlaceholderPage title="Chọn giờ nhận" task="T-19" />
+              <CheckoutPage />
             </RequireRole>
           }
         />
@@ -67,6 +69,14 @@ export function App() {
           element={
             <RequireRole roles={['CUSTOMER']}>
               <PlaceholderPage title="Đơn của tôi" task="T-20" />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="orders/:id"
+          element={
+            <RequireRole roles={['CUSTOMER']}>
+              <OrderDetailPage />
             </RequireRole>
           }
         />

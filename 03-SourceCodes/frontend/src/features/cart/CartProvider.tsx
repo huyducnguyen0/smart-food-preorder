@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { MenuItem } from '../../api/menu'
+import type { ItemChange } from '../../api/orders'
 import { useAuth } from '../auth/useAuth'
 import { CartContext, MAX_QUANTITY, type CartContextValue, type CartLine } from './cartContext'
 import { loadCart, saveCart } from './cartStorage'
@@ -47,6 +48,17 @@ function CartStore({ userId, children }: { userId: number | null; children: Reac
     setLines((current) => current.filter((line) => line.menuItemId !== menuItemId))
   }, [])
 
+  const reprice = useCallback((changes: ItemChange[]) => {
+    setLines((current) =>
+      current.flatMap((line) => {
+        const change = changes.find((item) => item.menuItemId === line.menuItemId)
+        if (!change) return [line]
+        if (change.reason === 'UNAVAILABLE' || change.currentPrice === undefined) return []
+        return [{ ...line, unitPrice: change.currentPrice }]
+      }),
+    )
+  }, [])
+
   const clear = useCallback(() => setLines([]), [])
 
   const value = useMemo<CartContextValue>(
@@ -57,9 +69,10 @@ function CartStore({ userId, children }: { userId: number | null; children: Reac
       add,
       setQuantity,
       remove,
+      reprice,
       clear,
     }),
-    [lines, add, setQuantity, remove, clear],
+    [lines, add, setQuantity, remove, reprice, clear],
   )
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

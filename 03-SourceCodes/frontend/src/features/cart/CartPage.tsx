@@ -1,4 +1,5 @@
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
+import { Alert } from '../../components/Alert'
 import { Icon } from '../../components/Icon'
 import { formatMoney } from '../../lib/format'
 import { MAX_QUANTITY, type CartLine } from './cartContext'
@@ -59,10 +60,13 @@ function CartRow({ line }: { line: CartLine }) {
  */
 export function CartPage() {
   const { lines, total } = useCart()
+  // Thông báo từ màn đặt đơn khi món đổi giá, hết hàng hoặc đơn quá lớn (UC-04 E7, E9).
+  const notices = (useLocation().state as { notices?: string[] } | null)?.notices ?? []
 
   if (lines.length === 0) {
     return (
       <div className="empty">
+        {notices.length > 0 && <Alert kind="warning">{notices.join(' ')}</Alert>}
         <h1>Giỏ hàng đang trống</h1>
         <p className="muted">Chọn món từ thực đơn để bắt đầu đặt trước.</p>
         <Link className="btn btn-primary" to="/">
@@ -75,6 +79,16 @@ export function CartPage() {
   return (
     <div className="content">
       <h1>Giỏ hàng</h1>
+      {notices.length > 0 && (
+        <Alert kind="warning">
+          <p className="notice-title">Giỏ hàng đã được cập nhật, vui lòng xem lại trước khi đặt:</p>
+          <ul className="notice-list">
+            {notices.map((notice) => (
+              <li key={notice}>{notice}</li>
+            ))}
+          </ul>
+        </Alert>
+      )}
       <ul className="items">
         {lines.map((line) => (
           <CartRow key={line.menuItemId} line={line} />
