@@ -110,7 +110,7 @@ class AuthFlowIntegrationTest {
 
         // Cùng một đường dẫn: khách bị từ chối vùng của bếp, bếp bị từ chối vùng của khách (UC-02 E5).
         mockMvc.perform(get("/api/kitchen/queue").session(customer)).andExpect(status().isForbidden());
-        mockMvc.perform(get("/api/kitchen/queue").session(kitchen)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/kitchen/queue").session(kitchen)).andExpect(status().isOk());
         mockMvc.perform(get("/api/orders/1").session(kitchen)).andExpect(status().isForbidden());
         mockMvc.perform(get("/api/orders/1").session(customer)).andExpect(status().isNotFound());
         mockMvc.perform(get("/api/orders/1")).andExpect(status().isUnauthorized());
