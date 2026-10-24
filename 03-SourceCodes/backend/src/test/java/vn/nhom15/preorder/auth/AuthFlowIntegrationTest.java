@@ -129,6 +129,6 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.database").value("UP"))
-                .andExpect(jsonPath("$.schemaVersion").value("2"));
+                .andExpect(jsonPath("$.schemaVersion").value("3"));
     }
 }

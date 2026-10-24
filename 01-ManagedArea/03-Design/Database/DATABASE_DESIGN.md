@@ -170,11 +170,11 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 | Migration | Task | Bảng |
 |---|---|---|
 | `V2__create_user_accounts.sql` | T-12 | `user_accounts` |
-| `V3__create_menu.sql` | T-15 | `menu_categories`, `menu_items` |
-| `V4__create_slots.sql` | T-16 | `store_settings`, `time_slots` |
+| `V3__create_slots.sql` | T-16 | `store_settings`, `time_slots` |
+| `V4__create_menu.sql` | T-15 | `menu_categories`, `menu_items` |
 | `V5__create_orders.sql` | T-18 | `orders`, `order_lines` |
 
-Số phiên bản có thể dịch nếu thứ tự task đổi; quy tắc là không sửa migration đã chạy.
+Số phiên bản dịch theo thứ tự task thực tế: T-16 (giữ quota) làm trước T-15 (menu) nên bảng khung giờ là V3 và bảng menu là V4. Quy tắc: số phiên bản tăng dần theo thứ tự merge và không sửa migration đã chạy (Flyway từ chối chạy migration có số nhỏ hơn số đã áp dụng).
 
 **Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
