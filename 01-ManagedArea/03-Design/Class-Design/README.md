@@ -23,7 +23,7 @@ Ký hiệu: `+` public, `-` private, `~` dùng trong package (để test), gạc
 | `AuthController` | `POST /api/auth/login`, `logout`, `GET /api/auth/me`; lưu `SecurityContext` vào session sau khi `AuthService` xác thực | `LoginScreen` → `AuthControl` | UC-02 | T-12 |
 | `AuthService` | Chuẩn hóa định danh, tìm tài khoản, so mật khẩu, **rồi mới** kiểm tra khóa (mục 4.1) | `AuthControl` | BR-32, NFR-06 | T-12 |
 | `SecurityConfig` | Quy tắc quyền theo đường dẫn, CSRF, trả 401/403 JSON, `PasswordEncoder` BCrypt | `AuthControl` | BR-33, NFR-03 | T-12 |
-| `MenuService` | Menu theo nhóm (bỏ món ngừng bán); một món đặt được; tải nhiều món theo id | `MenuControl` | BR-03, BR-04 | T-15 |
+| `MenuService` | Menu theo nhóm (bỏ món ngừng bán); một món đang hiển thị (`getVisibleItem`); tải nhiều món theo id | `MenuControl` | BR-03, BR-04 | T-15 |
 | `SlotAvailabilityService` | Liệt kê khung hôm nay kèm tình trạng theo giỏ (mục 4.2); kiểm tra một khung còn đặt được | `SlotAvailabilityControl` | BR-06, BR-15, BR-36 | T-18 |
 | `QuotaService` | Tính điểm đơn; giữ quota cho khung bằng câu cập nhật có điều kiện (mục 3) | `QuotaControl` | BR-07–BR-13, NFR-01 | T-16 |
 | `PlaceOrderService` | Giao dịch đặt đơn theo đúng thứ tự kiểm tra (mục 3) | `PlaceOrderControl` | BR-10, BR-17, BR-35, BR-37, BR-38 | T-18 |
