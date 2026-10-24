@@ -60,7 +60,7 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-14 | PB-01 | Test tự động phân quyền: gọi API ngoài vai trò, đơn của khách khác (NFR-03); ma trận vai trò × API đã xong, phần đơn của khách khác bổ sung cùng T-20 | Người dùng, AI hỗ trợ | T-12 | Review |
 | T-15 | PB-02 | Dữ liệu menu mẫu, API menu, màn xem menu (BR-04) | Người dùng, AI hỗ trợ | T-12 | Review |
 | T-16 | PB-05 | Service tính điểm và giữ quota trong một transaction (BR-08–BR-14); dữ liệu mẫu giờ mở cửa và quota; unit test | Người dùng, AI hỗ trợ | T-09, T-10 | Done |
-| T-17 | PB-06 | Giỏ hàng frontend | Người dùng, AI hỗ trợ | T-15 | To Do |
+| T-17 | PB-06 | Giỏ hàng frontend | Người dùng, AI hỗ trợ | T-15 | Review |
 | T-18 | PB-07 | API danh sách khung hợp lệ và đặt đơn: BR-12, BR-15, chống trùng BR-17, cấp mã nhận; test | Người dùng, AI hỗ trợ | T-16 | Review |
 | T-19 | PB-07 | Màn chọn khung, gửi đơn, hiển thị kết quả và lỗi | Người dùng, AI hỗ trợ | T-17, T-18 | To Do |
 | T-20 | PB-08 | API và màn "Đơn của tôi": trạng thái, mã nhận, trạng thái thanh toán | Người dùng, AI hỗ trợ | T-18 | To Do |

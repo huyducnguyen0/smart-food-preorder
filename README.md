@@ -32,7 +32,8 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - T-13 (frontend đăng nhập) và T-15 (menu) thực hiện ngày 2026-10-24: khung React có định tuyến theo vai trò, màn đăng nhập, API và màn xem thực đơn, dữ liệu mẫu 8 món. Có thể chạy toàn bộ ứng dụng không cần Docker (xem [03-SourceCodes](03-SourceCodes/README.md)). Chờ review và merge PR.
 - T-24 (white-box quota) ngày 2026-10-24: Control Flow Graph, 5 đường độc lập của `QuotaService.reserve`, bảng giá trị biên của câu SQL giữ quota, độ phủ đo bằng JaCoCo (nhánh 8/8, dòng 24/24); thêm 18 test. Chờ review và merge PR.
 - T-18 (API danh sách khung và đặt đơn) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-07-order-api`, xếp chồng lên nhánh T-15 vì cần dữ liệu món: `GET /api/slots`, `POST /api/orders` trong một giao dịch (khóa theo khách, chống trùng, giữ quota), mã nhận, bảng `orders`, `order_lines` (migration V5). Có test đồng thời trên PostgreSQL thật (30 khách tranh một khung, gửi lại đồng thời). Chờ review và merge PR.
-- Tiếp theo: T-17 (giỏ hàng), rồi T-19, T-20, T-21. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-17 (giỏ hàng) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-06-cart`, xếp chồng lên nhánh T-15: thêm món từ thực đơn (hỏi lại tình trạng món, UC-04 E1), màn Giỏ hàng đổi số lượng và bỏ món, thanh giỏ dính đáy, số phần trên biểu tượng giỏ. Giỏ lưu trên trình duyệt, mỗi tài khoản một giỏ (quyết định 2026-10-10). Chờ review và merge PR.
+- Tiếp theo: T-19 (chọn khung và gửi đơn), T-20, T-21. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 
 ## Cấu trúc
 Cấu trúc chính bám mục 8 của nguồn. `00-References` giữ nguyên tài liệu đầu vào; các file cấu hình Git/editor phục vụ làm việc, không phải tài liệu bàn giao môn học.
