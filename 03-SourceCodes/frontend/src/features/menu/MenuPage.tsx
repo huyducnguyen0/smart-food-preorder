@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { fetchMenu, type MenuCategory, type MenuItem } from '../../api/menu'
+import { fetchMenu, fetchMenuItem, type MenuCategory, type MenuItem } from '../../api/menu'
+import { ApiError } from '../../api/client'
 import { messageOf } from '../../api/errorMessages'
 import { Alert } from '../../components/Alert'
 import { Icon } from '../../components/Icon'
 import { formatMoney } from '../../lib/format'
 import { useAuth } from '../auth/useAuth'
+import { CartBar } from '../cart/CartBar'
+import { useCart } from '../cart/useCart'
 
 type MenuState =
   | { kind: 'loading' }
@@ -48,10 +51,12 @@ function ItemRow({ item, onAdd }: { item: MenuItem; onAdd?: () => void }) {
  */
 export function MenuPage() {
   const { user } = useAuth()
+  const { add } = useCart()
   const navigate = useNavigate()
   const [state, setState] = useState<MenuState>({ kind: 'loading' })
   const [activeCategory, setActiveCategory] = useState<number | null>(null)
   const [attempt, setAttempt] = useState(0)
+  const [notice, setNotice] = useState<string | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -70,9 +75,38 @@ export function MenuPage() {
     setAttempt((value) => value + 1)
   }, [])
 
+  // UC-04 bước 1–2 và E1: hỏi lại tình trạng món rồi mới thêm, vì trang menu có thể đã cũ. Món vừa tạm hết hoặc ngừng
+  // bán thì không thêm, báo khách và tải lại menu.
+  const addToCart = useCallback(
+    async (item: MenuItem) => {
+      setNotice(null)
+      try {
+        const current = await fetchMenuItem(item.id)
+        if (!current.available) {
+          setNotice(`${item.name} vừa tạm hết, chưa thêm được vào giỏ.`)
+          retry()
+          return
+        }
+        add(item)
+      } catch (error) {
+        if (error instanceof ApiError && error.status === 404) {
+          setNotice(`${item.name} không còn trong thực đơn, chưa thêm được vào giỏ.`)
+          retry()
+          return
+        }
+        setNotice(messageOf(error))
+      }
+    },
+    [add, retry],
+  )
+
   // UC-03 A3: khách vãng lai bấm thêm vào giỏ thì phải đăng nhập; món chưa được thêm, khách chọn lại sau khi quay về.
-  // TODO(T-17): khách đã đăng nhập sẽ thêm món vào giỏ; tới lúc đó nút chỉ hiện cho khách vãng lai.
-  const onAdd = user ? undefined : () => navigate('/login', { state: { from: '/' } })
+  // Vai trò khác khách (bếp, quản lý) không có giỏ nên không hiện nút.
+  const onAdd = (item: MenuItem) => {
+    if (!user) return () => navigate('/login', { state: { from: '/' } })
+    if (user.role === 'CUSTOMER') return () => void addToCart(item)
+    return undefined
+  }
 
   return (
     <>
@@ -80,6 +114,12 @@ export function MenuPage() {
         <strong>Đặt trước, đến là có</strong>
         <span>Chọn giờ nhận, cửa hàng làm sẵn cho bạn.</span>
       </div>
+
+      {notice && (
+        <div className="content notice">
+          <Alert kind="warning">{notice}</Alert>
+        </div>
+      )}
 
       {state.kind === 'loading' && (
         <p className="muted center" role="status">
@@ -133,7 +173,7 @@ export function MenuPage() {
                   </h2>
                   <ul className="items">
                     {category.items.map((item) => (
-                      <ItemRow key={item.id} item={item} onAdd={onAdd} />
+                      <ItemRow key={item.id} item={item} onAdd={onAdd(item)} />
                     ))}
                   </ul>
                 </section>
@@ -141,6 +181,8 @@ export function MenuPage() {
           </div>
         </>
       )}
+
+      {user?.role === 'CUSTOMER' && <CartBar />}
     </>
   )
 }

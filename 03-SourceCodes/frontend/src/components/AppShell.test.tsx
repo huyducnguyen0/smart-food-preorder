@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { CurrentUser } from '../api/auth'
+import { saveCart } from '../features/cart/cartStorage'
 import { renderWithAuth } from '../test/renderWithAuth'
 import { AppShell } from './AppShell'
 
@@ -43,5 +44,18 @@ describe('AppShell', () => {
     expect(screen.getByText('Bếp Một')).toBeInTheDocument()
     expect(screen.queryByRole('navigation', { name: 'Điều hướng chính' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Đăng xuất' })).toBeInTheDocument()
+  })
+
+  it('khách thấy biểu tượng giỏ kèm số phần; khách vãng lai và bếp không có giỏ', () => {
+    saveCart(customer.id, [
+      { menuItemId: 1, name: 'Burger bò', imageUrl: null, unitPrice: 45000, quantity: 2 },
+      { menuItemId: 2, name: 'Trà đào', imageUrl: null, unitPrice: 20000, quantity: 1 },
+    ])
+    const { unmount } = renderWithAuth(<AppShell />, { auth: { user: customer } })
+    expect(screen.getByRole('link', { name: 'Giỏ hàng, 3 phần' })).toHaveAttribute('href', '/cart')
+    unmount()
+
+    renderWithAuth(<AppShell />)
+    expect(screen.queryByRole('link', { name: /Giỏ hàng/ })).not.toBeInTheDocument()
   })
 })

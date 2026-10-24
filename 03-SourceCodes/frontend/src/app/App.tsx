@@ -4,6 +4,7 @@ import { PlaceholderPage } from '../components/PlaceholderPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { useAuth } from '../features/auth/useAuth'
 import { KitchenPage } from '../features/kitchen/KitchenPage'
+import { CartPage } from '../features/cart/CartPage'
 import { MenuPage } from '../features/menu/MenuPage'
 import { RequireRole } from './RequireRole'
 
@@ -49,7 +50,15 @@ export function App() {
           path="cart"
           element={
             <RequireRole roles={['CUSTOMER']}>
-              <PlaceholderPage title="Giỏ hàng" task="T-17" />
+              <CartPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="checkout"
+          element={
+            <RequireRole roles={['CUSTOMER']}>
+              <PlaceholderPage title="Chọn giờ nhận" task="T-19" />
             </RequireRole>
           }
         />
