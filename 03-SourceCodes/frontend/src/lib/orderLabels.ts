@@ -10,6 +10,25 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   NO_SHOW: 'Không đến nhận',
 }
 
+/** Màu của nhãn trạng thái: xanh dương = đã xác nhận, vàng nâu = đang làm, xanh lá = sẵn sàng, xám = đã kết thúc. */
+export const STATUS_TONES: Record<
+  OrderStatus,
+  'info' | 'warning' | 'success' | 'neutral' | 'danger'
+> = {
+  CONFIRMED: 'info',
+  PREPARING: 'warning',
+  READY: 'success',
+  PICKED_UP: 'neutral',
+  CANCELLED: 'danger',
+  NO_SHOW: 'danger',
+}
+
+/** Ngày của một thời điểm dạng `2026-10-17T11:30`: "17/10/2026". */
+export function dateOf(dateTime: string): string {
+  const [year, month, day] = dateTime.slice(0, 10).split('-')
+  return `${day}/${month}/${year}`
+}
+
 /** Giờ của một thời điểm dạng `2026-10-17T11:30`: "11:30". */
 export function timeOf(dateTime: string): string {
   return dateTime.slice(11, 16)

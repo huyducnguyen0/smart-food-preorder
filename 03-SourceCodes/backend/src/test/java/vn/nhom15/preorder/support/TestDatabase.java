@@ -37,6 +37,8 @@ public final class TestDatabase {
             config.setUsername("postgres");
             config.setPassword("postgres");
             config.setMaximumPoolSize(64);
+            // Chỉ giữ kết nối rảnh tối thiểu: nhiều database test cùng sống trong một lượt chạy.
+            config.setMinimumIdle(1);
             HikariDataSource dataSource = new HikariDataSource(config);
             migrate(dataSource, withSeed);
             return dataSource;

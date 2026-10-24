@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import type { OrderDetail } from '../../api/orders'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
-import { slotRange, STATUS_LABELS } from '../../lib/orderLabels'
+import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
 
 /**
  * Chi tiết một đơn (UC-05 bước 4) và kết quả đặt thành công (UC-04 bước 11): thẻ mã nhận, khung nhận, trạng thái,
@@ -26,9 +26,11 @@ export function OrderDetailView({
         <span className="ticket-label">Mã nhận</span>
         <strong className="ticket-code">{order.pickupCode}</strong>
         <span>
-          Nhận lúc <b>{slotRange(order.slotStart, order.slotEnd)}</b>
+          Nhận lúc <b>{slotRange(order.slotStart, order.slotEnd)}</b>, {dateOf(order.slotStart)}
         </span>
-        <span className="status-pill">{STATUS_LABELS[order.status]}</span>
+        <span className={`status-pill tone-${STATUS_TONES[order.status]}`}>
+          {STATUS_LABELS[order.status]}
+        </span>
       </section>
 
       <h2 className="section-title">Món đã đặt</h2>
@@ -51,8 +53,9 @@ export function OrderDetailView({
       </dl>
       <p className="muted">
         {order.paymentStatus === 'PAID'
-          ? 'Đã thanh toán.'
-          : 'Chưa thanh toán: thanh toán tại quầy khi nhận món.'}
+          ? `Đã thanh toán${order.paymentMethod === 'BANK_TRANSFER' ? ' bằng chuyển khoản' : ' bằng tiền mặt'}.`
+          : 'Chưa thanh toán: thanh toán tại quầy khi nhận món.'}{' '}
+        Đặt lúc {order.confirmedAt.slice(11, 16)}.
       </p>
       <Link className="btn btn-block" to="/">
         Về thực đơn

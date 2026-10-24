@@ -733,6 +733,91 @@ h1 {
   font-weight: 700;
 }
 
+/* Đơn của tôi (UC-05) */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--ink);
+  text-decoration: none;
+  align-items: center;
+}
+
+.order-card:hover {
+  background: var(--cream);
+}
+
+.order-code {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+
+.order-meta {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.order-total {
+  grid-column: 2;
+  grid-row: 2 / span 2;
+  justify-self: end;
+}
+
+.order-card .status-pill {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  justify-self: end;
+}
+
+.tone-info {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.tone-warning {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.tone-success {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.tone-neutral {
+  background: var(--neutral-bg);
+  color: var(--neutral);
+}
+
+.tone-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.reload-row {
+  padding-top: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
