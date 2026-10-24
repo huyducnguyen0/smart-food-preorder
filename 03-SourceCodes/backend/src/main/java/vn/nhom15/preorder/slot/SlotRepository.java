@@ -56,8 +56,9 @@ public class SlotRepository {
     }
 
     /**
-     * Bảo đảm khung có dòng và trả về mã dòng. An toàn khi nhiều giao dịch gọi cùng lúc: giao dịch đến sau chờ giao dịch
-     * đến trước kết thúc rồi bỏ qua việc chèn. Câu SELECT chạy riêng để thấy dòng vừa được giao dịch khác ghi.
+     * Bảo đảm khung có dòng và trả về mã dòng. An toàn khi nhiều giao dịch gọi cùng lúc: giao dịch đến sau chờ
+     * giao dịch đến trước kết thúc rồi bỏ qua việc chèn. Câu SELECT chạy riêng để thấy dòng vừa được giao dịch khác
+     * ghi.
      */
     public long ensureExists(LocalDate date, LocalTime start) {
         jdbcTemplate.update(INSERT_IF_ABSENT_SQL, date, start);
@@ -70,8 +71,8 @@ public class SlotRepository {
      * Kiểm tra và giữ quota trong <b>một câu lệnh</b> (BR-09, NFR-01): chỉ cộng điểm khi điểm đang giữ cộng điểm đơn
      * không vượt quota hiệu lực của khung.
      *
-     * <p>Vì sao không bị chen ngang: UPDATE khóa dòng khung. Giao dịch đến sau phải chờ, rồi PostgreSQL kiểm tra lại điều
-     * kiện WHERE trên giá trị mới nhất của dòng, nên hai đơn không thể cùng "thấy còn chỗ" dựa trên số liệu cũ.
+     * <p>Vì sao không bị chen ngang: UPDATE khóa dòng khung. Giao dịch đến sau phải chờ, rồi PostgreSQL kiểm tra lại
+     * điều kiện WHERE trên giá trị mới nhất của dòng, nên hai đơn không thể cùng "thấy còn chỗ" dựa trên số liệu cũ.
      *
      * @return mã khung nếu giữ được; rỗng nếu không đủ chỗ (hoặc khung chưa có dòng)
      */
