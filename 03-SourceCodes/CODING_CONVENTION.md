@@ -17,7 +17,7 @@ Theo Bước 15 của [quy trình IT3180](../00-References/IT3180_PROJECT_PROCES
 | Tự định dạng | `./mvnw spotless:apply` | `npm run format` |
 | Kiểm tra định dạng | `./mvnw spotless:check` | `npm run format:check` |
 | Lint | `./mvnw checkstyle:check` | `npm run lint` |
-| Kiểm tra toàn bộ trước khi mở PR | `./mvnw verify` (test + Spotless + Checkstyle) | `npm run format:check && npm run lint && npm run build` |
+| Kiểm tra toàn bộ trước khi mở PR | `./mvnw verify` (test + Spotless + Checkstyle) | `npm run format:check && npm run lint && npm run build && npm test` |
 
 PowerShell dùng `.\mvnw.cmd` thay cho `./mvnw`. `verify` báo `BUILD FAILURE` khi code chưa định dạng hoặc vi phạm luật Checkstyle; sửa rồi chạy lại. Dự án chưa có CI (quyết định 2026-10-09), nên chạy các lệnh này trước mỗi commit/PR là việc của người thực hiện, và PR ghi rõ đã chạy.
 
@@ -144,7 +144,7 @@ Chuỗi dài (SQL, thông báo) tách bằng text block Java `"""` hoặc nối 
 - **Hướng dẫn chạy, cấu hình, migration**: [03-SourceCodes/README.md](README.md). Quyết định thiết kế: tài liệu trong `01-ManagedArea/03-Design`, không viết dài trong comment.
 
 ## Áp dụng khi tự review PR
-- [ ] `./mvnw verify` và `npm run format:check && npm run lint && npm run build` đều đạt.
+- [ ] `./mvnw verify` và `npm run format:check && npm run lint && npm run build && npm test` đều đạt.
 - [ ] Tên theo bảng Naming, dùng đúng thuật ngữ SRS.
 - [ ] Logic nghiệp vụ có comment mã BR; không còn code debug hoặc `TODO` không mã.
 - [ ] Class/record public mới có Javadoc trách nhiệm.

@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig, loadEnv } from 'vite'
+import { loadEnv } from 'vite'
+import { defineConfig } from 'vitest/config'
 
 // File .env dùng chung nằm ở 03-SourceCodes/, một cấp trên thư mục frontend/.
 const envDir = '..'
@@ -11,6 +12,10 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    test: {
+      environment: 'jsdom',
+      setupFiles: './src/test/setup.ts',
+    },
     envDir,
     server: {
       port: 5173,
