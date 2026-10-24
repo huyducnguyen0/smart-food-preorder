@@ -35,7 +35,8 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - T-17 (giỏ hàng) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-06-cart`, xếp chồng lên nhánh T-15: thêm món từ thực đơn (hỏi lại tình trạng món, UC-04 E1), màn Giỏ hàng đổi số lượng và bỏ món, thanh giỏ dính đáy, số phần trên biểu tượng giỏ. Giỏ lưu trên trình duyệt, mỗi tài khoản một giỏ (quyết định 2026-10-10). Chờ review và merge PR.
 - T-19 (chọn khung giờ và gửi đơn) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-07-checkout`: màn `/checkout` lưới khung theo giờ, xác nhận đặt với mã yêu cầu không đổi khi gửi lại, xử lý lỗi E5–E11 theo UI Prototype, màn kết quả với mã nhận. Chờ review và merge PR.
 - T-20 (đơn của tôi) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-08-my-orders`, xếp chồng lên nhánh T-19: `GET /api/orders`, `GET /api/orders/{id}` (đơn của khách khác trả 404 như đơn không tồn tại), màn danh sách và màn chi tiết tải theo mã. Bổ sung ca "đơn của khách khác" của T-14 (NFR-03). Chờ review và merge PR.
-- Tiếp theo: T-21. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
+- T-21 (hàng chờ bếp) thực hiện ngày 2026-10-24 trên nhánh `feature/PB-12-kitchen-queue`, xếp chồng lên nhánh T-20: `GET /api/kitchen/queue` chia ba nhóm (đang làm, cần chuẩn bị, sắp tới), sắp theo giờ khung rồi giờ xác nhận, cờ trễ; màn `/kitchen` tự làm mới 30 giây. Chưa có nút Bắt đầu và Hoàn tất (T-22). Chờ review và merge PR.
+- Tiếp theo: T-22. Giới hạn quota riêng cho pre-order mới là đề xuất, chưa đưa vào phạm vi đã duyệt. Không dùng hạn nộp hoặc phân công nhân sự làm điều kiện chặn việc này.
 
 ## Cấu trúc
 Cấu trúc chính bám mục 8 của nguồn. `00-References` giữ nguyên tài liệu đầu vào; các file cấu hình Git/editor phục vụ làm việc, không phải tài liệu bàn giao môn học.
