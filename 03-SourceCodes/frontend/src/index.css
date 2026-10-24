@@ -818,6 +818,110 @@ h1 {
   padding-top: 0;
 }
 
+/* Hàng chờ bếp (UC-12): màn rộng, chữ lớn để đọc từ xa */
+.k-page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.k-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.k-columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.k-column h2 {
+  font-size: 20px;
+  margin: 0 0 10px;
+}
+
+.k-count {
+  color: var(--ink-3);
+  font-weight: 600;
+}
+
+.k-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.k-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+  border-left: 6px solid transparent;
+}
+
+.k-card.late {
+  border-left-color: var(--danger);
+}
+
+.k-card-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.k-code {
+  font-size: 26px;
+  letter-spacing: 2px;
+  font-weight: 800;
+}
+
+.k-time {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.k-late {
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-weight: 800;
+  font-size: 13px;
+  border-radius: 99px;
+  padding: 2px 10px;
+}
+
+.k-source {
+  margin-left: auto;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.k-lines {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  font-size: 20px;
+}
+
+.k-confirmed {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .k-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
