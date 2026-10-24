@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import type { CurrentUser } from '../api/auth'
 import { AuthContext, type AuthContextValue } from '../features/auth/authContext'
+import { CartProvider } from '../features/cart/CartProvider'
 
 type AuthOverrides = Partial<Pick<AuthContextValue, 'signIn' | 'signOut'>> & {
   status?: AuthContextValue['status']
@@ -30,12 +31,14 @@ export function renderWithAuth(
 
   return render(
     <AuthContext.Provider value={value}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="*" element={element} />
-          {extraRoutes}
-        </Routes>
-      </MemoryRouter>
+      <CartProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="*" element={element} />
+            {extraRoutes}
+          </Routes>
+        </MemoryRouter>
+      </CartProvider>
     </AuthContext.Provider>,
   )
 }

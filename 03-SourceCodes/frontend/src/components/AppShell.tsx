@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router'
 import { useAuth } from '../features/auth/useAuth'
+import { useCart } from '../features/cart/useCart'
 import { Icon } from './Icon'
 
 function Brand() {
@@ -23,6 +24,7 @@ function Brand() {
  */
 export function AppShell() {
   const { user, signOut } = useAuth()
+  const { count } = useCart()
   const navigate = useNavigate()
 
   async function handleSignOut() {
@@ -57,6 +59,12 @@ export function AppShell() {
         {!user && (
           <Link className="link-btn" to="/login">
             Đăng nhập
+          </Link>
+        )}
+        {user?.role === 'CUSTOMER' && (
+          <Link className="cart-link" to="/cart" aria-label={`Giỏ hàng, ${count} phần`}>
+            <Icon name="bag" />
+            {count > 0 && <span className="badge">{count}</span>}
           </Link>
         )}
       </header>

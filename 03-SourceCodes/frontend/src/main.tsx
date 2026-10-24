@@ -9,12 +9,15 @@ import '@fontsource/be-vietnam-pro/800.css'
 import './index.css'
 import { App } from './app/App'
 import { AuthProvider } from './features/auth/AuthProvider'
+import { CartProvider } from './features/cart/CartProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <App />
+        <CartProvider>
+          <App />
+        </CartProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
