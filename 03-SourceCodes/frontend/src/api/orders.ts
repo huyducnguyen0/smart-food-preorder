@@ -68,3 +68,20 @@ export type ItemChange = {
   reason: 'PRICE_CHANGED' | 'UNAVAILABLE'
   currentPrice?: number
 }
+
+/** Một dòng của danh sách "Đơn của tôi" (UC-05 bước 2). */
+export type OrderSummary = Pick<
+  OrderDetail,
+  'id' | 'pickupCode' | 'slotStart' | 'slotEnd' | 'status' | 'paymentStatus' | 'totalAmount'
+>
+
+/** UC-05 bước 1–2: đơn của khách đang đăng nhập, đã sắp theo thứ tự hiển thị. */
+export async function fetchMyOrders(signal?: AbortSignal): Promise<OrderSummary[]> {
+  const response = await apiFetch<{ orders: OrderSummary[] }>('/api/orders', { signal })
+  return response.orders
+}
+
+/** UC-05 bước 3–4: chi tiết một đơn của mình; đơn của người khác báo ORDER_NOT_FOUND (E1). */
+export function fetchOrder(id: number, signal?: AbortSignal): Promise<OrderDetail> {
+  return apiFetch<OrderDetail>(`/api/orders/${id}`, { signal })
+}

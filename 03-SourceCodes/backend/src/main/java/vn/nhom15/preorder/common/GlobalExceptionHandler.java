@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -56,6 +57,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMissingServletRequestParameter(
             MissingServletRequestParameterException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail body = problem(ErrorCode.VALIDATION_ERROR, "Thiếu tham số: " + e.getParameterName());
+        return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status()).body(body);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemDetail body = problem(ErrorCode.VALIDATION_ERROR, "Giá trị không đúng kiểu");
         return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status()).body(body);
     }
 

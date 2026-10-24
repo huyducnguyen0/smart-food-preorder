@@ -90,6 +90,37 @@ public class OrderRepository {
         return orderId;
     }
 
+    /**
+     * Đơn của một khách theo UC-05 bước 2: đơn chưa kết thúc trước, sắp theo giờ nhận tăng dần; rồi đơn đã kết thúc,
+     * mới nhất trước.
+     */
+    public List<OrderSummary> findSummaries(long customerId, int slotMinutes) {
+        return jdbcTemplate.query(
+                """
+                        SELECT o.id, o.pickup_code, s.slot_date, s.start_time, o.status, o.payment_status,
+                               o.total_amount
+                        FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                        WHERE o.customer_id = ?
+                        ORDER BY CASE WHEN o.status IN ('CONFIRMED', 'PREPARING', 'READY') THEN 0 ELSE 1 END,
+                                 CASE WHEN o.status IN ('CONFIRMED', 'PREPARING', 'READY')
+                                      THEN s.slot_date + s.start_time END,
+                                 o.confirmed_at DESC, o.id DESC
+                        """,
+                (rs, rowNum) -> {
+                    LocalDateTime start = LocalDateTime.of(
+                            rs.getObject("slot_date", LocalDate.class), rs.getObject("start_time", LocalTime.class));
+                    return new OrderSummary(
+                            rs.getLong("id"),
+                            rs.getString("pickup_code"),
+                            start,
+                            start.plusMinutes(slotMinutes),
+                            OrderStatus.valueOf(rs.getString("status")),
+                            rs.getString("payment_status"),
+                            rs.getInt("total_amount"));
+                },
+                customerId);
+    }
+
     /** Chi tiết đơn của một khách; đơn không tồn tại hoặc của khách khác thì rỗng. */
     public Optional<OrderDetail> findDetail(long orderId, long customerId, int slotMinutes) {
         List<OrderLineView> lines = jdbcTemplate.query(
