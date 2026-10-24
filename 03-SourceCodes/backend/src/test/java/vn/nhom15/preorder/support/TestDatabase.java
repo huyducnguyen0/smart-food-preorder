@@ -55,7 +55,11 @@ public final class TestDatabase {
     private static synchronized EmbeddedPostgres server() {
         if (server == null) {
             try {
-                server = EmbeddedPostgres.builder().start();
+                // Nhiều context Spring được giữ lại cùng lúc, mỗi context một nhóm kết nối: nâng giới hạn mặc định
+                // (100).
+                server = EmbeddedPostgres.builder()
+                        .setServerConfig("max_connections", "400")
+                        .start();
                 Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                     try {
                         server.close();

@@ -12,6 +12,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -48,6 +49,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ProblemDetail body = problem(ErrorCode.VALIDATION_ERROR, "Dữ liệu gửi lên không đọc được");
+        return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status()).body(body);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestParameter(
+            MissingServletRequestParameterException e, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        ProblemDetail body = problem(ErrorCode.VALIDATION_ERROR, "Thiếu tham số: " + e.getParameterName());
         return ResponseEntity.status(ErrorCode.VALIDATION_ERROR.status()).body(body);
     }
 

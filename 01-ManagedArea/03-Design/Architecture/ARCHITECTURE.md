@@ -133,7 +133,7 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
   "slotStart": "2026-10-17T11:30",
   "lines": [ { "menuItemId": 12, "quantity": 2, "unitPrice": 45000 } ] }
 ```
-`requestId` là UUID frontend tạo khi khách vào bước 7, giữ nguyên khi gửi lại (A1). `unitPrice` là giá khách đã thấy trong giỏ, để backend so ở bước 8c.
+`requestId` là UUID frontend tạo khi khách vào bước 7, giữ nguyên khi gửi lại (A1). `unitPrice` là giá khách đã thấy trong giỏ, để backend so ở bước 8c. Mỗi món một dòng; `quantity` từ 1 đến 999 (giới hạn trên chỉ để tránh tràn số, không phải quy tắc nghiệp vụ). `GET /api/slots` chỉ nhận `lines` đúng dạng `mã:số lượng` ngăn bằng dấu phẩy; sai dạng, giỏ trống hoặc món không tồn tại → 400 `VALIDATION_ERROR`.
 - 201 + `OrderDetail` (header `Location: /api/orders/{id}`): đơn mới.
 - 200 + `OrderDetail`: mã yêu cầu đã có đơn (A1), trả đúng đơn đó.
 
@@ -161,16 +161,16 @@ Phản hồi lỗi dạng:
 ```
 | HTTP | `code` | Khi nào | Đặc tả |
 |---|---|---|---|
-| 400 | `VALIDATION_ERROR` | Thiếu trường, số lượng < 1, giỏ trống, định dạng sai; kèm `errors` theo trường | UC-02 E3, UC-04 A2 |
+| 400 | `VALIDATION_ERROR` | Thiếu trường hoặc tham số, số lượng < 1, giỏ trống, một món hai dòng, định dạng sai; kèm `errors` theo trường khi sai ở dữ liệu gửi lên | UC-02 E3, UC-04 A2 |
 | 401 | `UNAUTHENTICATED` | Chưa đăng nhập hoặc phiên hết hạn | UC-02 E4 |
 | 401 | `INVALID_CREDENTIALS` | Sai định danh hoặc mật khẩu (một mã chung) | UC-02 E1 |
 | 403 | `ACCOUNT_LOCKED` | Mật khẩu đúng nhưng tài khoản bị khóa | UC-02 E2 |
 | 403 | `FORBIDDEN` | Sai vai trò | UC-02 E5, UC-12 E2 |
 | 404 | `MENU_ITEM_NOT_FOUND` | Món không có hoặc ngừng bán | UC-04 E1 |
 | 404 | `ORDER_NOT_FOUND` | Đơn không có hoặc không phải của khách | UC-05 E1 |
-| 409 | `OPEN_ORDER_LIMIT_REACHED` | Đã đủ N đơn chưa kết thúc; kèm `openOrders` | UC-04 E5, BR-37 |
+| 409 | `OPEN_ORDER_LIMIT_REACHED` | Đã đủ N đơn chưa kết thúc; kèm `openOrders` và `limit` | UC-04 E5, BR-37 |
 | 409 | `SLOT_NOT_BOOKABLE` | Khung không thuộc hôm nay, sai mốc, ngoài giờ mở cửa hoặc < 30 phút | UC-04 E6, BR-15 |
-| 409 | `ITEMS_CHANGED` | Món đổi giá, tạm hết, ngừng bán; kèm `changes`: `menuItemId`, `name`, `reason` (`PRICE_CHANGED`/`UNAVAILABLE`), `currentPrice` | UC-04 E7, BR-35 |
+| 409 | `ITEMS_CHANGED` | Món đổi giá, tạm hết, ngừng bán; kèm `items`: mỗi phần tử có `menuItemId`, `reason` (`PRICE_CHANGED`/`UNAVAILABLE`), và `currentPrice` khi đổi giá | UC-04 E7, BR-35 |
 | 409 | `ORDER_TOO_LARGE` | Điểm đơn > quota của khung | UC-04 E9, UC-17 E1 |
 | 409 | `SLOT_FULL` | Không đủ quota còn lại | UC-04 E8, UC-17 E2 |
 | 409 | `INVALID_STATUS_TRANSITION` | Trạng thái hiện tại không cho phép chuyển; kèm `currentStatus` | UC-12 E1 |
