@@ -1,0 +1,58 @@
+@startuml cfg_QuotaService_reserve
+title Control Flow Graph — QuotaService.reserve (UC-17), V(G) = 5
+hide empty description
+skinparam shadowing false
+skinparam defaultFontSize 12
+skinparam ArrowColor #333333
+skinparam state {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam note {
+  BackgroundColor #FFFDE7
+  BorderColor #999999
+}
+
+state "1: points = orderPoints(lines)" as N1
+state "2: slotId = ensureExists(date, start)" as N2
+state "3: points == 0 ?" as D3 #F5F5F5
+state "4: return Reservation(slotId, 0)" as N4
+state "5: defaultQuota = settings.get()" as N5
+state "6: held = tryHold(date, start, points, defaultQuota)" as N6
+state "7: held.isPresent() ?" as D7 #F5F5F5
+state "8: return Reservation(held, points)" as N8
+state "9: slot = find(date, start)" as N9
+state "10: slot có dòng ?" as D10 #F5F5F5
+state "11: throw IllegalStateException" as N11
+state "12: points > slot.quota(defaultQuota) ?" as D12 #F5F5F5
+state "13: throw ORDER_TOO_LARGE" as N13
+state "14: throw SLOT_FULL" as N14
+state "X: thoát" as X
+
+[*] --> N1
+N1 --> N2
+N2 --> D3
+D3 --> N4 : đúng (P1)
+D3 --> N5 : sai
+N5 --> N6
+N6 --> D7
+D7 --> N8 : đúng (P2)
+D7 --> N9 : sai
+N9 --> D10
+D10 --> N11 : không có (P3)
+D10 --> D12 : có
+D12 --> N13 : đúng (P4)
+D12 --> N14 : sai (P5)
+N4 --> X
+N8 --> X
+N11 --> X
+N13 --> X
+N14 --> X
+X --> [*]
+
+note right of D7
+  Nút 6 là câu UPDATE có điều kiện:
+  điều kiện trong SQL được phủ ở
+  WHITE_BOX_QUOTA.md mục 5.
+end note
+@enduml
