@@ -40,6 +40,34 @@ public class OrderRepository {
         jdbcTemplate.queryForList("SELECT id FROM user_accounts WHERE id = ? FOR UPDATE", Long.class, customerId);
     }
 
+    /**
+     * Chuyển {@code CONFIRMED → PREPARING} trong một câu lệnh có điều kiện trạng thái. Hai người cùng bấm: câu thứ hai
+     * chờ câu thứ nhất, rồi PostgreSQL kiểm tra lại điều kiện trên giá trị mới nên không đổi dòng nào.
+     *
+     * @return true nếu đơn vừa được chuyển
+     */
+    public boolean markPreparing(long orderId, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders SET status = 'PREPARING', preparing_at = ?, preparing_by = ?
+                                WHERE id = ? AND status = 'CONFIRMED'
+                                """, at, staffId, orderId) > 0;
+    }
+
+    /** Chuyển {@code PREPARING → READY}, cùng cách bảo vệ như {@link #markPreparing}. */
+    public boolean markReady(long orderId, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders SET status = 'READY', ready_at = ?, ready_by = ?
+                                WHERE id = ? AND status = 'PREPARING'
+                                """, at, staffId, orderId) > 0;
+    }
+
+    /** Trạng thái hiện tại của đơn, rỗng nếu không có đơn. */
+    public Optional<OrderStatus> findStatus(long orderId) {
+        return jdbcTemplate.queryForList("SELECT status FROM orders WHERE id = ?", String.class, orderId).stream()
+                .findFirst()
+                .map(OrderStatus::valueOf);
+    }
+
     /** Đơn đã tạo cho mã yêu cầu này của khách, nếu có (A1). */
     public Optional<Long> findIdByRequest(long customerId, UUID requestId) {
         return jdbcTemplate

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
+import { ApiError } from '../../api/client'
 import { messageOf } from '../../api/errorMessages'
-import { fetchKitchenQueue, type KitchenOrder, type KitchenQueue } from '../../api/kitchen'
+import {
+  completeOrder,
+  fetchKitchenQueue,
+  startOrder,
+  type KitchenOrder,
+  type KitchenQueue,
+} from '../../api/kitchen'
 import { Alert } from '../../components/Alert'
 import { timeOf } from '../../lib/orderLabels'
 
@@ -12,7 +19,21 @@ type State =
   | { kind: 'error'; message: string; queue: KitchenQueue | null }
   | { kind: 'ready'; queue: KitchenQueue }
 
-function OrderCard({ order }: { order: KitchenOrder }) {
+type Action = 'start' | 'complete'
+
+function OrderCard({
+  order,
+  action,
+  emphasis,
+  busy,
+  onAction,
+}: {
+  order: KitchenOrder
+  action: Action
+  emphasis: boolean
+  busy: boolean
+  onAction: (order: KitchenOrder, action: Action) => void
+}) {
   return (
     <li className={`k-card${order.late ? ' late' : ''}`}>
       <div className="k-card-head">
@@ -29,11 +50,34 @@ function OrderCard({ order }: { order: KitchenOrder }) {
         ))}
       </ul>
       <span className="k-confirmed">Xác nhận {timeOf(order.confirmedAt)}</span>
+      <button
+        type="button"
+        className={`btn k-action${emphasis ? ' btn-primary' : ''}`}
+        disabled={busy}
+        aria-label={`${action === 'start' ? 'Bắt đầu' : 'Hoàn tất'} đơn ${order.pickupCode}`}
+        onClick={() => onAction(order, action)}
+      >
+        {action === 'start' ? 'Bắt đầu' : 'Hoàn tất'}
+      </button>
     </li>
   )
 }
 
-function Column({ title, orders }: { title: string; orders: KitchenOrder[] }) {
+function Column({
+  title,
+  orders,
+  action,
+  emphasis,
+  busyId,
+  onAction,
+}: {
+  title: string
+  orders: KitchenOrder[]
+  action: Action
+  emphasis: boolean
+  busyId: number | null
+  onAction: (order: KitchenOrder, action: Action) => void
+}) {
   return (
     <section className="k-column" aria-label={title}>
       <h2>
@@ -41,7 +85,14 @@ function Column({ title, orders }: { title: string; orders: KitchenOrder[] }) {
       </h2>
       <ul className="k-list">
         {orders.map((order) => (
-          <OrderCard key={order.id} order={order} />
+          <OrderCard
+            key={order.id}
+            order={order}
+            action={action}
+            emphasis={emphasis}
+            busy={busyId !== null}
+            onAction={onAction}
+          />
         ))}
       </ul>
     </section>
@@ -50,11 +101,14 @@ function Column({ title, orders }: { title: string; orders: KitchenOrder[] }) {
 
 /**
  * UC-12.1 Hàng chờ bếp: đơn hôm nay chia ba nhóm Đang làm, Cần chuẩn bị, Sắp tới; đơn trễ có nhãn đỏ. Tự tải lại mỗi 30
- * giây và có nút "Tải lại". Thao tác Bắt đầu và Hoàn tất làm ở T-22.
+ * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn đã xác nhận (kể cả đơn sắp tới, BR-21) và "Hoàn tất" ở đơn đang làm
+ * (UC-12.2). Đơn đổi trạng thái ở nơi khác thì báo và làm mới (E1).
  */
 export function KitchenPage() {
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [tick, setTick] = useState(0)
+  const [busyId, setBusyId] = useState<number | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -84,6 +138,27 @@ export function KitchenPage() {
 
   const reload = useCallback(() => setTick((value) => value + 1), [])
 
+  const handleAction = useCallback(
+    async (order: KitchenOrder, action: Action) => {
+      setBusyId(order.id)
+      setActionError(null)
+      try {
+        await (action === 'start' ? startOrder(order.id) : completeOrder(order.id))
+      } catch (error) {
+        // E1: trạng thái đơn đã khác với màn hình (hai bếp cùng bấm, màn hình cũ): báo rồi làm mới. Lỗi khác: báo, đơn không đổi.
+        setActionError(
+          error instanceof ApiError && error.code === 'INVALID_STATUS_TRANSITION'
+            ? `Đơn ${order.pickupCode} đã đổi trạng thái, danh sách đã được làm mới.`
+            : messageOf(error),
+        )
+      } finally {
+        setBusyId(null)
+        reload()
+      }
+    },
+    [reload],
+  )
+
   const queue = state.kind === 'ready' ? state.queue : state.kind === 'error' ? state.queue : null
   const empty =
     queue !== null && queue.preparing.length + queue.dueSoon.length + queue.upcoming.length === 0
@@ -108,6 +183,8 @@ export function KitchenPage() {
         </Alert>
       )}
 
+      {actionError && <Alert kind="warning">{actionError}</Alert>}
+
       {state.kind === 'loading' && (
         <p className="muted center" role="status">
           Đang tải hàng chờ...
@@ -118,9 +195,30 @@ export function KitchenPage() {
 
       {queue && !empty && (
         <div className="k-columns">
-          <Column title="Đang làm" orders={queue.preparing} />
-          <Column title="Cần chuẩn bị" orders={queue.dueSoon} />
-          <Column title="Sắp tới" orders={queue.upcoming} />
+          <Column
+            title="Đang làm"
+            orders={queue.preparing}
+            action="complete"
+            emphasis
+            busyId={busyId}
+            onAction={handleAction}
+          />
+          <Column
+            title="Cần chuẩn bị"
+            orders={queue.dueSoon}
+            action="start"
+            emphasis
+            busyId={busyId}
+            onAction={handleAction}
+          />
+          <Column
+            title="Sắp tới"
+            orders={queue.upcoming}
+            action="start"
+            emphasis={false}
+            busyId={busyId}
+            onAction={handleAction}
+          />
         </div>
       )}
     </div>
