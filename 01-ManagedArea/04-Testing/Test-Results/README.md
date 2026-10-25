@@ -26,3 +26,31 @@ Kiểm chứng test thiết kế ở [WHITE_BOX_QUOTA.md](../Test-Cases/WHITE_BO
 | Giới hạn | Chỉ logic quota; đồng thời ở bản rút gọn tại tầng dịch vụ; chưa có kiểm chứng NFR-01 đầy đủ qua API (Sprint 2) |
 
 Đây chưa phải kết quả của các test black-box ở [BLACK_BOX_TEST_CASES.md](../Test-Cases/BLACK_BOX_TEST_CASES.md) (chạy ở T-25).
+
+## Lượt 2026-10-25: black-box Sprint 1 (T-25)
+Chạy các test ở [BLACK_BOX_TEST_CASES.md](../Test-Cases/BLACK_BOX_TEST_CASES.md) trên nhánh `test/T-25-run-tests` (dựng từ `main` sau PR #20). Bảng từng ca, kèm bằng chứng: [2026-10-25_black-box.md](2026-10-25_black-box.md).
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Java 25, PostgreSQL 18.6 nhúng; Node, Vite dev cho phần chạy tay. Chưa chạy qua `docker compose` (Docker Desktop không khởi động) |
+| Lệnh | `./mvnw clean verify` (backend), `npm test`, `tsc -b`, `oxlint`, `prettier --check`, `npm run build` (frontend) |
+| Backend | 323 test, **Passed 323**, Failed 0. Trong đó 102 test black-box mang ID ca (`AuthMenuBlackBoxTest`, `SlotOrderBlackBoxTest`, `ConcurrencyMyKitchenBlackBoxTest`), gọi API HTTP thật |
+| Frontend | 96 test, **Passed 96**, Failed 0 |
+| Chạy tay trên trình duyệt thật | Menu, giỏ, đặt đơn, hàng chờ bếp, bắt đầu và hoàn tất, hết phiên giữa chừng (ngày 2026-10-24 và 2026-10-25) |
+| **Tổng 131 ca** | **Passed 130**, Chưa chạy 1, Failed 0 |
+
+**Ca chưa chạy:** TC-MY-05 (hiện lý do hủy đơn): thuộc Sprint sau, chưa có chức năng hủy đơn.
+
+**Độ phủ Acceptance Criteria:** mọi AC ở mục 10 của tài liệu test case đều có ít nhất một ca Passed, trừ phần "hoàn quota khi hủy" của PB-05 AC5 (Sprint sau, đã ghi trong tài liệu test case).
+
+**Lỗi phát hiện khi chạy T-25 và đã sửa (cùng PR):**
+| Lỗi | Phát hiện bởi | Sửa |
+|---|---|---|
+| Phiên hết hạn giữa chừng ở màn bếp, "Đơn của tôi" chỉ hiện thông báo lỗi chung, không chuyển tới đăng nhập (vi phạm UC-02 E4, TC-AUTH-13, TC-KIT-24) | Đối chiếu ca test giao diện với màn hình; sau đó kiểm tay trên trình duyệt | `apiFetch` báo "hết phiên" khi nhận 401 `UNAUTHENTICATED`, `AuthProvider` chuyển về chưa đăng nhập, `RequireRole` đưa tới đăng nhập; có test `sessionExpiry.test.tsx` |
+
+**Giới hạn cần biết**
+- Bộ test black-box API do chính người viết code Sprint 1 viết sau khi cài đặt, dù bám đặc tả ở tài liệu test case. Nó chưa được ai khác chạy hay review độc lập. Một người khác chạy lại bằng lệnh trên sẽ cho bằng chứng đáng tin hơn.
+- Phần giao diện chủ yếu được kiểm bằng test thành phần (jsdom), không phải trình duyệt thật. Chạy tay trên trình duyệt thật chỉ phủ các luồng chính ghi ở cột bằng chứng; chưa kiểm bằng mắt bố cục (CSS) vì cửa sổ trình duyệt bị ẩn nên không chụp được màn hình, chưa thử trên thiết bị thật, chưa thử đóng và mở lại trình duyệt (TC-CART-09).
+- Menu mẫu không có món 3 điểm hay 1 điểm như ví dụ trong đặc tả, nên một số ca đồng thời chỉnh điểm của một món thử trong database test (TC-CON-01: 3 điểm, TC-CON-02: 8 điểm, TC-CON-03: 1 điểm nhân số lượng 1–6) và TC-ORD-04 dùng đơn nhỏ 2 điểm thay vì 1 điểm. Kết quả vẫn kiểm đúng điều kiện của ca (TC-CON-01: đúng 6 đơn, giữ 18 điểm).
+- Đồng hồ và lỗi database được giả lập ở môi trường test (TC-ORD-29, TC-KIT-23 tiêm lỗi vào tầng lưu đơn), không phải lỗi database thật.
+- Chưa kiểm chứng NFR-01 ở mức 50 yêu cầu qua toàn bộ hệ thống triển khai thật, NFR-04 (hiệu năng p95 ≤ 1 giây) và NFR-05 (bảo trì); chưa đo.
