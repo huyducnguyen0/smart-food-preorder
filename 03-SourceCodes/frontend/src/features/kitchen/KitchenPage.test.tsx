@@ -145,4 +145,78 @@ describe('KitchenPage (UC-12.1)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('có thể đã cũ')
     expect(screen.getByText('D3F7KA')).toBeInTheDocument()
   })
+
+  describe('thao tác của bếp (UC-12.2)', () => {
+    beforeEach(() => {
+      vi.mocked(kitchenApi.startOrder).mockReset().mockResolvedValue({ id: 2, status: 'PREPARING' })
+      vi.mocked(kitchenApi.completeOrder).mockReset().mockResolvedValue({ id: 1, status: 'READY' })
+    })
+
+    it('Bắt đầu đơn cần chuẩn bị rồi làm mới hàng chờ (bước 4–5)', async () => {
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn D3F7KA' }))
+
+      expect(kitchenApi.startOrder).toHaveBeenCalledWith(2)
+      await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
+    })
+
+    it('bếp được bắt đầu cả đơn sắp tới (BR-21)', async () => {
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' }))
+
+      expect(kitchenApi.startOrder).toHaveBeenCalledWith(3)
+    })
+
+    it('Hoàn tất đơn đang làm (bước 6–7)', async () => {
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Hoàn tất đơn P4W9TD' }))
+
+      expect(kitchenApi.completeOrder).toHaveBeenCalledWith(1)
+      expect(kitchenApi.startOrder).not.toHaveBeenCalled()
+      await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
+    })
+
+    it('đơn đã đổi trạng thái ở nơi khác: báo và làm mới, không coi là lỗi hệ thống (E1)', async () => {
+      vi.mocked(kitchenApi.startOrder).mockRejectedValue(
+        new ApiError(409, 'INVALID_STATUS_TRANSITION', 'x'),
+      )
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn D3F7KA' }))
+
+      expect(await screen.findByText(/Đơn D3F7KA đã đổi trạng thái/)).toBeInTheDocument()
+      await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
+    })
+
+    it('lỗi khác: báo lỗi cho bếp thử lại (E3)', async () => {
+      vi.mocked(kitchenApi.completeOrder).mockRejectedValue(new ApiError(0, null, 'x'))
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Hoàn tất đơn P4W9TD' }))
+
+      expect(await screen.findByText(/kết nối/)).toBeInTheDocument()
+    })
+
+    it('đang xử lý một đơn thì khóa các nút khác, tránh bấm chồng', async () => {
+      let finish: () => void = () => undefined
+      vi.mocked(kitchenApi.startOrder).mockReturnValue(
+        new Promise((resolve) => {
+          finish = () => resolve({ id: 2, status: 'PREPARING' })
+        }),
+      )
+      renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn D3F7KA' }))
+
+      expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Hoàn tất đơn P4W9TD' })).toBeDisabled()
+      await act(async () => finish())
+      await vi.waitFor(() =>
+        expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeEnabled(),
+      )
+    })
+  })
 })

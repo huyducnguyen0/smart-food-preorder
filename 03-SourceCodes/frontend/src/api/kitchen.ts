@@ -27,3 +27,16 @@ export type KitchenQueue = {
 export function fetchKitchenQueue(signal?: AbortSignal): Promise<KitchenQueue> {
   return apiFetch<KitchenQueue>('/api/kitchen/queue', { signal })
 }
+
+/** Kết quả chuyển trạng thái của bếp. */
+export type StatusChange = { id: number; status: 'PREPARING' | 'READY' }
+
+/** UC-12.2 bước 4–5: `CONFIRMED → PREPARING`. Đơn đã đổi trạng thái thì báo INVALID_STATUS_TRANSITION (E1). */
+export function startOrder(id: number): Promise<StatusChange> {
+  return apiFetch<StatusChange>(`/api/kitchen/orders/${id}/start`, { method: 'POST' })
+}
+
+/** UC-12.2 bước 6–7: `PREPARING → READY`. */
+export function completeOrder(id: number): Promise<StatusChange> {
+  return apiFetch<StatusChange>(`/api/kitchen/orders/${id}/complete`, { method: 'POST' })
+}

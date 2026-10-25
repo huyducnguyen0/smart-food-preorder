@@ -916,6 +916,16 @@ h1 {
   font-size: 13px;
 }
 
+.k-action {
+  margin-top: 10px;
+  width: 100%;
+  border: 1.5px solid var(--border);
+}
+
+.k-action.btn-primary {
+  border-color: var(--primary);
+}
+
 @media (max-width: 900px) {
   .k-columns {
     grid-template-columns: 1fr;
