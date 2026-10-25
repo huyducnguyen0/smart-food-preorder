@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { fetchMe, login, logout, type CurrentUser } from '../../api/auth'
+import { onSessionExpired } from '../../api/client'
 import { AuthContext, type AuthContextValue, type AuthState } from './authContext'
 
 /**
@@ -24,6 +25,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       cancelled = true
     }
   }, [])
+
+  // UC-02 E4: một lời gọi API bị từ chối vì hết phiên thì coi như đã đăng xuất; RequireRole sẽ chuyển tới đăng nhập.
+  useEffect(
+    () =>
+      onSessionExpired(() =>
+        setState((current) =>
+          current.status === 'authenticated' ? { status: 'anonymous', user: null } : current,
+        ),
+      ),
+    [],
+  )
 
   const signIn = useCallback(async (loginId: string, password: string): Promise<CurrentUser> => {
     const user = await login(loginId, password)
