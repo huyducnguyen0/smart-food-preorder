@@ -32,7 +32,7 @@ Chạy các test ở [BLACK_BOX_TEST_CASES.md](../Test-Cases/BLACK_BOX_TEST_CASE
 
 | Mục | Kết quả |
 |---|---|
-| Môi trường | Windows 11, Java 25, PostgreSQL 18.6 nhúng; Node, Vite dev cho phần chạy tay. Chưa chạy qua `docker compose` (Docker Desktop không khởi động) |
+| Môi trường | Windows 11, Java 25, PostgreSQL 18.6 nhúng trong test; Node, Vite dev cho phần chạy tay. Luồng `docker compose` kiểm riêng ở mục "Bổ sung" bên dưới |
 | Lệnh | `./mvnw clean verify` (backend), `npm test`, `tsc -b`, `oxlint`, `prettier --check`, `npm run build` (frontend) |
 | Backend | 323 test, **Passed 323**, Failed 0. Trong đó 102 test black-box mang ID ca (`AuthMenuBlackBoxTest`, `SlotOrderBlackBoxTest`, `ConcurrencyMyKitchenBlackBoxTest`), gọi API HTTP thật |
 | Frontend | 96 test, **Passed 96**, Failed 0 |
@@ -54,3 +54,15 @@ Chạy các test ở [BLACK_BOX_TEST_CASES.md](../Test-Cases/BLACK_BOX_TEST_CASE
 - Menu mẫu không có món 3 điểm hay 1 điểm như ví dụ trong đặc tả, nên một số ca đồng thời chỉnh điểm của một món thử trong database test (TC-CON-01: 3 điểm, TC-CON-02: 8 điểm, TC-CON-03: 1 điểm nhân số lượng 1–6) và TC-ORD-04 dùng đơn nhỏ 2 điểm thay vì 1 điểm. Kết quả vẫn kiểm đúng điều kiện của ca (TC-CON-01: đúng 6 đơn, giữ 18 điểm).
 - Đồng hồ và lỗi database được giả lập ở môi trường test (TC-ORD-29, TC-KIT-23 tiêm lỗi vào tầng lưu đơn), không phải lỗi database thật.
 - Chưa kiểm chứng NFR-01 ở mức 50 yêu cầu qua toàn bộ hệ thống triển khai thật, NFR-04 (hiệu năng p95 ≤ 1 giây) và NFR-05 (bảo trì); chưa đo.
+
+### Bổ sung 2026-10-25: chạy qua Docker Compose
+Trước đó ghi là "Docker Desktop không khởi động". Nguyên nhân thực ra là Docker Desktop chưa được bật; khi bật lên, luồng chính thức chạy được.
+
+| Bước | Kết quả |
+|---|---|
+| `docker compose up -d` (PostgreSQL 18 trong container, cổng 5433, đọc `.env`) | Container `healthy` |
+| `./mvnw spring-boot:run` (backend đọc `.env`, không dùng PostgreSQL nhúng) | Flyway áp dụng V1–V5 và 3 file dữ liệu mẫu; `/api/health` trả `database: UP`, `schemaVersion: 5` |
+| Đăng nhập khach1, đặt 1 đơn (2 × Burger bò, khung 23:30) | 201; bảng `orders` có 1 dòng (`CONFIRMED`, 10 điểm, 90.000đ); `time_slots` giữ 10 điểm |
+| `docker restart` container database | Đơn và 10 điểm giữ vẫn còn nguyên: dữ liệu bền, khác với PostgreSQL nhúng |
+
+Để thử được, tôi tạm đổi giờ đóng cửa trong database (lúc chạy là 22:29, quá 21:00) rồi trả về 21:00 và xóa đơn thử. Chưa chạy lại cả 131 ca trên database Docker; bộ test tự động vẫn dùng PostgreSQL nhúng.
