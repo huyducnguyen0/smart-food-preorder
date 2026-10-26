@@ -56,6 +56,19 @@ async function toApiError(response: Response): Promise<ApiError> {
   return new ApiError(response.status, null, `HTTP ${response.status}`)
 }
 
+let sessionExpiredHandler: (() => void) | null = null
+
+/**
+ * Đăng ký nơi nhận tin "phiên đăng nhập đã hết hạn" (UC-02 E4). Mọi lời gọi API cần đăng nhập mà nhận 401 UNAUTHENTICATED
+ * đều báo qua đây, nên màn hình nào cũng chuyển tới đăng nhập mà không phải tự xử lý riêng. Trả về hàm hủy đăng ký.
+ */
+export function onSessionExpired(handler: () => void): () => void {
+  sessionExpiredHandler = handler
+  return () => {
+    if (sessionExpiredHandler === handler) sessionExpiredHandler = null
+  }
+}
+
 export type ApiOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
   body?: unknown
@@ -86,7 +99,18 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     throw new ApiError(0, null, 'Không kết nối được máy chủ')
   }
 
-  if (!response.ok) throw await toApiError(response)
+  if (!response.ok) {
+    const error = await toApiError(response)
+    // Đăng nhập, đăng xuất và hỏi "tôi là ai" tự xử lý 401 của riêng chúng.
+    if (
+      error.status === 401 &&
+      error.code === 'UNAUTHENTICATED' &&
+      !path.startsWith('/api/auth/')
+    ) {
+      sessionExpiredHandler?.()
+    }
+    throw error
+  }
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
 }

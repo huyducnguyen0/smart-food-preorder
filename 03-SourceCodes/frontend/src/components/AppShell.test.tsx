@@ -1,4 +1,7 @@
 import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { Route } from 'react-router'
+import { vi } from 'vitest'
 import { describe, expect, it } from 'vitest'
 import type { CurrentUser } from '../api/auth'
 import { saveCart } from '../features/cart/cartStorage'
@@ -57,5 +60,19 @@ describe('AppShell', () => {
 
     renderWithAuth(<AppShell />)
     expect(screen.queryByRole('link', { name: /Giỏ hàng/ })).not.toBeInTheDocument()
+  })
+
+  it('đăng xuất thì gọi backend và về trang menu (UC-02 bước 7–8)', async () => {
+    const signOut = vi.fn().mockResolvedValue(undefined)
+    renderWithAuth(<AppShell />, {
+      path: '/orders',
+      auth: { user: customer, signOut },
+      extraRoutes: <Route path="/" element={<p>TRANG MENU</p>} />,
+    })
+
+    await userEvent.click(screen.getByRole('button', { name: 'Đăng xuất' }))
+
+    expect(signOut).toHaveBeenCalledTimes(1)
+    expect(await screen.findByText('TRANG MENU')).toBeInTheDocument()
   })
 })

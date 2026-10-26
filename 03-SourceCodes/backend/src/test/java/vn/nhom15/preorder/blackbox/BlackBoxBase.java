@@ -1,0 +1,362 @@
+package vn.nhom15.preorder.blackbox;
+
+import com.jayway.jsonpath.JsonPath;
+import com.zaxxer.hikari.HikariDataSource;
+import jakarta.servlet.http.Cookie;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import vn.nhom15.preorder.order.OrderRepository;
+import vn.nhom15.preorder.support.MutableClock;
+import vn.nhom15.preorder.support.TestDatabase;
+
+/**
+ * Nền chung của bộ test black-box (T-25). Test chỉ đi qua API HTTP của ứng dụng thật trên PostgreSQL thật, như một
+ * client bên ngoài: đăng nhập thật, header chống CSRF thật. Database chỉ được đọc để kiểm kết quả hoặc dựng điều kiện
+ * trước mà API chưa có (ví dụ khung đã giữ 15 điểm, đơn đã hủy).
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@Import(BlackBoxClockConfig.class)
+abstract class BlackBoxBase {
+
+    static final HikariDataSource DATA_SOURCE = TestDatabase.create(true);
+    static final String PASSWORD = "Demo@2026";
+
+    @DynamicPropertySource
+    static void database(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", DATA_SOURCE::getJdbcUrl);
+        registry.add("spring.datasource.username", DATA_SOURCE::getUsername);
+        registry.add("spring.datasource.password", DATA_SOURCE::getPassword);
+    }
+
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    JdbcTemplate jdbc;
+
+    @Autowired
+    MutableClock clock;
+
+    /** Dùng để tiêm lỗi database cho TC-ORD-29 và TC-KIT-23; các test khác không đụng tới. */
+    @MockitoSpyBean
+    OrderRepository orderRepository;
+
+    /** Kết quả một lời gọi API. */
+    record Res(int status, String body) {
+        Object json(String path) {
+            return JsonPath.read(body, path);
+        }
+
+        <T> T at(String path) {
+            return JsonPath.read(body, path);
+        }
+
+        boolean has(String path) {
+            try {
+                Object value = JsonPath.read(body, path);
+                return value != null && !(value instanceof List<?> list && list.isEmpty());
+            } catch (Exception e) {
+                return false;
+            }
+        }
+    }
+
+    /** Món của menu kiểm thử (BLACK_BOX_TEST_CASES mục 2). */
+    record Item(long id, String name, int price, int points) {}
+
+    @BeforeEach
+    void resetWorld() {
+        Mockito.reset(orderRepository);
+        jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
+        jdbc.update("DELETE FROM user_accounts WHERE login_id LIKE 'bb-%'");
+        jdbc.update("UPDATE user_accounts SET locked = (login_id = 'khoa@example.com')");
+        jdbc.update("UPDATE store_settings SET open_time = '10:00', close_time = '21:00', default_quota_points = 20");
+        // Menu kiểm thử: giá, điểm, tình trạng theo bảng ở mục 2 của tài liệu test.
+        String[][] menu = {
+            {"Burger bò", "45000", "5", "false", "false"},
+            {"Burger phô mai đôi", "59000", "7", "false", "false"},
+            {"Burger gà giòn", "39000", "5", "true", "false"},
+            {"Gà rán 2 miếng", "55000", "6", "false", "false"},
+            {"Khoai tây chiên", "25000", "2", "false", "false"},
+            {"Trà đào", "20000", "0", "false", "false"},
+            {"Nước suối", "10000", "0", "false", "false"},
+            {"Combo cũ", "99000", "10", "false", "true"},
+        };
+        for (String[] row : menu) {
+            jdbc.update(
+                    "UPDATE menu_items SET price = ?, workload_points = ?, available = ?, discontinued = ?"
+                            + " WHERE name = ?",
+                    Integer.parseInt(row[1]),
+                    Integer.parseInt(row[2]),
+                    !Boolean.parseBoolean(row[3]),
+                    Boolean.parseBoolean(row[4]),
+                    row[0]);
+        }
+        at("11:00");
+    }
+
+    // ---------- thời gian ----------
+
+    /** Đặt "bây giờ" là giờ {@code hhmm} (ví dụ "11:00") của ngày kiểm thử. */
+    void at(String hhmm) {
+        clock.set(BlackBoxClockConfig.TODAY.atTime(LocalTime.parse(hhmm)));
+    }
+
+    /** Giờ bắt đầu khung dạng ISO của ngày kiểm thử, ví dụ {@code slot("12:00")} → {@code 2031-03-05T12:00}. */
+    static String slot(String hhmm) {
+        return BlackBoxClockConfig.TODAY + "T" + hhmm;
+    }
+
+    // ---------- HTTP ----------
+
+    private MockHttpServletRequestBuilder withCsrf(MockHttpServletRequestBuilder request) throws Exception {
+        String token = mockMvc.perform(MockMvcRequestBuilders.get("/api/auth/me"))
+                .andReturn()
+                .getResponse()
+                .getCookie("XSRF-TOKEN")
+                .getValue();
+        return request.cookie(new Cookie("XSRF-TOKEN", token)).header("X-XSRF-TOKEN", token);
+    }
+
+    private static Res res(MvcResult result) throws Exception {
+        return new Res(result.getResponse().getStatus(), result.getResponse().getContentAsString());
+    }
+
+    Res get(String path, MockHttpSession session) throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.get(path);
+        return res(mockMvc.perform(session == null ? request : request.session(session))
+                .andReturn());
+    }
+
+    /** POST kèm token chống CSRF; {@code json} có thể null. */
+    Res post(String path, MockHttpSession session, String json) throws Exception {
+        MockHttpServletRequestBuilder request = withCsrf(MockMvcRequestBuilders.post(path));
+        if (json != null) {
+            request.contentType(MediaType.APPLICATION_JSON).content(json);
+        }
+        return res(mockMvc.perform(session == null ? request : request.session(session))
+                .andReturn());
+    }
+
+    /** POST không có token chống CSRF (TC-AUTH-18). */
+    Res postWithoutCsrf(String path, MockHttpSession session, String json) throws Exception {
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders.post(path);
+        if (json != null) {
+            request.contentType(MediaType.APPLICATION_JSON).content(json);
+        }
+        return res(mockMvc.perform(session == null ? request : request.session(session))
+                .andReturn());
+    }
+
+    /** Đăng nhập thật; trả về phiên. Ném lỗi nếu không đăng nhập được. */
+    MockHttpSession login(String loginId) throws Exception {
+        MvcResult result = mockMvc.perform(withCsrf(MockMvcRequestBuilders.post("/api/auth/login"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"loginId\":\"" + loginId + "\",\"password\":\"" + PASSWORD + "\"}"))
+                .andReturn();
+        if (result.getResponse().getStatus() != 200) {
+            throw new AssertionError("Đăng nhập " + loginId + " thất bại: "
+                    + result.getResponse().getContentAsString());
+        }
+        return (MockHttpSession) result.getRequest().getSession(false);
+    }
+
+    Res loginRaw(String loginId, String password) throws Exception {
+        return post(
+                "/api/auth/login",
+                null,
+                "{\"loginId\":\"" + loginId + "\",\"password\":\"" + password.replace("\"", "\\\"") + "\"}");
+    }
+
+    // ---------- dữ liệu ----------
+
+    Item item(String name) {
+        return jdbc.queryForObject(
+                "SELECT id, name, price, workload_points FROM menu_items WHERE name = ?",
+                (rs, n) -> new Item(
+                        rs.getLong("id"), rs.getString("name"), rs.getInt("price"), rs.getInt("workload_points")),
+                name);
+    }
+
+    /** Dòng đơn khớp giá hiện tại của món: "khách đã thấy đúng giá". */
+    String line(String name, int quantity) {
+        Item item = item(name);
+        return line(item.id(), quantity, item.price());
+    }
+
+    static String line(long id, int quantity, int unitPrice) {
+        return "{\"menuItemId\":" + id + ",\"quantity\":" + quantity + ",\"unitPrice\":" + unitPrice + "}";
+    }
+
+    static String orderJson(String requestId, String slotStart, String... lines) {
+        return "{\"requestId\":\"" + requestId + "\",\"slotStart\":\"" + slotStart + "\",\"lines\":["
+                + String.join(",", lines) + "]}";
+    }
+
+    static String newRequestId() {
+        return UUID.randomUUID().toString();
+    }
+
+    /** Đặt đơn qua API với mã yêu cầu mới. */
+    Res order(MockHttpSession session, String hhmm, String... lines) throws Exception {
+        return post("/api/orders", session, orderJson(newRequestId(), slot(hhmm), lines));
+    }
+
+    long orderCount() {
+        return jdbc.queryForObject("SELECT count(*) FROM orders", Long.class);
+    }
+
+    /** Điểm đang giữ của khung {@code hhmm}; 0 nếu khung chưa có dòng. */
+    int held(String hhmm) {
+        List<Integer> rows = jdbc.queryForList(
+                "SELECT held_points FROM time_slots WHERE slot_date = ? AND start_time = ?",
+                Integer.class,
+                BlackBoxClockConfig.TODAY,
+                LocalTime.parse(hhmm));
+        return rows.isEmpty() ? 0 : rows.getFirst();
+    }
+
+    /** Dựng điều kiện trước "khung đã giữ n điểm" mà API chưa cho làm trực tiếp. */
+    void setHeld(String hhmm, int points) {
+        jdbc.update(
+                "INSERT INTO time_slots (slot_date, start_time, held_points) VALUES (?, ?, ?)"
+                        + " ON CONFLICT (slot_date, start_time) DO UPDATE SET held_points = EXCLUDED.held_points",
+                BlackBoxClockConfig.TODAY,
+                LocalTime.parse(hhmm),
+                points);
+    }
+
+    /** Dựng điều kiện trước "quản lý đã đặt quota riêng cho khung". */
+    void setQuotaOverride(String hhmm, int quota) {
+        jdbc.update(
+                "INSERT INTO time_slots (slot_date, start_time, quota_override) VALUES (?, ?, ?)"
+                        + " ON CONFLICT (slot_date, start_time) DO UPDATE SET quota_override = EXCLUDED.quota_override",
+                BlackBoxClockConfig.TODAY,
+                LocalTime.parse(hhmm),
+                quota);
+    }
+
+    void setStatus(long orderId, String status) {
+        switch (status) {
+            case "CONFIRMED" -> {}
+            case "PREPARING" ->
+                jdbc.update(
+                        "UPDATE orders SET status = 'PREPARING', preparing_at = now(), preparing_by = ? WHERE id = ?",
+                        kitchenId(),
+                        orderId);
+            case "READY" ->
+                jdbc.update(
+                        "UPDATE orders SET status = 'READY', preparing_at = now(), preparing_by = ?, ready_at = now(),"
+                                + " ready_by = ? WHERE id = ?",
+                        kitchenId(),
+                        kitchenId(),
+                        orderId);
+            default -> jdbc.update("UPDATE orders SET status = ? WHERE id = ?", status, orderId);
+        }
+    }
+
+    long kitchenId() {
+        return jdbc.queryForObject("SELECT id FROM user_accounts WHERE login_id = 'bep1@example.com'", Long.class);
+    }
+
+    String statusOf(long orderId) {
+        return jdbc.queryForObject("SELECT status FROM orders WHERE id = ?", String.class, orderId);
+    }
+
+    /** Tạo {@code count} tài khoản khách phụ (cùng mật khẩu mẫu), trả về các định danh đăng nhập. */
+    List<String> createCustomers(int count) {
+        String hash = jdbc.queryForObject(
+                "SELECT password_hash FROM user_accounts WHERE login_id = 'khach1@example.com'", String.class);
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            String loginId = "bb-" + UUID.randomUUID() + "@example.com";
+            jdbc.update(
+                    "INSERT INTO user_accounts (login_id, password_hash, display_name, role, locked)"
+                            + " VALUES (?, ?, 'Khách thử', 'CUSTOMER', false)",
+                    loginId,
+                    hash);
+            ids.add(loginId);
+        }
+        return ids;
+    }
+
+    List<MockHttpSession> sessionsFor(List<String> loginIds) throws Exception {
+        List<MockHttpSession> sessions = new ArrayList<>();
+        for (String loginId : loginIds) {
+            sessions.add(login(loginId));
+        }
+        return sessions;
+    }
+
+    /**
+     * Bất biến của Database Design mục 3 (TC-CON-07): với mọi khung, điểm đang giữ bằng tổng điểm các đơn đang giữ
+     * quota của khung. Ở Sprint 1 chưa có hủy đơn nên mọi đơn đều giữ quota.
+     */
+    void assertHeldMatchesOrders() {
+        List<String> mismatches = jdbc.queryForList("""
+                        SELECT s.start_time || ' held=' || s.held_points || ' orders='
+                               || COALESCE((SELECT sum(o.workload_points) FROM orders o WHERE o.time_slot_id = s.id), 0)
+                        FROM time_slots s
+                        WHERE s.held_points <> COALESCE((SELECT sum(o.workload_points) FROM orders o
+                                                         WHERE o.time_slot_id = s.id), 0)
+                        """, String.class);
+        if (!mismatches.isEmpty()) {
+            throw new AssertionError("held_points khác tổng điểm đơn: " + mismatches);
+        }
+        Integer overQuota = jdbc.queryForObject("""
+                        SELECT count(*) FROM time_slots s
+                        WHERE s.held_points >
+                              COALESCE(s.quota_override, (SELECT default_quota_points FROM store_settings))
+                        """, Integer.class);
+        if (overQuota != null && overQuota > 0) {
+            throw new AssertionError("Có " + overQuota + " khung giữ quá quota");
+        }
+    }
+
+    /** Chạy các việc đồng loạt (xuất phát cùng lúc) và gom kết quả. */
+    <T> List<T> concurrently(List<Callable<T>> tasks) throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(Math.max(tasks.size(), 1));
+        try {
+            CountDownLatch go = new CountDownLatch(1);
+            List<Future<T>> futures = new ArrayList<>();
+            for (Callable<T> task : tasks) {
+                futures.add(pool.submit(() -> {
+                    go.await();
+                    return task.call();
+                }));
+            }
+            go.countDown();
+            List<T> results = new ArrayList<>();
+            for (Future<T> future : futures) {
+                results.add(future.get());
+            }
+            return results;
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+}

@@ -65,10 +65,10 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-19 | PB-07 | Màn chọn khung, gửi đơn, hiển thị kết quả và lỗi | Người dùng, AI hỗ trợ | T-17, T-18 | Done |
 | T-20 | PB-08 | API và màn "Đơn của tôi": trạng thái, mã nhận, trạng thái thanh toán | Người dùng, AI hỗ trợ | T-18 | Done |
 | T-21 | PB-12 | API và màn hàng chờ bếp: nhóm sắp tới / cần chuẩn bị / đang làm, sắp xếp, đánh dấu trễ (BR-21, BR-22, BR-26) | Người dùng, AI hỗ trợ | T-18 | Done |
-| T-22 | PB-13 | Chuyển trạng thái CONFIRMED → PREPARING → READY, từ chối chuyển sai; nút thao tác; test | Người dùng, AI hỗ trợ | T-21 | Review |
+| T-22 | PB-13 | Chuyển trạng thái CONFIRMED → PREPARING → READY, từ chối chuyển sai; nút thao tác; test | Người dùng, AI hỗ trợ | T-21 | Done |
 | T-23 | Story đã chọn | Black-box Test Cases từ AC ([Test Cases](../04-Testing/Test-Cases/BLACK_BOX_TEST_CASES.md)) | Người dùng, AI hỗ trợ | T-05 | Done |
 | T-24 | PB-05 | White-box: Control Flow Graph, execution paths, test case cho logic giữ quota ([White-box](../04-Testing/Test-Cases/WHITE_BOX_QUOTA.md)) | Người dùng, AI hỗ trợ | T-16 | Done |
-| T-25 | Story đã chọn | Chạy test, ghi Test Results, sửa lỗi phát hiện | Người dùng, AI hỗ trợ | T-14, T-22, T-23, T-24 | To Do |
+| T-25 | Story đã chọn | Chạy test, ghi Test Results, sửa lỗi phát hiện | Người dùng, AI hỗ trợ | T-14, T-22, T-23, T-24 | Review |
 | T-26 | — | Sprint Planning (kế hoạch tạm duyệt 2026-10-09) | Người dùng | — | Done |
 | T-27 | — | Daily Scrum, khoảng 10 phút mỗi ngày làm việc | Người dùng | — | To Do |
 | T-28 | — | Sprint Review và Retrospective | Người dùng | T-25 | To Do |
