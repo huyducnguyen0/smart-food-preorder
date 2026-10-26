@@ -75,6 +75,10 @@ class AuthorizationMatrixTest {
         return new Endpoint(method, path, EnumSet.of(role), false);
     }
 
+    private static Endpoint onlyRoles(Set<Role> roles, HttpMethod method, String path) {
+        return new Endpoint(method, path, roles, false);
+    }
+
     private static final List<Endpoint> ENDPOINTS = List.of(
             // Công khai (BR-34).
             open(HttpMethod.GET, "/api/health"),
@@ -92,6 +96,9 @@ class AuthorizationMatrixTest {
             only(Role.KITCHEN, HttpMethod.GET, "/api/kitchen/queue"),
             only(Role.KITCHEN, HttpMethod.POST, "/api/kitchen/orders/1/start"),
             only(Role.KITCHEN, HttpMethod.POST, "/api/kitchen/orders/1/complete"),
+            // Quầy và quản lý (UC-08, SRS B.2).
+            onlyRoles(EnumSet.of(Role.COUNTER, Role.MANAGER), HttpMethod.GET, "/api/counter/orders"),
+            onlyRoles(EnumSet.of(Role.COUNTER, Role.MANAGER), HttpMethod.POST, "/api/counter/orders/1/payment"),
             // Đường dẫn chưa khai báo: mặc định từ chối với mọi người dùng.
             new Endpoint(HttpMethod.GET, "/api/chua-khai-bao", EnumSet.noneOf(Role.class), false));
 

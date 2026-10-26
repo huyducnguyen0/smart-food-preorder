@@ -32,13 +32,13 @@ export function AppShell() {
     navigate('/', { replace: true })
   }
 
-  if (user?.role === 'KITCHEN') {
+  if (user?.role === 'KITCHEN' || user?.role === 'COUNTER') {
     return (
       <div className="app wide">
         <header className="k-top">
           <div className="k-top-inner">
             <span className="logo">15</span>
-            <h1>Hàng chờ bếp</h1>
+            <h1>{user.role === 'KITCHEN' ? 'Hàng chờ bếp' : 'Quầy'}</h1>
             <span className="muted-light">{user.displayName}</span>
             <button type="button" className="btn btn-dark" onClick={handleSignOut}>
               Đăng xuất
@@ -76,6 +76,12 @@ export function AppShell() {
           <Icon name="menu" />
           Thực đơn
         </NavLink>
+        {user?.role === 'MANAGER' && (
+          <NavLink to="/counter">
+            <Icon name="receipt" />
+            Quầy
+          </NavLink>
+        )}
         {user?.role === 'CUSTOMER' && (
           <NavLink to="/orders">
             <Icon name="receipt" />

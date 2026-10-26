@@ -16,6 +16,8 @@ const MESSAGES: Record<string, string> = {
   ORDER_TOO_LARGE: 'Đơn quá lớn cho một khung giờ, vui lòng bớt món hoặc liên hệ cửa hàng.',
   SLOT_FULL: 'Khung giờ này vừa hết chỗ, vui lòng chọn khung khác.',
   INVALID_STATUS_TRANSITION: 'Đơn đã thay đổi trạng thái, danh sách sẽ được làm mới.',
+  ALREADY_PAID: 'Đơn này đã được ghi nhận thanh toán.',
+  ORDER_NOT_PAYABLE: 'Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được.',
   INTERNAL_ERROR: 'Có lỗi hệ thống, vui lòng thử lại.',
 }
 

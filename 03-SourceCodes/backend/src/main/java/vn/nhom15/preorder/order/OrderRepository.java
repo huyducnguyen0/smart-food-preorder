@@ -61,6 +61,36 @@ public class OrderRepository {
                                 """, at, staffId, orderId) > 0;
     }
 
+    /**
+     * Ghi nhận đã thanh toán: chỉ đơn chưa thanh toán và còn đang xử lý (chưa bàn giao, hủy hay vắng mặt). Một câu lệnh
+     * có điều kiện nên hai nhân viên cùng bấm chỉ một người thành công.
+     *
+     * @return true nếu vừa ghi nhận
+     */
+    public boolean markPaid(long orderId, PaymentMethod method, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders
+                                SET payment_status = 'PAID', payment_method = ?, paid_at = ?, paid_by = ?
+                                WHERE id = ? AND payment_status = 'UNPAID'
+                                  AND status IN ('CONFIRMED', 'PREPARING', 'READY')
+                                """, method.name(), at, staffId, orderId) > 0;
+    }
+
+    /** Trạng thái và tình trạng thanh toán hiện tại của đơn, rỗng nếu không có đơn. */
+    public Optional<PaymentState> findPaymentState(long orderId) {
+        return jdbcTemplate
+                .query(
+                        "SELECT status, payment_status FROM orders WHERE id = ?",
+                        (rs, rowNum) -> new PaymentState(
+                                OrderStatus.valueOf(rs.getString("status")), rs.getString("payment_status")),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ảnh chụp trạng thái đơn và tình trạng thanh toán, để giải thích vì sao một thao tác bị từ chối. */
+    public record PaymentState(OrderStatus status, String paymentStatus) {}
+
     /** Trạng thái hiện tại của đơn, rỗng nếu không có đơn. */
     public Optional<OrderStatus> findStatus(long orderId) {
         return jdbcTemplate.queryForList("SELECT status FROM orders WHERE id = ?", String.class, orderId).stream()
