@@ -103,6 +103,8 @@ Tiền tố `/api`. JSON, tên trường camelCase. Giờ có ngày dạng ISO-8
 | `GET /api/kitchen/queue` | `KITCHEN` | UC-12.1 | Hàng chờ bếp ba nhóm |
 | `POST /api/kitchen/orders/{id}/start` | `KITCHEN` | UC-12.2 bước 4–5 | `CONFIRMED → PREPARING` |
 | `POST /api/kitchen/orders/{id}/complete` | `KITCHEN` | UC-12.2 bước 6–7 | `PREPARING → READY` |
+| `GET /api/counter/orders` | `COUNTER`, `MANAGER` | UC-08 bước 2 | Đơn hôm nay đang xử lý, kèm số tiền cần thu |
+| `POST /api/counter/orders/{id}/payment` | `COUNTER`, `MANAGER` | UC-08 bước 3–4 | Ghi nhận `UNPAID → PAID` kèm phương thức |
 | `GET /api/health` | Công khai | — | Có từ T-03 |
 
 ### 5.2. Dữ liệu vào/ra chính
@@ -153,6 +155,10 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 ```
 `KitchenOrder`: `id`, `pickupCode`, `slotStart`, `slotEnd`, `source` (`PRE_ORDER`/`WALK_IN`), `confirmedAt`, `late` (BR-26), `lines` gồm `name`, `quantity`. Không có giá và thanh toán (UC-12 Ghi chú). `start`/`complete` trả 200 `{ "id": 41, "status": "PREPARING" }`.
 
+**`GET /api/counter/orders`** → 200 `{ "orders": [CounterOrder] }`. `CounterOrder`: `id`, `pickupCode`, `customerName` (null với walk-in), `slotStart`, `slotEnd`, `source`, `status`, `paymentStatus`, `paymentMethod`, `totalAmount`, `lines` gồm `name`, `quantity`. Chỉ đơn hôm nay ở `CONFIRMED`, `PREPARING`, `READY`.
+
+**`POST /api/counter/orders/{id}/payment`** với `{ "method": "CASH" }` hoặc `"BANK_TRANSFER"` → 200 `{ "id": 41, "paymentStatus": "PAID", "paymentMethod": "CASH" }`. Thiếu hoặc sai `method` → 400; đơn không có → 404; đã ghi nhận → 409 `ALREADY_PAID`; đơn đã bàn giao, hủy, vắng mặt → 409 `ORDER_NOT_PAYABLE`.
+
 ### 5.3. Mã lỗi
 Phản hồi lỗi dạng:
 ```json
@@ -174,6 +180,8 @@ Phản hồi lỗi dạng:
 | 409 | `ORDER_TOO_LARGE` | Điểm đơn > quota của khung | UC-04 E9, UC-17 E1 |
 | 409 | `SLOT_FULL` | Không đủ quota còn lại | UC-04 E8, UC-17 E2 |
 | 409 | `INVALID_STATUS_TRANSITION` | Trạng thái hiện tại không cho phép chuyển; kèm `currentStatus` | UC-12 E1 |
+| 409 | `ALREADY_PAID` | Đơn đã được ghi nhận thanh toán | UC-08 E1 |
+| 409 | `ORDER_NOT_PAYABLE` | Đơn đã bàn giao, hủy hoặc vắng mặt; kèm `currentStatus` | UC-08 E2 |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
 
 ## 6. Frontend

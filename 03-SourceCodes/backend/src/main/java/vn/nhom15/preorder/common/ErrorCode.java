@@ -33,6 +33,10 @@ public enum ErrorCode {
     SLOT_FULL(HttpStatus.CONFLICT),
     /** Đơn không ở trạng thái cho phép chuyển (UC-12 E1, SRS B.5). */
     INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT),
+    /** Đơn đã được ghi nhận thanh toán rồi (UC-08 E1, BR-27). */
+    ALREADY_PAID(HttpStatus.CONFLICT),
+    /** Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được (UC-08 E2). */
+    ORDER_NOT_PAYABLE(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 

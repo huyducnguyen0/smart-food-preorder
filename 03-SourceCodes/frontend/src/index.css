@@ -932,6 +932,62 @@ h1 {
   }
 }
 
+/* Quầy (UC-08, UC-09) dùng lại khung của hàng chờ bếp */
+.c-search {
+  flex: 1;
+  max-width: 320px;
+  padding: 11px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 99px;
+  font: inherit;
+  background: var(--surface);
+}
+
+.c-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.c-customer {
+  margin: 6px 0 0;
+}
+
+.c-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 10px 0 6px;
+  font-size: 18px;
+}
+
+.c-paid {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 700;
+}
+
+.c-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.c-actions .btn {
+  flex: 1;
+  border: 1.5px solid var(--border);
+}
+
+.c-actions .btn-primary {
+  border-color: var(--primary);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

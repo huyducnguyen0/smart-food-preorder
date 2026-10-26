@@ -64,6 +64,9 @@ public class SecurityConfig {
                         .hasRole("CUSTOMER")
                         .requestMatchers("/api/kitchen/**")
                         .hasRole("KITCHEN")
+                        // Quản lý làm được thao tác của quầy (SRS B.2).
+                        .requestMatchers("/api/counter/**")
+                        .hasAnyRole("COUNTER", "MANAGER")
                         // Mặc định từ chối: đường dẫn mới phải được khai báo quyền ở đây.
                         .anyRequest()
                         .denyAll());

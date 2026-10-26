@@ -5,6 +5,7 @@ import { useAuth } from '../features/auth/useAuth'
 import { KitchenPage } from '../features/kitchen/KitchenPage'
 import { CartPage } from '../features/cart/CartPage'
 import { CheckoutPage } from '../features/checkout/CheckoutPage'
+import { CounterPage } from '../features/counter/CounterPage'
 import { MenuPage } from '../features/menu/MenuPage'
 import { OrderDetailPage } from '../features/orders/OrderDetailPage'
 import { OrdersPage } from '../features/orders/OrdersPage'
@@ -77,6 +78,14 @@ export function App() {
           element={
             <RequireRole roles={['CUSTOMER']}>
               <OrderDetailPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="counter"
+          element={
+            <RequireRole roles={['COUNTER', 'MANAGER']}>
+              <CounterPage />
             </RequireRole>
           }
         />
