@@ -135,6 +135,7 @@ Lập ở T-05 ngày 2026-10-10 cho phạm vi Sprint 1. UC-03 và UC-17 tách fi
 | [UC-05 Xem đơn của tôi](specifications/UC-05-xem-don-cua-toi.md) | PB-08 | A1, E1–E3 |
 | [UC-12 Xử lý đơn tại bếp](specifications/UC-12-xu-ly-don-tai-bep.md) (gồm UC-12.1, UC-12.2) | PB-12, PB-13 | A1, E1–E4 |
 | [UC-08 Ghi nhận thanh toán](specifications/UC-08-ghi-nhan-thanh-toan.md) (làm thêm Sprint 1, đặc tả ngắn) | PB-16 | E1–E6 |
+| [UC-09 Bàn giao đơn](specifications/UC-09-ban-giao-don.md) (làm thêm Sprint 1, đặc tả ngắn) | PB-15 | E1–E8 |
 
 Mỗi đặc tả có dòng "Story và AC" chỉ ra bước/luồng đáp ứng từng tiêu chí chấp nhận. Đối chiếu ngày 2026-10-10: đủ AC của 8 story Sprint 1; mọi BR được tham chiếu có trong SRS; trạng thái đơn khớp SRS B.5. Quyết định nghiệp vụ phát sinh khi đặc tả ghi thành BR-35–BR-38 trong SRS và RISK-13.
 

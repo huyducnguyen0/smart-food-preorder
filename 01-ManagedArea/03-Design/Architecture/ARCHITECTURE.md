@@ -105,6 +105,7 @@ Tiền tố `/api`. JSON, tên trường camelCase. Giờ có ngày dạng ISO-8
 | `POST /api/kitchen/orders/{id}/complete` | `KITCHEN` | UC-12.2 bước 6–7 | `PREPARING → READY` |
 | `GET /api/counter/orders` | `COUNTER`, `MANAGER` | UC-08 bước 2 | Đơn hôm nay đang xử lý, kèm số tiền cần thu |
 | `POST /api/counter/orders/{id}/payment` | `COUNTER`, `MANAGER` | UC-08 bước 3–4 | Ghi nhận `UNPAID → PAID` kèm phương thức |
+| `POST /api/counter/orders/{id}/handover` | `COUNTER`, `MANAGER` | UC-09 bước 4–5 | `READY → PICKED_UP` khi đúng mã và đã `PAID` |
 | `GET /api/health` | Công khai | — | Có từ T-03 |
 
 ### 5.2. Dữ liệu vào/ra chính
@@ -159,6 +160,8 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 
 **`POST /api/counter/orders/{id}/payment`** với `{ "method": "CASH" }` hoặc `"BANK_TRANSFER"` → 200 `{ "id": 41, "paymentStatus": "PAID", "paymentMethod": "CASH" }`. Thiếu hoặc sai `method` → 400; đơn không có → 404; đã ghi nhận → 409 `ALREADY_PAID`; đơn đã bàn giao, hủy, vắng mặt → 409 `ORDER_NOT_PAYABLE`.
 
+**`POST /api/counter/orders/{id}/handover`** với `{ "pickupCode": "K7M3QX" }` → 200 `{ "id": 41, "status": "PICKED_UP" }`. Mã so không phân biệt chữ hoa thường. Thiếu hoặc trống mã → 400; không có đơn → 404; đơn không ở `READY` (kể cả đã bàn giao) → 409 `INVALID_STATUS_TRANSITION` kèm `currentStatus`; sai mã → 409 `PICKUP_CODE_MISMATCH`; chưa thanh toán → 409 `ORDER_NOT_PAID`. Thứ tự kiểm tra: tồn tại, `READY`, mã, thanh toán.
+
 ### 5.3. Mã lỗi
 Phản hồi lỗi dạng:
 ```json
@@ -181,6 +184,8 @@ Phản hồi lỗi dạng:
 | 409 | `SLOT_FULL` | Không đủ quota còn lại | UC-04 E8, UC-17 E2 |
 | 409 | `INVALID_STATUS_TRANSITION` | Trạng thái hiện tại không cho phép chuyển; kèm `currentStatus` | UC-12 E1 |
 | 409 | `ALREADY_PAID` | Đơn đã được ghi nhận thanh toán | UC-08 E1 |
+| 409 | `PICKUP_CODE_MISMATCH` | Mã nhận quầy nhập không khớp đơn | UC-09 E2 |
+| 409 | `ORDER_NOT_PAID` | Đơn chưa thanh toán nên chưa bàn giao | UC-09 E3 |
 | 409 | `ORDER_NOT_PAYABLE` | Đơn đã bàn giao, hủy hoặc vắng mặt; kèm `currentStatus` | UC-08 E2 |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
 
