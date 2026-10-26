@@ -37,6 +37,10 @@ public enum ErrorCode {
     ALREADY_PAID(HttpStatus.CONFLICT),
     /** Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được (UC-08 E2). */
     ORDER_NOT_PAYABLE(HttpStatus.CONFLICT),
+    /** Mã nhận quầy nhập không khớp với đơn (UC-09 E2, BR-29). */
+    PICKUP_CODE_MISMATCH(HttpStatus.CONFLICT),
+    /** Đơn chưa thanh toán nên chưa bàn giao được (UC-09 E3, BR-29). */
+    ORDER_NOT_PAID(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 

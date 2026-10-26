@@ -73,7 +73,7 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-27 | — | Daily Scrum, khoảng 10 phút mỗi ngày làm việc | Người dùng | — | To Do |
 | T-28 | — | Sprint Review và Retrospective | Người dùng | T-25 | To Do |
 | T-29 | PB-16 (làm thêm) | Ghi nhận thanh toán UNPAID → PAID | Người dùng, AI hỗ trợ | T-20 | Review |
-| T-30 | PB-15 (làm thêm) | Danh sách READY, xác minh mã, bàn giao (BR-29) | Người dùng, AI hỗ trợ | T-22, T-29 | Backlog |
+| T-30 | PB-15 (làm thêm) | Danh sách READY, xác minh mã, bàn giao (BR-29) | Người dùng, AI hỗ trợ | T-22, T-29 | Review |
 
 Trạng thái theo nguồn: Backlog → To Do → In Progress → Review → Done. Task code ở Review khi đã mở PR; Done khi đã merge và đạt phần DoD liên quan.
 

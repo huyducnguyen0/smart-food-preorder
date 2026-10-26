@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError } from '../../api/client'
 import {
   fetchCounterOrders,
+  handOverOrder,
   recordPayment,
   type CounterOrder,
   type PaymentMethod,
@@ -24,14 +25,57 @@ type State =
   | { kind: 'error'; message: string; orders: CounterOrder[] | null }
   | { kind: 'ready'; orders: CounterOrder[] }
 
+/** Khung bàn giao của đơn sẵn sàng và đã thanh toán: quầy gõ mã khách đọc rồi xác nhận (BR-29). */
+function HandoverForm({
+  order,
+  busy,
+  onHandOver,
+}: {
+  order: CounterOrder
+  busy: boolean
+  onHandOver: (order: CounterOrder, code: string) => void
+}) {
+  const [code, setCode] = useState('')
+  return (
+    <form
+      className="c-handover"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onHandOver(order, code)
+      }}
+    >
+      <input
+        type="text"
+        className="c-search"
+        placeholder="Mã khách đọc"
+        aria-label={`Mã nhận khách đọc cho đơn ${order.pickupCode}`}
+        autoComplete="off"
+        maxLength={6}
+        value={code}
+        onChange={(event) => setCode(event.target.value)}
+      />
+      <button
+        type="submit"
+        className="btn btn-primary"
+        disabled={busy || code.trim() === ''}
+        aria-label={`Bàn giao đơn ${order.pickupCode}`}
+      >
+        Bàn giao
+      </button>
+    </form>
+  )
+}
+
 function OrderCard({
   order,
   busy,
   onPay,
+  onHandOver,
 }: {
   order: CounterOrder
   busy: boolean
   onPay: (order: CounterOrder, method: PaymentMethod) => void
+  onHandOver: (order: CounterOrder, code: string) => void
 }) {
   return (
     <li className="k-card">
@@ -58,9 +102,14 @@ function OrderCard({
         <b>{formatMoney(order.totalAmount)}</b>
       </p>
       {order.paymentStatus === 'PAID' ? (
-        <p className="c-paid">
-          Đã thanh toán{order.paymentMethod ? ` bằng ${METHOD_LABELS[order.paymentMethod]}` : ''}
-        </p>
+        <>
+          <p className="c-paid">
+            Đã thanh toán{order.paymentMethod ? ` bằng ${METHOD_LABELS[order.paymentMethod]}` : ''}
+          </p>
+          {order.status === 'READY' && (
+            <HandoverForm order={order} busy={busy} onHandOver={onHandOver} />
+          )}
+        </>
       ) : (
         <div className="c-actions">
           <button
@@ -83,13 +132,16 @@ function OrderCard({
           </button>
         </div>
       )}
+      {order.paymentStatus === 'UNPAID' && order.status === 'READY' && (
+        <p className="muted c-hint">Đơn sẵn sàng. Thu tiền trước khi bàn giao.</p>
+      )}
     </li>
   )
 }
 
 /**
  * Màn hình quầy (UC-08): đơn hôm nay còn đang xử lý, tìm theo mã nhận, ghi nhận thanh toán tiền mặt hoặc chuyển khoản
- * (BR-27). Tự làm mới mỗi 30 giây. Bàn giao đơn làm ở T-30.
+ * (BR-27); đơn sẵn sàng và đã thanh toán thì nhập mã khách đọc để bàn giao (UC-09, BR-29). Tự làm mới mỗi 30 giây.
  */
 export function CounterPage() {
   const [state, setState] = useState<State>({ kind: 'loading' })
@@ -142,6 +194,23 @@ export function CounterPage() {
     [reload],
   )
 
+  const handleHandOver = useCallback(
+    async (order: CounterOrder, code: string) => {
+      setBusyId(order.id)
+      setNotice(null)
+      try {
+        await handOverOrder(order.id, code)
+      } catch (error) {
+        // Sai mã, chưa thanh toán hoặc đơn đã đổi trạng thái: báo lý do để quầy xử lý, đơn không đổi.
+        setNotice(`Đơn ${order.pickupCode}: ${messageOf(error)}`)
+      } finally {
+        setBusyId(null)
+        reload()
+      }
+    },
+    [reload],
+  )
+
   const orders = state.kind === 'loading' ? null : state.orders
   const visible = useMemo(() => {
     const needle = search.trim().toUpperCase()
@@ -186,7 +255,13 @@ export function CounterPage() {
       {visible.length > 0 && (
         <ul className="c-grid">
           {visible.map((order) => (
-            <OrderCard key={order.id} order={order} busy={busyId !== null} onPay={handlePay} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              busy={busyId !== null}
+              onPay={handlePay}
+              onHandOver={handleHandOver}
+            />
           ))}
         </ul>
       )}

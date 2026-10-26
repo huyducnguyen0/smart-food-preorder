@@ -34,3 +34,11 @@ export function recordPayment(id: number, method: PaymentMethod) {
     { method: 'POST', body: { method } },
   )
 }
+
+/** UC-09: bàn giao đơn sẵn sàng, đúng mã nhận và đã thanh toán (BR-29). */
+export function handOverOrder(id: number, pickupCode: string) {
+  return apiFetch<{ id: number; status: 'PICKED_UP' }>(`/api/counter/orders/${id}/handover`, {
+    method: 'POST',
+    body: { pickupCode },
+  })
+}

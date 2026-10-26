@@ -70,7 +70,7 @@ describe('CounterPage — ghi nhận thanh toán (UC-08)', () => {
 
     expect(screen.getByRole('button', { name: 'Thu tiền mặt đơn K7M3QX' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Thu chuyển khoản đơn K7M3QX' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /đơn P4W9TD/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Thu .* đơn P4W9TD/ })).not.toBeInTheDocument()
   })
 
   it('thu tiền mặt gọi API đúng phương thức rồi làm mới danh sách', async () => {
@@ -144,5 +144,87 @@ describe('CounterPage — ghi nhận thanh toán (UC-08)', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent('có thể đã cũ')
     expect(screen.getByText('K7M3QX')).toBeInTheDocument()
+  })
+})
+
+describe('CounterPage — bàn giao (UC-09)', () => {
+  const readyPaid = order({
+    id: 3,
+    pickupCode: 'R3ADY2',
+    status: 'READY',
+    paymentStatus: 'PAID',
+    paymentMethod: 'CASH',
+  })
+  const readyUnpaid = order({ id: 4, pickupCode: 'UNP4ID', status: 'READY' })
+
+  beforeEach(() => {
+    vi.mocked(counterApi.fetchCounterOrders)
+      .mockReset()
+      .mockResolvedValue([
+        readyPaid,
+        readyUnpaid,
+        order({ id: 5, pickupCode: 'C0NF1R', paymentStatus: 'PAID', paymentMethod: 'CASH' }),
+      ])
+    vi.mocked(counterApi.handOverOrder)
+      .mockReset()
+      .mockResolvedValue({ id: 3, status: 'PICKED_UP' })
+  })
+
+  it('chỉ đơn sẵn sàng và đã thanh toán mới có ô nhập mã và nút Bàn giao', async () => {
+    renderWithAuth(<CounterPage />, { auth: { user: counter } })
+    await screen.findByText('R3ADY2')
+
+    expect(screen.getByRole('button', { name: 'Bàn giao đơn R3ADY2' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Bàn giao đơn UNP4ID' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Bàn giao đơn C0NF1R' })).not.toBeInTheDocument()
+    expect(screen.getByText(/Thu tiền trước khi bàn giao/)).toBeInTheDocument()
+  })
+
+  it('nút Bàn giao chỉ bấm được khi đã nhập mã', async () => {
+    renderWithAuth(<CounterPage />, { auth: { user: counter } })
+    const button = await screen.findByRole('button', { name: 'Bàn giao đơn R3ADY2' })
+    expect(button).toBeDisabled()
+
+    await userEvent.type(screen.getByLabelText('Mã nhận khách đọc cho đơn R3ADY2'), 'r3ady2')
+
+    expect(button).toBeEnabled()
+  })
+
+  it('bàn giao gửi mã đã nhập rồi làm mới danh sách', async () => {
+    renderWithAuth(<CounterPage />, { auth: { user: counter } })
+    await screen.findByText('R3ADY2')
+
+    await userEvent.type(screen.getByLabelText('Mã nhận khách đọc cho đơn R3ADY2'), 'R3ADY2')
+    await userEvent.click(screen.getByRole('button', { name: 'Bàn giao đơn R3ADY2' }))
+
+    expect(counterApi.handOverOrder).toHaveBeenCalledWith(3, 'R3ADY2')
+    await vi.waitFor(() => expect(counterApi.fetchCounterOrders).toHaveBeenCalledTimes(2))
+  })
+
+  it('sai mã: báo lý do cho quầy, đơn không đổi', async () => {
+    vi.mocked(counterApi.handOverOrder).mockRejectedValue(
+      new ApiError(409, 'PICKUP_CODE_MISMATCH', 'x'),
+    )
+    renderWithAuth(<CounterPage />, { auth: { user: counter } })
+    await screen.findByText('R3ADY2')
+
+    await userEvent.type(screen.getByLabelText('Mã nhận khách đọc cho đơn R3ADY2'), 'ZZZZZZ')
+    await userEvent.click(screen.getByRole('button', { name: 'Bàn giao đơn R3ADY2' }))
+
+    expect(await screen.findByText(/Đơn R3ADY2: Mã nhận không khớp/)).toBeInTheDocument()
+  })
+
+  it('đơn đã bàn giao ở nơi khác: báo trạng thái đã đổi và làm mới', async () => {
+    vi.mocked(counterApi.handOverOrder).mockRejectedValue(
+      new ApiError(409, 'INVALID_STATUS_TRANSITION', 'x'),
+    )
+    renderWithAuth(<CounterPage />, { auth: { user: counter } })
+    await screen.findByText('R3ADY2')
+
+    await userEvent.type(screen.getByLabelText('Mã nhận khách đọc cho đơn R3ADY2'), 'R3ADY2')
+    await userEvent.click(screen.getByRole('button', { name: 'Bàn giao đơn R3ADY2' }))
+
+    expect(await screen.findByText(/Đơn R3ADY2: Đơn đã thay đổi trạng thái/)).toBeInTheDocument()
+    await vi.waitFor(() => expect(counterApi.fetchCounterOrders).toHaveBeenCalledTimes(2))
   })
 })
