@@ -76,6 +76,36 @@ public class OrderRepository {
                                 """, method.name(), at, staffId, orderId) > 0;
     }
 
+    /**
+     * Bàn giao: chỉ đơn đang sẵn sàng, đã thanh toán và đúng mã nhận (BR-29), trong một câu lệnh có điều kiện nên một
+     * đơn không bao giờ bàn giao hai lần.
+     *
+     * @return true nếu vừa bàn giao
+     */
+    public boolean markPickedUp(long orderId, String pickupCode, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders SET status = 'PICKED_UP', picked_up_at = ?, picked_up_by = ?
+                                WHERE id = ? AND status = 'READY' AND payment_status = 'PAID' AND pickup_code = ?
+                                """, at, staffId, orderId, pickupCode) > 0;
+    }
+
+    /** Trạng thái, thanh toán và mã nhận của đơn, để giải thích vì sao bàn giao bị từ chối. */
+    public Optional<HandoverState> findHandoverState(long orderId) {
+        return jdbcTemplate
+                .query(
+                        "SELECT status, payment_status, pickup_code FROM orders WHERE id = ?",
+                        (rs, rowNum) -> new HandoverState(
+                                OrderStatus.valueOf(rs.getString("status")),
+                                rs.getString("payment_status"),
+                                rs.getString("pickup_code")),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ảnh chụp những gì quyết định một lần bàn giao có được phép hay không. */
+    public record HandoverState(OrderStatus status, String paymentStatus, String pickupCode) {}
+
     /** Trạng thái và tình trạng thanh toán hiện tại của đơn, rỗng nếu không có đơn. */
     public Optional<PaymentState> findPaymentState(long orderId) {
         return jdbcTemplate

@@ -99,6 +99,7 @@ class AuthorizationMatrixTest {
             // Quầy và quản lý (UC-08, SRS B.2).
             onlyRoles(EnumSet.of(Role.COUNTER, Role.MANAGER), HttpMethod.GET, "/api/counter/orders"),
             onlyRoles(EnumSet.of(Role.COUNTER, Role.MANAGER), HttpMethod.POST, "/api/counter/orders/1/payment"),
+            onlyRoles(EnumSet.of(Role.COUNTER, Role.MANAGER), HttpMethod.POST, "/api/counter/orders/1/handover"),
             // Đường dẫn chưa khai báo: mặc định từ chối với mọi người dùng.
             new Endpoint(HttpMethod.GET, "/api/chua-khai-bao", EnumSet.noneOf(Role.class), false));
 

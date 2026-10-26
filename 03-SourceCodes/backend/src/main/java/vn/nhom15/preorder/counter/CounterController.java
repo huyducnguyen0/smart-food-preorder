@@ -1,6 +1,7 @@
 package vn.nhom15.preorder.counter;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vn.nhom15.preorder.auth.CurrentUser;
 import vn.nhom15.preorder.order.OrderPaymentService;
+import vn.nhom15.preorder.order.OrderStatus;
+import vn.nhom15.preorder.order.OrderStatusService;
 import vn.nhom15.preorder.order.PaymentMethod;
 
 /** Thao tác của quầy: xem đơn đang xử lý và ghi nhận thanh toán. Quầy và quản lý (cấu hình ở SecurityConfig). */
@@ -23,15 +26,24 @@ public class CounterController {
     /** Nội dung ghi nhận thanh toán. */
     public record PaymentRequest(@NotNull PaymentMethod method) {}
 
+    /** Mã nhận khách đọc ra khi đến lấy. */
+    public record HandoverRequest(@NotBlank String pickupCode) {}
+
+    /** Kết quả bàn giao. */
+    public record HandoverResult(long id, OrderStatus status) {}
+
     /** Kết quả ghi nhận thanh toán. */
     public record PaymentResult(long id, String paymentStatus, PaymentMethod paymentMethod) {}
 
     private final CounterService counterService;
     private final OrderPaymentService paymentService;
+    private final OrderStatusService orderStatusService;
 
-    public CounterController(CounterService counterService, OrderPaymentService paymentService) {
+    public CounterController(
+            CounterService counterService, OrderPaymentService paymentService, OrderStatusService orderStatusService) {
         this.counterService = counterService;
         this.paymentService = paymentService;
+        this.orderStatusService = orderStatusService;
     }
 
     /** Đơn hôm nay đang xử lý, để quầy thu tiền và giao món. */
@@ -48,5 +60,14 @@ public class CounterController {
             @AuthenticationPrincipal CurrentUser user) {
         PaymentMethod method = paymentService.recordPayment(id, request.method(), user.id());
         return new PaymentResult(id, "PAID", method);
+    }
+
+    /** UC-09: bàn giao đơn sẵn sàng, đúng mã nhận và đã thanh toán (BR-29). */
+    @PostMapping("/orders/{id}/handover")
+    public HandoverResult handOver(
+            @PathVariable long id,
+            @Valid @RequestBody HandoverRequest request,
+            @AuthenticationPrincipal CurrentUser user) {
+        return new HandoverResult(id, orderStatusService.handOver(id, request.pickupCode(), user.id()));
     }
 }

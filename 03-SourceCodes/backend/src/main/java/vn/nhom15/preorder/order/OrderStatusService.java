@@ -53,6 +53,34 @@ public class OrderStatusService {
         throw rejection(orderId, OrderStatus.PREPARING);
     }
 
+    /**
+     * Quầy bàn giao đơn cho khách (UC-09): đơn phải sẵn sàng, đúng mã nhận và đã thanh toán (BR-29). Mã so không phân
+     * biệt chữ hoa thường và bỏ khoảng trắng hai đầu vì quầy gõ lại từ lời khách đọc.
+     *
+     * @throws ApiException {@code ORDER_NOT_FOUND}; {@code INVALID_STATUS_TRANSITION} nếu đơn không ở {@code READY}
+     *     (kể cả đơn đã bàn giao); {@code PICKUP_CODE_MISMATCH}; {@code ORDER_NOT_PAID}
+     */
+    @Transactional
+    public OrderStatus handOver(long orderId, String pickupCode, long staffId) {
+        String code = pickupCode == null ? "" : pickupCode.trim().toUpperCase(java.util.Locale.ROOT);
+        if (orderRepository.markPickedUp(orderId, code, staffId, OffsetDateTime.now(clock))) {
+            return OrderStatus.PICKED_UP;
+        }
+        OrderRepository.HandoverState state = orderRepository
+                .findHandoverState(orderId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
+        if (state.status() != OrderStatus.READY) {
+            throw new ApiException(
+                            ErrorCode.INVALID_STATUS_TRANSITION,
+                            "Đơn đang ở trạng thái " + state.status() + ", chỉ đơn READY mới bàn giao được")
+                    .with("currentStatus", state.status());
+        }
+        if (!state.pickupCode().trim().equals(code)) {
+            throw new ApiException(ErrorCode.PICKUP_CODE_MISMATCH, "Mã nhận không khớp với đơn");
+        }
+        throw new ApiException(ErrorCode.ORDER_NOT_PAID, "Đơn chưa thanh toán, ghi nhận thanh toán trước khi bàn giao");
+    }
+
     /** Không đổi được dòng nào: hoặc không có đơn, hoặc trạng thái hiện tại không phải trạng thái nguồn. */
     private ApiException rejection(long orderId, OrderStatus required) {
         OrderStatus current = orderRepository

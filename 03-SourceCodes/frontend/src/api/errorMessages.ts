@@ -18,6 +18,8 @@ const MESSAGES: Record<string, string> = {
   INVALID_STATUS_TRANSITION: 'Đơn đã thay đổi trạng thái, danh sách sẽ được làm mới.',
   ALREADY_PAID: 'Đơn này đã được ghi nhận thanh toán.',
   ORDER_NOT_PAYABLE: 'Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được.',
+  PICKUP_CODE_MISMATCH: 'Mã nhận không khớp với đơn, hỏi lại khách và nhập lại.',
+  ORDER_NOT_PAID: 'Đơn chưa thanh toán, hãy thu tiền trước khi bàn giao.',
   INTERNAL_ERROR: 'Có lỗi hệ thống, vui lòng thử lại.',
 }
 

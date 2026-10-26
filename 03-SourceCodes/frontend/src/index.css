@@ -988,6 +988,22 @@ h1 {
   border-color: var(--primary);
 }
 
+.c-handover {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.c-handover .c-search {
+  min-width: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.c-hint {
+  margin: 8px 0 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;
