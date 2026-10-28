@@ -30,6 +30,22 @@ public class AccountRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Tạo tài khoản nếu định danh chưa có. Ràng buộc duy nhất của database quyết định ai thắng khi hai người đăng ký
+     * cùng định danh một lúc.
+     *
+     * @return mã tài khoản mới; rỗng nếu định danh đã có tài khoản
+     */
+    public Optional<Long> insertIfAbsent(String loginId, String passwordHash, String displayName, Role role) {
+        return jdbcTemplate.queryForList("""
+                                INSERT INTO user_accounts (login_id, password_hash, display_name, role)
+                                VALUES (?, ?, ?, ?)
+                                ON CONFLICT (login_id) DO NOTHING
+                                RETURNING id
+                                """, Long.class, loginId, passwordHash, displayName, role.name()).stream()
+                .findFirst();
+    }
+
     /** Tìm tài khoản theo định danh đã chuẩn hóa. */
     public Optional<Account> findByLoginId(String loginId) {
         List<Account> found = jdbcTemplate.query(FIND_BY_LOGIN_ID_SQL, MAPPER, loginId);

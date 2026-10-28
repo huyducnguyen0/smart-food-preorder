@@ -19,6 +19,28 @@ public class StoreSettingsRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Khóa chia sẻ dòng cấu hình đến hết giao dịch. Mọi lần giữ quota gọi trước khi đọc quota mặc định, nên quản lý đổi
+     * giờ mở cửa hoặc quota mặc định (khóa ghi) phải chờ các lần đặt đang chạy xong, và ngược lại (BR-11).
+     */
+    public void lockShared() {
+        jdbcTemplate.queryForList("SELECT id FROM store_settings WHERE id = 1 FOR SHARE", Integer.class);
+    }
+
+    /** Khóa ghi dòng cấu hình đến hết giao dịch, trước khi kiểm tra và đổi cấu hình. */
+    public void lockForUpdate() {
+        jdbcTemplate.queryForList("SELECT id FROM store_settings WHERE id = 1 FOR UPDATE", Integer.class);
+    }
+
+    /** Ghi cấu hình mới (UC-14). Chỉ gọi sau khi đã kiểm tra BR-11 trong cùng giao dịch, có khóa ghi. */
+    public void update(StoreSettings settings) {
+        jdbcTemplate.update("""
+                        UPDATE store_settings
+                        SET open_time = ?, close_time = ?, default_quota_points = ?, updated_at = now()
+                        WHERE id = 1
+                        """, settings.openTime(), settings.closeTime(), settings.defaultQuotaPoints());
+    }
+
     /** Cấu hình hiện tại. Thiếu dòng cấu hình là lỗi cài đặt, không phải lỗi người dùng. */
     public StoreSettings get() {
         List<StoreSettings> found = jdbcTemplate.query(

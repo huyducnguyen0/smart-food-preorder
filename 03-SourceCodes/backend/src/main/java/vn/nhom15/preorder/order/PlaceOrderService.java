@@ -112,13 +112,15 @@ public class PlaceOrderService {
                 newPickupCode(),
                 command.requestId(),
                 OffsetDateTime.now(clock),
-                orderLines));
+                orderLines,
+                null,
+                null));
 
         // 9. Đọc lại để trả đúng những gì đã lưu.
         return new PlaceOrderResult(loadDetail(orderId, customerId), true);
     }
 
-    private static void rejectDuplicateItems(List<RequestedLine> lines) {
+    static void rejectDuplicateItems(List<RequestedLine> lines) {
         Set<Long> seen = new HashSet<>();
         for (RequestedLine line : lines) {
             if (!seen.add(line.menuItemId())) {
@@ -128,7 +130,7 @@ public class PlaceOrderService {
     }
 
     /** Báo cùng lúc mọi món đã thay đổi để khách cập nhật giỏ một lần (E7). */
-    private static void checkItems(List<RequestedLine> lines, Map<Long, MenuItem> items) {
+    static void checkItems(List<RequestedLine> lines, Map<Long, MenuItem> items) {
         List<Map<String, Object>> changed = new ArrayList<>();
         for (RequestedLine line : lines) {
             MenuItem item = items.get(line.menuItemId());
