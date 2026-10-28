@@ -48,6 +48,8 @@ export type OrderDetail = {
   totalAmount: number
   confirmedAt: string
   lines: OrderLine[]
+  /** Lý do cửa hàng hủy (BR-24); null nếu chưa hủy hoặc khách tự hủy. */
+  cancelReason?: string | null
 }
 
 export type PlaceOrderRequest = {
@@ -84,4 +86,19 @@ export async function fetchMyOrders(signal?: AbortSignal): Promise<OrderSummary[
 /** UC-05 bước 3–4: chi tiết một đơn của mình; đơn của người khác báo ORDER_NOT_FOUND (E1). */
 export function fetchOrder(id: number, signal?: AbortSignal): Promise<OrderDetail> {
   return apiFetch<OrderDetail>(`/api/orders/${id}`, { signal })
+}
+
+/** Đơn còn có thể đổi trạng thái; đơn đã kết thúc thì không cần tự làm mới. */
+export function isOpenStatus(status: OrderStatus): boolean {
+  return status === 'CONFIRMED' || status === 'PREPARING' || status === 'READY'
+}
+
+/**
+ * UC-06: khách hủy đơn CONFIRMED trước cửa sổ chuẩn bị (BR-23). Quá mốc thì backend báo CANCEL_NOT_ALLOWED kèm
+ * `cancelDeadline`.
+ */
+export function cancelMyOrder(id: number) {
+  return apiFetch<{ id: number; status: OrderStatus }>(`/api/orders/${id}/cancel`, {
+    method: 'POST',
+  })
 }

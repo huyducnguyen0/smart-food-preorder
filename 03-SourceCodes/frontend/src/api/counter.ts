@@ -19,6 +19,8 @@ export type CounterOrder = {
   paymentMethod: PaymentMethod | null
   totalAmount: number
   lines: { name: string; quantity: number }[]
+  /** Đơn READY đã quá giờ kết thúc khung + thời gian chờ: được đánh dấu không đến nhận (BR-25). */
+  overdue: boolean
 }
 
 /** Đơn hôm nay còn đang xử lý, để quầy thu tiền và giao món. */
@@ -64,4 +66,19 @@ export function confirmWalkIn(request: {
   paymentMethod: PaymentMethod
 }) {
   return apiFetch<OrderDetail>('/api/counter/walk-in', { method: 'POST', body: request })
+}
+
+/** UC-11: cửa hàng hủy đơn kèm lý do (BR-24). Quầy chỉ hủy được đơn walk-in chưa bắt đầu làm. */
+export function cancelStoreOrder(id: number, reason: string) {
+  return apiFetch<{ id: number; status: OrderStatus }>(`/api/counter/orders/${id}/cancel`, {
+    method: 'POST',
+    body: { reason },
+  })
+}
+
+/** UC-10: đánh dấu khách không đến nhận đơn READY đã quá hạn (BR-25). Không hoàn quota. */
+export function markNoShow(id: number) {
+  return apiFetch<{ id: number; status: OrderStatus }>(`/api/counter/orders/${id}/no-show`, {
+    method: 'POST',
+  })
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link } from 'react-router'
 import type { OrderDetail } from '../../api/orders'
 import { Alert } from '../../components/Alert'
@@ -11,10 +12,18 @@ import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderL
 export function OrderDetailView({
   order,
   placed = false,
+  onCancel,
+  cancelling = false,
+  cancelError = null,
 }: {
   order: OrderDetail
   placed?: boolean
+  /** Có thì hiện nút hủy cho đơn còn CONFIRMED (UC-06). */
+  onCancel?: () => void
+  cancelling?: boolean
+  cancelError?: string | null
 }) {
+  const [confirming, setConfirming] = useState(false)
   return (
     <div className="content">
       {placed && (
@@ -57,6 +66,53 @@ export function OrderDetailView({
           : 'Chưa thanh toán: thanh toán tại quầy khi nhận món.'}{' '}
         Đặt lúc {order.confirmedAt.slice(11, 16)}.
       </p>
+      {order.status === 'CANCELLED' && (
+        <Alert kind="warning">
+          {order.cancelReason
+            ? `Cửa hàng đã hủy đơn. Lý do: ${order.cancelReason}`
+            : 'Đơn đã được hủy.'}
+        </Alert>
+      )}
+      {order.status === 'NO_SHOW' && (
+        <Alert kind="warning">
+          Đơn đã quá thời gian nhận nên cửa hàng ghi nhận không đến nhận.
+        </Alert>
+      )}
+      {cancelError && <Alert kind="danger">{cancelError}</Alert>}
+      {onCancel && order.status === 'CONFIRMED' && (
+        <div className="cancel-box">
+          {confirming ? (
+            <>
+              <p>Hủy đơn {order.pickupCode}? Chỗ trong khung giờ sẽ được trả lại cho người khác.</p>
+              <div className="admin-actions">
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  disabled={cancelling}
+                  onClick={() => {
+                    setConfirming(false)
+                    onCancel()
+                  }}
+                >
+                  Xác nhận hủy
+                </button>
+                <button type="button" className="btn" onClick={() => setConfirming(false)}>
+                  Không hủy
+                </button>
+              </div>
+            </>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-block"
+              disabled={cancelling}
+              onClick={() => setConfirming(true)}
+            >
+              Hủy đơn
+            </button>
+          )}
+        </div>
+      )}
       <Link className="btn btn-block" to="/">
         Về thực đơn
       </Link>

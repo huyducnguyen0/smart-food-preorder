@@ -78,17 +78,17 @@ export function AppShell() {
         </NavLink>
         {user?.role === 'MANAGER' && (
           <>
+            <NavLink to="/admin" end>
+              <Icon name="alert" />
+              Theo dõi
+            </NavLink>
             <NavLink to="/counter">
               <Icon name="receipt" />
               Quầy
             </NavLink>
-            <NavLink to="/admin/menu">
-              <Icon name="bag" />
-              Món
-            </NavLink>
-            <NavLink to="/admin/slots">
+            <NavLink to="/admin/manage">
               <Icon name="check" />
-              Quota
+              Quản lý
             </NavLink>
           </>
         )}

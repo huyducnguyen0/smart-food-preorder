@@ -1,7 +1,9 @@
 import { Link, Navigate, Route, Routes } from 'react-router'
 import { AppShell } from '../components/AppShell'
+import { AdminDashboardPage, AdminHubPage } from '../features/admin/AdminDashboardPage'
 import { AdminMenuPage } from '../features/admin/AdminMenuPage'
 import { AdminSlotsPage } from '../features/admin/AdminSlotsPage'
+import { AdminStaffPage } from '../features/admin/AdminStaffPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { RegisterPage } from '../features/auth/RegisterPage'
 import { useAuth } from '../features/auth/useAuth'
@@ -65,6 +67,30 @@ export function App() {
           element={
             <RequireRole roles={['MANAGER']}>
               <AdminSlotsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminDashboardPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/manage"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminHubPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/staff"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminStaffPage />
             </RequireRole>
           }
         />
