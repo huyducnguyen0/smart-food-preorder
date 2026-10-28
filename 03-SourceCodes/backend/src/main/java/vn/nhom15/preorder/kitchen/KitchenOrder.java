@@ -16,7 +16,7 @@ import vn.nhom15.preorder.order.OrderSource;
  * @param slotEnd giờ kết thúc khung nhận
  * @param source nguồn đơn
  * @param confirmedAt thời điểm xác nhận
- * @param late đã qua giờ bắt đầu khung mà chưa xong (BR-26); chỉ để hiển thị
+ * @param late đơn trễ theo {@link vn.nhom15.preorder.order.LateRule} (BR-26); chỉ để hiển thị
  * @param lines các món cần làm
  */
 public record KitchenOrder(

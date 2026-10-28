@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nhom15.preorder.config.OrderingProperties;
+import vn.nhom15.preorder.order.LateRule;
 import vn.nhom15.preorder.order.OrderStatus;
 
 /** UC-12.1 Xem hàng chờ bếp: chia ba nhóm, giữ thứ tự theo giờ khung rồi giờ xác nhận, đánh dấu đơn trễ. */
@@ -41,7 +42,9 @@ public class KitchenService {
         List<KitchenOrder> upcoming = new ArrayList<>();
         for (KitchenQueueRepository.ActiveOrder active :
                 repository.findActiveOrders(now.toLocalDate(), properties.slotMinutes())) {
-            KitchenOrder order = finish(active.order(), isLate(active.order().slotStart(), now));
+            KitchenOrder found = active.order();
+            KitchenOrder order = finish(
+                    found, LateRule.isLate(active.status(), found.source(), found.slotStart(), found.slotEnd(), now));
             switch (groupOf(active.status(), order.slotStart(), now, properties.prepWindowMinutes())) {
                 case PREPARING -> preparing.add(order);
                 case DUE_SOON -> dueSoon.add(order);
@@ -60,11 +63,6 @@ public class KitchenService {
             return Group.PREPARING;
         }
         return now.isBefore(slotStart.minusMinutes(prepWindowMinutes)) ? Group.UPCOMING : Group.DUE_SOON;
-    }
-
-    /** Đã qua giờ bắt đầu khung (BR-26). Đúng giờ bắt đầu là đã trễ. */
-    static boolean isLate(LocalDateTime slotStart, LocalDateTime now) {
-        return !now.isBefore(slotStart);
     }
 
     /** Đặt cờ trễ và viết thời điểm xác nhận theo múi giờ cửa hàng (database trả theo múi giờ của kết nối). */
