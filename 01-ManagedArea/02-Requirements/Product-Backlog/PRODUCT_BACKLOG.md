@@ -38,12 +38,12 @@ Nguồn yêu cầu là mô hình do người dùng chọn cho dự án học ph�
 | 13 | PB-19 | Khách tự đăng ký tài khoản | High | S | PB-01 | Sprint 2 |
 | 14 | PB-11 | Tạo đơn walk-in sau khi khách đồng ý thời gian | High | M | PB-05, PB-16 | Sprint 2 |
 | 15 | PB-09 | Đề xuất khung giờ thay thế | High | M | PB-07 | Sprint 2 |
-| 16 | PB-10 | Khách hủy đơn | Medium | S | PB-07 | Backlog |
-| 17 | PB-21 | Cửa hàng hủy đơn kèm lý do | Medium | M | PB-07, PB-11 | Backlog |
-| 18 | PB-14 | Trang đơn tự cập nhật khi READY | Medium | S | PB-08, PB-13 | Backlog |
-| 19 | PB-20 | Quản lý tài khoản nhân viên | Medium | S | PB-01 | Backlog |
-| 20 | PB-17 | Theo dõi tải, đơn trễ và thống kê | Medium | M | PB-05, PB-13 | Backlog |
-| 21 | PB-18 | Đánh dấu no-show | Low | S | PB-15 | Backlog |
+| 16 | PB-10 | Khách hủy đơn | Medium | S | PB-07 | Sprint 3 |
+| 17 | PB-21 | Cửa hàng hủy đơn kèm lý do | Medium | M | PB-07, PB-11 | Sprint 3 |
+| 18 | PB-14 | Trang đơn tự cập nhật khi READY | Medium | S | PB-08, PB-13 | Sprint 3 |
+| 19 | PB-20 | Quản lý tài khoản nhân viên | Medium | S | PB-01 | Sprint 3 |
+| 20 | PB-17 | Theo dõi tải, đơn trễ và thống kê | Medium | M | PB-05, PB-13 | Sprint 3 |
+| 21 | PB-18 | Đánh dấu no-show | Low | S | PB-15 | Sprint 3 |
 
 Lý do sắp xếp:
 - **1–10** tạo luồng tối giản đi hết vòng đời một đơn: đặt theo khung → giữ quota → bếp → thanh toán → bàn giao (hướng Sprint 1 trong README). PB-16 đứng trước PB-15 vì bàn giao yêu cầu đơn đã `PAID` (BR-29). Tài khoản, menu và quota dùng dữ liệu mẫu nên đăng ký và các màn quản lý chưa chặn luồng này.

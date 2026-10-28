@@ -83,3 +83,32 @@ Chạy trên nhánh `feature/sprint-2` (dựa trên PR #22, #23). Bảng ca: [BL
 
 **Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
 
+## Lượt 2026-10-28: Sprint 3
+Chạy trên nhánh `feature/sprint-3` (dựa trên nhánh Sprint 2). Bảng ca: [BLACK_BOX_TEST_CASES_SPRINT_3.md](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_3.md).
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Java 25, PostgreSQL 18 nhúng trong test; backend dev và Vite dev cho phần chạy tay |
+| Backend | `./mvnw clean verify`: 427 test, **Passed 427**, Failed 0; Checkstyle sạch |
+| Frontend | `npm test`: 144 test, **Passed 144**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca black-box Sprint 3 | 28 ca (27 ca chức năng + TC-PERF-01), **Passed 28**. TC-MY-05 còn treo từ Sprint 1 nay được kiểm bằng TC-STC-01 và test frontend |
+| Chạy tay trên trình duyệt thật | Khách đặt rồi hủy đơn; đơn thứ hai được bếp làm xong qua API, trang khách **tự** hiện "đã sẵn sàng" sau một lượt 15 giây; màn Theo dõi đúng số (đơn hủy đã trả điểm); quản lý tạo rồi khóa tài khoản quầy, tài khoản bị khóa đăng nhập nhận `ACCOUNT_LOCKED`. Chưa chạy tay: hủy và no-show ở màn Quầy |
+
+**NFR-04 (TC-PERF-01)**, lượt verify cuối cùng (số thay đổi chút ít giữa các lần chạy; lần chạy riêng trước đó p95 đặt đơn 270 ms):
+
+| Yêu cầu | Số mẫu | p50 | p95 | Lớn nhất |
+|---|---|---|---|---|
+| `GET /api/menu` | 500 | 6 ms | 48 ms | 160 ms |
+| `POST /api/orders` | 100 | 78 ms | 155 ms | 162 ms |
+| `GET /api/kitchen/queue` | 500 | 15 ms | 70 ms | 157 ms |
+| `POST /api/counter/orders/{id}/handover` | 100 | 14 ms | 37 ms | 39 ms |
+
+Mọi yêu cầu trả thành công (200/201); p95 mọi loại dưới ngưỡng 1 giây. **Giới hạn của số đo:** client, server và database chạy chung một máy phát triển, database nhúng, không qua mạng; có làm nóng 20 lượt trước khi đo. Đây là bằng chứng ở môi trường dev, chưa phải "môi trường được công bố" mà NFR-04 nói tới; đo lại khi có máy chủ triển khai.
+
+**Lỗi phát hiện khi chạy và đã sửa:**
+- Test cũ `OrderingPropertiesTest` thiếu thuộc tính mới `no-show-grace-minutes` (cấu hình thiếu thì Spring gán 0).
+- 4 dòng vượt 120 ký tự (Checkstyle).
+- **Lỗi thật ở giao diện, có từ Sprint 1**, phát hiện khi chạy tay: đăng xuất khi đang ở trang chỉ khách vào được (ví dụ `/orders/2`) thì người đăng nhập tiếp theo với vai trò khác bị đưa tới "Không có quyền". Đã sửa (chuyển trang trước rồi mới đăng xuất) và kiểm lại trên trình duyệt; chưa có test tự động cho lỗi này.
+
+**Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
+

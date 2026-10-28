@@ -145,7 +145,7 @@ Các bảng đạt dạng chuẩn 3 (3NF): mỗi cột không khóa phụ thuộ
 | Bất biến | Bảo vệ bởi |
 |---|---|
 | Tổng điểm đang giữ của khung ≤ quota của khung (BR-09, NFR-01) | Câu `UPDATE` có điều kiện trên dòng `time_slots` trong giao dịch đặt đơn ([Class Design](../Class-Design/README.md) mục 3); thêm `CHECK` khi có quota riêng |
-| `held_points` = tổng `workload_points` của các đơn đang giữ quota | Chỉ `QuotaService` cộng/trừ, trong cùng giao dịch với tạo/hủy đơn (BR-10). Kiểm bằng truy vấn đối chiếu trong test T-16 |
+| `held_points` = tổng `workload_points` của các đơn đang giữ quota (mọi đơn trừ đơn hủy từ `CONFIRMED`, nhận biết bằng `status = 'CANCELLED' AND preparing_at IS NULL`) | Chỉ `QuotaService` cộng/trừ, trong cùng giao dịch với tạo/hủy đơn (BR-10). Kiểm bằng truy vấn đối chiếu trong test (`assertHeldMatchesOrders`) |
 | Một mã yêu cầu tạo tối đa một đơn (BR-17, NFR-02) | Khóa dòng tài khoản khi đặt + `uq_orders_customer_id_request_id` làm lưới an toàn |
 | Tối đa N đơn chưa kết thúc mỗi khách (BR-37) | Khóa dòng tài khoản khi đặt rồi mới đếm |
 | Mã nhận không trùng (BR-38) | `UNIQUE` + `CHECK` định dạng |
@@ -175,18 +175,18 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 | `V5__create_orders.sql` | T-18 | `orders`, `order_lines` |
 | `V6__order_payment.sql` | T-29 | `orders.paid_at`, `paid_by`, ràng buộc `ck_orders_paid_audit` |
 | `V7__order_handover.sql` | T-30 | `orders.picked_up_at`, `picked_up_by`, ràng buộc `ck_orders_picked_up_audit` |
+| `V9__order_cancel_no_show.sql` | Sprint 3 (PB-10, PB-21, PB-18) | `orders.cancelled_at`, `cancelled_by`, `cancel_reason` (≤ 500 ký tự), `no_show_at`, `no_show_by`; ràng buộc có thời điểm thì có người (`ck_orders_cancelled_audit`, `ck_orders_no_show_audit`), lý do chỉ có khi đã hủy (`ck_orders_cancel_reason`) |
 | `V8__walk_in_orders.sql` | Sprint 2 (PB-11) | `orders.created_by` (walk-in bắt buộc có), chỉ mục duy nhất `uq_orders_walk_in_request_id` (`request_id` của walk-in, NFR-02) |
 
 Số phiên bản dịch theo thứ tự task thực tế: T-16 (giữ quota) làm trước T-15 (menu) nên bảng khung giờ là V3 và bảng menu là V4. Quy tắc: số phiên bản tăng dần theo thứ tự merge và không sửa migration đã chạy (Flyway từ chối chạy migration có số nhỏ hơn số đã áp dụng).
 
 **Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
-**Cột dự kiến cho Sprint sau** (chưa tạo):
+**Cột dự kiến cho Sprint sau** (đã tạo hết ở V6–V9; giữ bảng để truy nguồn):
 | Bảng | Cột | Use case |
 |---|---|---|
 | `orders` | `paid_at`, `paid_by` | UC-08 Ghi nhận thanh toán (PB-16, làm thêm Sprint 1) |
 | `orders` | `picked_up_at`, `picked_up_by` | UC-09 Bàn giao (PB-15, làm thêm Sprint 1) |
-| `orders` | `cancelled_at`, `cancelled_by`, `cancel_reason`, `no_show_at`, `no_show_by` | UC-06, UC-10, UC-11 |
 | `orders` | `created_by` | UC-07 walk-in (nhân viên nhập đơn) |
 
 ## Công cụ

@@ -113,6 +113,11 @@ Tiền tố `/api`. JSON, tên trường camelCase. Giờ có ngày dạng ISO-8
 | `POST /api/admin/menu/items`, `PUT /api/admin/menu/items/{id}` | `MANAGER` | UC-13.1, 13.2 | Thêm, sửa món |
 | `POST /api/admin/menu/items/{id}/availability`, `/discontinue`, `/restore` | `MANAGER` | UC-13.3, 13.4 | Còn bán/tạm hết; ngừng bán; bán lại |
 | `GET /api/admin/slots/today`, `PUT /api/admin/settings`, `PUT /api/admin/slots/today/{HH:mm}/quota` | `MANAGER` | UC-14 | Khung hôm nay có quota và điểm đã giữ; đổi giờ, quota mặc định; quota riêng (`null` = về mặc định) |
+| `POST /api/orders/{id}/cancel` | `CUSTOMER` | UC-06 | Khách hủy đơn `CONFIRMED` trước cửa sổ chuẩn bị; hoàn đủ điểm |
+| `POST /api/counter/orders/{id}/cancel` | `COUNTER` (chỉ walk-in `CONFIRMED`), `MANAGER` | UC-11 | Hủy kèm `reason` bắt buộc; hoàn điểm nếu từ `CONFIRMED` |
+| `POST /api/counter/orders/{id}/no-show` | `COUNTER`, `MANAGER` | UC-10 | `READY → NO_SHOW` khi quá hạn (BR-25); không hoàn |
+| `GET /api/admin/staff`, `POST /api/admin/staff`, `POST /api/admin/staff/{id}/lock`, `/unlock` | `MANAGER` | UC-15 | Tài khoản quầy/bếp: xem, tạo, khóa, mở khóa |
+| `GET /api/admin/dashboard` | `MANAGER` | UC-16 | Khung hôm nay, đơn đang xử lý có cờ trễ, thống kê ngày |
 | `GET /api/health` | Công khai | — | Có từ T-03 |
 
 ### 5.2. Dữ liệu vào/ra chính
@@ -171,6 +176,8 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 
 **Sprint 2.** `SLOT_FULL` của `POST /api/orders` kèm `alternatives`: tối đa 3 `SlotView` gợi ý (UC-18, BR-16). `SLOT_FULL` của `POST /api/counter/walk-in` kèm `nextSlot` (khung mới để báo lại khách, BR-19) nếu còn. `POST /api/counter/walk-in` nhận `{ requestId, slotStart, lines: [{menuItemId, quantity, unitPrice}], paymentMethod }`; ước tính nhận `{ lines }` cùng dạng dòng, trả `{ slot: {start, end}, totalAmount }`. Giữ quota (`QuotaService`) khóa chia sẻ dòng `store_settings`, đổi cấu hình khóa ghi, để BR-11 không bị chen ngang.
 
+**Sprint 3.** `OrderDetail` có thêm `cancelReason` (null nếu chưa hủy hoặc khách tự hủy). `CounterOrder` có thêm `overdue` (đơn `READY` đã qua giờ kết thúc khung + `app.ordering.no-show-grace-minutes`, mặc định 30). Hủy và no-show nằm ở `OrderCancellationService` (module `order`): khóa dòng đơn `FOR UPDATE`, kiểm tra quy tắc, đổi trạng thái, gọi `QuotaService.release` trong cùng giao dịch; `release` trừ `held_points` bằng câu `UPDATE … WHERE held_points >= ?`, không đủ thì ném lỗi để giao dịch hủy. Tài khoản nhân viên ở `StaffAccountService` (module `auth`, dùng lại kiểm tra định danh của đăng ký). Bảng theo dõi ở module mới `report`, chỉ đọc. `StaffAccount`: `id`, `loginId`, `displayName`, `role`, `locked`. `Dashboard`: `date`, `slots` (như `AdminSlot`), `activeOrders` (`id`, `pickupCode`, `slotStart`, `status`, `source`, `late`), `stats` (`preOrders`, `walkIns`, `pickedUp`, `cancelled`, `noShow`, `lateNow`, `heldPoints`, `quotaPoints`, `quotaUsagePercent`).
+
 ### 5.3. Mã lỗi
 Phản hồi lỗi dạng:
 ```json
@@ -200,6 +207,8 @@ Phản hồi lỗi dạng:
 | 409 | `HOURS_CONFLICT_WITH_ORDERS` | Giờ mới làm mất khung đang có đơn; kèm `slots` | UC-14 E2, BR-11 |
 | 409 | `NO_SLOT_AVAILABLE` | Không còn khung nào hôm nay đủ chỗ cho đơn walk-in | UC-07 E1 |
 | 409 | `ORDER_NOT_PAYABLE` | Đơn đã bàn giao, hủy hoặc vắng mặt; kèm `currentStatus` | UC-08 E2 |
+| 409 | `CANCEL_NOT_ALLOWED` | Khách hủy khi đã vào cửa sổ chuẩn bị (kèm `cancelDeadline`); quầy hủy đơn pre-order | UC-06 E1, UC-11 E2 |
+| 409 | `NO_SHOW_TOO_EARLY` | Đơn chưa quá hạn chờ khách; kèm `allowedFrom` | UC-10 E1 |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
 
 ## 6. Frontend
