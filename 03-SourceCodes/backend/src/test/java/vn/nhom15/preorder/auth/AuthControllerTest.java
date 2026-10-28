@@ -40,6 +40,10 @@ class AuthControllerTest {
     @MockitoBean
     private AuthService authService;
 
+    /** AuthController cần thêm dịch vụ đăng ký (UC-01); test này không dùng tới. */
+    @MockitoBean
+    private RegistrationService registrationService;
+
     @Test
     void loginSuccessReturnsUserAndCreatesSessionThatMeAccepts() throws Exception {
         when(authService.authenticate("khach@example.com", "mat-khau-dung"))

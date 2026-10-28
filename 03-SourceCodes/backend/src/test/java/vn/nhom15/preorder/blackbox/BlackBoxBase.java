@@ -96,25 +96,30 @@ abstract class BlackBoxBase {
         jdbc.update("UPDATE user_accounts SET locked = (login_id = 'khoa@example.com')");
         jdbc.update("UPDATE store_settings SET open_time = '10:00', close_time = '21:00', default_quota_points = 20");
         // Menu kiểm thử: giá, điểm, tình trạng theo bảng ở mục 2 của tài liệu test.
+        // Món mẫu có mã 1–8 theo thứ tự chèn của R__seed_menu.sql; test quản lý món có thể đổi tên hoặc thêm món.
         String[][] menu = {
-            {"Burger bò", "45000", "5", "false", "false"},
-            {"Burger phô mai đôi", "59000", "7", "false", "false"},
-            {"Burger gà giòn", "39000", "5", "true", "false"},
-            {"Gà rán 2 miếng", "55000", "6", "false", "false"},
-            {"Khoai tây chiên", "25000", "2", "false", "false"},
-            {"Trà đào", "20000", "0", "false", "false"},
-            {"Nước suối", "10000", "0", "false", "false"},
-            {"Combo cũ", "99000", "10", "false", "true"},
+            {"Burger", "Burger bò", "45000", "5", "false", "false"},
+            {"Burger", "Burger phô mai đôi", "59000", "7", "false", "false"},
+            {"Burger", "Burger gà giòn", "39000", "5", "true", "false"},
+            {"Gà rán", "Gà rán 2 miếng", "55000", "6", "false", "false"},
+            {"Gà rán", "Khoai tây chiên", "25000", "2", "false", "false"},
+            {"Đồ uống", "Trà đào", "20000", "0", "false", "false"},
+            {"Đồ uống", "Nước suối", "10000", "0", "false", "false"},
+            {"Burger", "Combo cũ", "99000", "10", "false", "true"},
         };
-        for (String[] row : menu) {
+        jdbc.update("DELETE FROM menu_items WHERE id > ?", menu.length);
+        for (int i = 0; i < menu.length; i++) {
+            String[] row = menu[i];
             jdbc.update(
-                    "UPDATE menu_items SET price = ?, workload_points = ?, available = ?, discontinued = ?"
-                            + " WHERE name = ?",
-                    Integer.parseInt(row[1]),
+                    "UPDATE menu_items SET category_id = (SELECT id FROM menu_categories WHERE name = ?), name = ?,"
+                            + " price = ?, workload_points = ?, available = ?, discontinued = ? WHERE id = ?",
+                    row[0],
+                    row[1],
                     Integer.parseInt(row[2]),
-                    !Boolean.parseBoolean(row[3]),
-                    Boolean.parseBoolean(row[4]),
-                    row[0]);
+                    Integer.parseInt(row[3]),
+                    !Boolean.parseBoolean(row[4]),
+                    Boolean.parseBoolean(row[5]),
+                    i + 1);
         }
         at("11:00");
     }
@@ -155,6 +160,17 @@ abstract class BlackBoxBase {
     /** POST kèm token chống CSRF; {@code json} có thể null. */
     Res post(String path, MockHttpSession session, String json) throws Exception {
         MockHttpServletRequestBuilder request = withCsrf(MockMvcRequestBuilders.post(path));
+        if (json != null) {
+            request.contentType(MediaType.APPLICATION_JSON).content(json);
+        }
+        return res(mockMvc.perform(session == null ? request : request.session(session))
+                .andReturn());
+    }
+
+    /** Gọi API với phương thức bất kỳ (ví dụ PUT) kèm token chống CSRF. */
+    Res send(String method, String path, MockHttpSession session, String json) throws Exception {
+        MockHttpServletRequestBuilder request =
+                withCsrf(MockMvcRequestBuilders.request(org.springframework.http.HttpMethod.valueOf(method), path));
         if (json != null) {
             request.contentType(MediaType.APPLICATION_JSON).content(json);
         }
