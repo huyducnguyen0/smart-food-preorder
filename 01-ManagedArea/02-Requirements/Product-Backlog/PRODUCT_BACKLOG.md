@@ -33,11 +33,11 @@ Nguồn yêu cầu là mô hình do người dùng chọn cho dự án học ph�
 | 8 | PB-13 | Bếp cập nhật tiến độ theo đơn | High | S | PB-12 | Sprint 1 |
 | 9 | PB-16 | Ghi nhận thanh toán tại quầy | High | S | PB-07 | Backlog (làm thêm Sprint 1) |
 | 10 | PB-15 | Quầy xác minh mã và bàn giao | High | M | PB-08, PB-13, PB-16 | Backlog (làm thêm Sprint 1) |
-| 11 | PB-03 | Quản lý menu và tình trạng bán | High | M | PB-01 | Backlog |
-| 12 | PB-04 | Cấu hình giờ mở cửa và quota theo khung | High | M | PB-01 | Backlog |
-| 13 | PB-19 | Khách tự đăng ký tài khoản | High | S | PB-01 | Backlog |
-| 14 | PB-11 | Tạo đơn walk-in sau khi khách đồng ý thời gian | High | M | PB-05, PB-16 | Backlog |
-| 15 | PB-09 | Đề xuất khung giờ thay thế | High | M | PB-07 | Backlog |
+| 11 | PB-03 | Quản lý menu và tình trạng bán | High | M | PB-01 | Sprint 2 |
+| 12 | PB-04 | Cấu hình giờ mở cửa và quota theo khung | High | M | PB-01 | Sprint 2 |
+| 13 | PB-19 | Khách tự đăng ký tài khoản | High | S | PB-01 | Sprint 2 |
+| 14 | PB-11 | Tạo đơn walk-in sau khi khách đồng ý thời gian | High | M | PB-05, PB-16 | Sprint 2 |
+| 15 | PB-09 | Đề xuất khung giờ thay thế | High | M | PB-07 | Sprint 2 (làm thêm) |
 | 16 | PB-10 | Khách hủy đơn | Medium | S | PB-07 | Backlog |
 | 17 | PB-21 | Cửa hàng hủy đơn kèm lý do | Medium | M | PB-07, PB-11 | Backlog |
 | 18 | PB-14 | Trang đơn tự cập nhật khi READY | Medium | S | PB-08, PB-13 | Backlog |
