@@ -30,6 +30,8 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1); chức năng nghi
 │       │   ├── db/migration/            # Flyway: cấu trúc bảng V1__init.sql, V2__..., ...
 │       │   └── db/seed/                 # Dữ liệu mẫu R__...sql (chỉ local/demo)
 │       └── test/java/...                # JUnit test; support/TestDatabase = PostgreSQL thật chạy trong test
+├── scripts/
+│   └── demo-data.sh      # Tạo đơn mẫu của hôm nay qua API để demo
 └── frontend/             # React + TypeScript (Vite)
     ├── Dockerfile        # Image frontend: build React, nginx phục vụ file tĩnh
     ├── nginx.conf        # nginx chuyển tiếp /api tới backend, mọi đường dẫn khác trả index.html
@@ -122,7 +124,14 @@ Lần đầu build mất vài phút (tải image nền, thư viện Maven và np
 - Dừng, giữ dữ liệu: `docker compose --profile app stop`. Xóa container và **cả dữ liệu**: `docker compose --profile app down -v`.
 - Sửa code thì chạy lại lệnh `up ... --build` để build lại image.
 - Image không chạy test; chạy test bằng `./mvnw verify` và `npm test` trước khi merge (mục Kiểm thử).
-- Triển khai thật: đặt `FLYWAY_LOCATIONS=classpath:db/migration` để không nạp tài khoản và menu mẫu, đổi `DB_PASSWORD`, và đặt HTTPS phía trước (chưa làm trong dự án).
+- Triển khai thật (không có dữ liệu mẫu): trong `.env` bỏ comment bốn dòng `FLYWAY_LOCATIONS`, `INITIAL_MANAGER_LOGIN_ID`, `INITIAL_MANAGER_PASSWORD`, `INITIAL_MANAGER_NAME` và đặt mật khẩu riêng; đổi `DB_PASSWORD`. Lần khởi động đầu, backend tạo tài khoản quản lý đầu tiên (log có dòng `Đã tạo tài khoản quản lý đầu tiên`); các lần sau đã có quản lý thì không làm gì. Giờ mở cửa 10:00–21:00 và quota 20 có sẵn từ migration V10, quản lý sửa lại ở màn "Quản lý → Giờ mở cửa và quota". Chưa có HTTPS (cần đặt phía trước khi đưa lên mạng).
+
+### Tạo dữ liệu demo
+Hệ thống đang chạy **có dữ liệu mẫu** thì chạy, trong `03-SourceCodes/`:
+```bash
+bash scripts/demo-data.sh
+```
+Script đăng nhập bằng các tài khoản mẫu và gọi API thật như người dùng: tạo 9 đơn của hôm nay ở đủ trạng thái (chờ bếp, đang làm, sẵn sàng chưa trả tiền, đã nhận, khách hủy, cửa hàng hủy kèm lý do, hai đơn walk-in) rồi in bảng mã nhận. Chạy ngay trước buổi demo, trong giờ mở cửa và còn ít nhất khoảng 45 phút trước giờ đóng cửa (đơn đặt trước phải cách ít nhất 30 phút). Với cách chạy dev: `BASE_URL=http://localhost:5173 bash scripts/demo-data.sh`. Mỗi khách mẫu chỉ có tối đa 3 đơn chưa kết thúc nên chạy lại trong cùng ngày có thể bị từ chối; làm lại từ đầu bằng `docker compose --profile app down -v` (mất dữ liệu local) rồi `up` lại.
 
 ## Chạy nhanh không cần Docker (dùng để phát triển và thử tay)
 Nếu Docker Desktop chưa chạy được, backend vẫn chạy được trên một PostgreSQL 18 thật khởi động ngay trong tiến trình (cùng thư viện với test). Mỗi lần chạy tạo database mới có sẵn dữ liệu mẫu; tắt là mất dữ liệu.

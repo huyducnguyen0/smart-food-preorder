@@ -1,5 +1,5 @@
 # Database Design
-Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cột cho hủy, thanh toán, bàn giao, walk-in thêm ở Sprint sau (mục 5).
+Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cập nhật ngày 2026-10-28 (chuẩn bị phát hành) cho khớp database thật đến migration V10: các cột thanh toán, bàn giao, walk-in, hủy, no-show của `orders` (mục 2) đã đối chiếu với schema đang chạy trong Docker.
 
 Bước 13.1 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): từ mô hình khái niệm (thực thể, thuộc tính, quan hệ) sang mô hình logic (bảng, khóa chính, khóa ngoại).
 
@@ -108,6 +108,12 @@ Giờ kết thúc khung = `start_time` + độ dài khung trong cấu hình, kh�
 | `confirmed_at` | timestamptz | NOT NULL | Thời điểm xác nhận; dùng để sắp hàng chờ bếp (BR-22) |
 | `preparing_at`, `preparing_by` | timestamptz, bigint FK → `user_accounts` | | Bếp bắt đầu (UC-12 bước 5) |
 | `ready_at`, `ready_by` | timestamptz, bigint FK → `user_accounts` | | Bếp hoàn tất (UC-12 bước 7) |
+| `paid_at`, `paid_by` | timestamptz, bigint FK → `user_accounts` | | Quầy ghi nhận thanh toán (UC-08; V6) |
+| `picked_up_at`, `picked_up_by` | timestamptz, bigint FK → `user_accounts` | | Quầy bàn giao (UC-09; V7) |
+| `created_by` | bigint FK → `user_accounts` | | Nhân viên nhập đơn walk-in (UC-07; V8) |
+| `cancelled_at`, `cancelled_by` | timestamptz, bigint FK → `user_accounts` | | Người hủy: khách (UC-06) hoặc cửa hàng (UC-11) (V9) |
+| `cancel_reason` | varchar(500) | | Lý do cửa hàng hủy, khách đọc được (BR-24); khách tự hủy thì để trống (V9) |
+| `no_show_at`, `no_show_by` | timestamptz, bigint FK → `user_accounts` | | Đánh dấu không đến nhận (UC-10; V9) |
 
 Ràng buộc nhiều cột:
 | Tên | Điều kiện | Quy tắc |
@@ -117,8 +123,15 @@ Ràng buộc nhiều cột:
 | `ck_orders_payment` | `(payment_status = 'PAID') = (payment_method IS NOT NULL)` | BR-27 |
 | `ck_orders_preparing` | `(preparing_at IS NULL) = (preparing_by IS NULL)` | Có thời điểm thì có người thực hiện |
 | `ck_orders_ready` | `(ready_at IS NULL) = (ready_by IS NULL)` | Như trên |
+| `ck_orders_paid_audit` | `(paid_at IS NULL) = (paid_by IS NULL)` và `PAID` khi và chỉ khi có `paid_at` | BR-27; V6 |
+| `ck_orders_picked_up_audit`, `ck_orders_cancelled_audit`, `ck_orders_no_show_audit` | Có thời điểm thì có người thực hiện | V7, V9 |
+| `ck_orders_cancel_reason` | `cancel_reason IS NULL OR cancelled_at IS NOT NULL` | Lý do chỉ có ở đơn đã hủy; V9 |
+| `ck_orders_walk_in_creator` | `source <> 'WALK_IN' OR created_by IS NOT NULL` | Walk-in luôn ghi nhân viên tạo; V8 |
+| `uq_orders_walk_in_request_id` | UNIQUE (`request_id`) chỉ với dòng `source = 'WALK_IN'` (chỉ mục một phần) | NFR-02 cho walk-in: gửi lại cùng mã yêu cầu không tạo đơn thứ hai; V8 |
 
-Chỉ mục: `ix_orders_customer_id` (đơn của tôi, đếm đơn chưa kết thúc cho BR-37), `ix_orders_time_slot_id` (hàng chờ bếp theo ngày, đơn của một khung).
+Chỉ mục: `ix_orders_customer_id` (đơn của tôi, đếm đơn chưa kết thúc cho BR-37), `ix_orders_time_slot_id` (hàng chờ bếp theo ngày, đơn của một khung). Bảng `menu_items` có `ix_menu_items_category_id` (món theo nhóm, tạo ở V4).
+
+Các cột "ai, lúc nào" của mỗi bước nằm ngay trong `orders` thay vì một bảng lịch sử trạng thái riêng: mỗi bước xảy ra tối đa một lần với một đơn nên đủ để truy vết. Nếu sau này cho phép một bước lặp lại (ví dụ sửa đơn nhiều lần), cần bảng lịch sử riêng. Thanh toán cũng nằm trong `orders` (không có bảng `payments`): hệ thống chỉ ghi nhận một lần thu đủ tiền mỗi đơn, hoàn tiền làm ngoài hệ thống (BR-27, BR-30); cần bảng riêng khi có thanh toán online, hoàn tiền hoặc thu nhiều lần. Giỏ hàng không có bảng: giỏ là nháp lưu trên trình duyệt (quyết định 2026-10-10, UC-04 Ghi chú), chỉ thành dữ liệu khi khách xác nhận đặt.
 
 **Mã nhận duy nhất trên toàn bảng**, chặt hơn BR-38 ("không trùng trong cùng ngày"). Lý do: ràng buộc theo ngày cần thêm cột ngày vào `orders` (ngày đã nằm ở `time_slots`), còn duy nhất toàn bảng thì đơn giản và vẫn thỏa BR-38. Có 31⁶ ≈ 887 triệu mã, đủ dùng rất lâu cho một cửa hàng.
 
@@ -175,12 +188,13 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 | `V5__create_orders.sql` | T-18 | `orders`, `order_lines` |
 | `V6__order_payment.sql` | T-29 | `orders.paid_at`, `paid_by`, ràng buộc `ck_orders_paid_audit` |
 | `V7__order_handover.sql` | T-30 | `orders.picked_up_at`, `picked_up_by`, ràng buộc `ck_orders_picked_up_audit` |
+| `V10__default_store_settings.sql` | Chuẩn bị phát hành | Dòng `store_settings` mặc định (10:00–21:00, quota 20): cấu hình bắt buộc, phải có cả khi triển khai không nạp dữ liệu mẫu |
 | `V9__order_cancel_no_show.sql` | Sprint 3 (PB-10, PB-21, PB-18) | `orders.cancelled_at`, `cancelled_by`, `cancel_reason` (≤ 500 ký tự), `no_show_at`, `no_show_by`; ràng buộc có thời điểm thì có người (`ck_orders_cancelled_audit`, `ck_orders_no_show_audit`), lý do chỉ có khi đã hủy (`ck_orders_cancel_reason`) |
 | `V8__walk_in_orders.sql` | Sprint 2 (PB-11) | `orders.created_by` (walk-in bắt buộc có), chỉ mục duy nhất `uq_orders_walk_in_request_id` (`request_id` của walk-in, NFR-02) |
 
 Số phiên bản dịch theo thứ tự task thực tế: T-16 (giữ quota) làm trước T-15 (menu) nên bảng khung giờ là V3 và bảng menu là V4. Quy tắc: số phiên bản tăng dần theo thứ tự merge và không sửa migration đã chạy (Flyway từ chối chạy migration có số nhỏ hơn số đã áp dụng).
 
-**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
+**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Triển khai không nạp dữ liệu mẫu thì: cấu hình cửa hàng có từ V10; quản lý đầu tiên do backend tạo lúc khởi động từ biến môi trường `INITIAL_MANAGER_*` khi chưa có quản lý nào (BR-32); mọi dữ liệu khác do quản lý nhập. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
 **Cột dự kiến cho Sprint sau** (đã tạo hết ở V6–V9; giữ bảng để truy nguồn):
 | Bảng | Cột | Use case |

@@ -129,3 +129,19 @@ Nhánh `release/v1-prep` (dựa trên nhánh Sprint 3). Mục đích: kiểm tra
 
 **Giới hạn:** script thử 14 bước chạy tay, chưa đưa vào repository; chưa thử chế độ không có dữ liệu mẫu (`FLYWAY_LOCATIONS`); không có HTTPS; chưa chạy trên máy khác ngoài máy phát triển.
 
+### Bổ sung 2026-10-28: chế độ triển khai không có dữ liệu mẫu, dữ liệu demo
+Khi rà soát database theo yêu cầu của người dùng, phát hiện chế độ triển khai không nạp dữ liệu mẫu (`FLYWAY_LOCATIONS=classpath:db/migration`, hướng dẫn ở lượt trên) **không dùng được**: không có tài khoản quản lý nào và không có dòng cấu hình cửa hàng. Đã sửa bằng migration V10 (cấu hình cửa hàng mặc định) và tạo quản lý đầu tiên từ biến môi trường `INITIAL_MANAGER_*` lúc khởi động (BR-32), kèm 5 test (`InitialManagerProvisionerTest`) trên PostgreSQL thật không có dữ liệu mẫu. Backend `./mvnw clean verify`: **432 test, Passed 432**, Checkstyle sạch. Một test cũ (`SlotRepositoryTest`) giả định database không dữ liệu mẫu thì thiếu cấu hình cửa hàng; đã sửa test để tự xóa dòng cấu hình trước khi kiểm nhánh lỗi.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Project Docker riêng, database mới, không dữ liệu mẫu (cổng 8001, xóa sau khi thử) | 10 migration; log "Đã tạo tài khoản quản lý đầu tiên"; quản lý đăng nhập được; tài khoản mẫu `khach1` không tồn tại (401); khung hôm nay có từ cấu hình V10; quản lý tạo được tài khoản quầy; khách tự đăng ký được |
+| Khởi động lại với `INITIAL_MANAGER_*` khác | Không tạo quản lý thứ hai |
+| Database có sẵn của người dùng (cổng 8000) | Nâng lên V10, dữ liệu giữ nguyên, không tạo thêm quản lý |
+| **Còn thiếu**, chưa sửa | Không có nhóm món nào (nhóm chỉ có trong dữ liệu mẫu) và chưa có chức năng tạo nhóm, nên quản lý **không thêm được món**: chờ người dùng quyết định cách xử lý |
+| `scripts/demo-data.sh` trên project riêng có dữ liệu mẫu (cổng 8002, xóa sau khi thử; giờ đóng cửa dời sang 23:45 vì lúc thử đã gần 21:00) | 21/21 bước OK: 9 đơn ở đủ trạng thái; lý do hủy tiếng Việt lưu đúng; màn theo dõi đếm 7 pre-order, 2 walk-in, 1 đã nhận, 2 đã hủy |
+| Lần chạy đầu của script trên database của người dùng | Script tự dồn 21 điểm vào một khung quota 20; hệ thống **từ chối đúng** đơn thứ ba; đã sửa script (giảm điểm, bỏ qua các bước sau của đơn đặt hỏng). Database local của người dùng giữ 8 đơn demo của lần chạy này |
+
+**Quan sát cần người dùng quyết:** đơn walk-in xếp vào khung hiện tại (đã bắt đầu) nên bị gắn "Trễ" ngay khi tạo, đúng theo chữ của BR-26 nhưng có thể không đúng ý nghĩa vận hành.
+
+**Lưu ý khi thử bằng `curl` trên Git Bash:** gõ tiếng Việt trực tiếp trong lệnh có thể không được gửi dạng UTF-8 (ví dụ tên thành "Qu?y"); gửi bằng file UTF-8 thì đúng. Đây là lỗi của cách thử, không phải của ứng dụng; script demo gửi bằng file.
+
