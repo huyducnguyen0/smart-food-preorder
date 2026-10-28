@@ -127,11 +127,17 @@ class SlotRepositoryTest {
 
     @Test
     void storeSettingsWithoutARowIsAnInstallationError() {
-        // Database trống (không có dữ liệu mẫu): thiếu cấu hình cửa hàng là lỗi cài đặt, không phải lỗi người dùng.
+        // Từ V10 migration luôn tạo dòng cấu hình mặc định; xóa đi để kiểm tra database bị sửa tay sai: thiếu cấu
+        // hình cửa hàng là lỗi cài đặt, không phải lỗi người dùng.
         StoreSettingsRepository settings = new StoreSettingsRepository(jdbc);
-
-        assertThatThrownBy(settings::get)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("store_settings");
+        jdbc.update("DELETE FROM store_settings");
+        try {
+            assertThatThrownBy(settings::get)
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("store_settings");
+        } finally {
+            jdbc.update("INSERT INTO store_settings (id, open_time, close_time, default_quota_points)"
+                    + " VALUES (1, '10:00', '21:00', 20)");
+        }
     }
 }

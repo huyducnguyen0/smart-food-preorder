@@ -28,6 +28,12 @@ server:
         same-site: lax
 
 app:
+  # Quản lý đầu tiên khi cài đặt (BR-32): chỉ tạo khi database chưa có quản lý nào. Mật khẩu lấy từ biến môi trường,
+  # không nằm trong mã nguồn. Bản có dữ liệu mẫu (db/seed) đã có quanly@example.com nên không cần đặt.
+  initial-manager:
+    login-id: ${INITIAL_MANAGER_LOGIN_ID:}
+    password: ${INITIAL_MANAGER_PASSWORD:}
+    display-name: ${INITIAL_MANAGER_NAME:}
   # Ràng buộc SRS mục D: thời gian theo múi giờ cửa hàng (UTC+7).
   time-zone: Asia/Ho_Chi_Minh
   # Các con số nghiệp vụ cấu hình được nhưng không đổi khi vận hành (SRS B.4); giờ mở cửa và quota nằm trong database.

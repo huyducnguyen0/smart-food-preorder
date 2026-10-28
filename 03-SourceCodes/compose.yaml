@@ -38,6 +38,10 @@ services:
       BACKEND_PORT: 8080
       # Mặc định có dữ liệu mẫu để demo; triển khai thật đặt FLYWAY_LOCATIONS=classpath:db/migration (bỏ db/seed).
       SPRING_FLYWAY_LOCATIONS: ${FLYWAY_LOCATIONS:-classpath:db/migration,classpath:db/seed}
+      # Quản lý đầu tiên (BR-32), chỉ tạo khi database chưa có quản lý; cần khi bỏ dữ liệu mẫu.
+      INITIAL_MANAGER_LOGIN_ID: ${INITIAL_MANAGER_LOGIN_ID:-}
+      INITIAL_MANAGER_PASSWORD: ${INITIAL_MANAGER_PASSWORD:-}
+      INITIAL_MANAGER_NAME: ${INITIAL_MANAGER_NAME:-}
     depends_on:
       db:
         condition: service_healthy
