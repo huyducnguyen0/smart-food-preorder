@@ -106,6 +106,13 @@ Tiền tố `/api`. JSON, tên trường camelCase. Giờ có ngày dạng ISO-8
 | `GET /api/counter/orders` | `COUNTER`, `MANAGER` | UC-08 bước 2 | Đơn hôm nay đang xử lý, kèm số tiền cần thu |
 | `POST /api/counter/orders/{id}/payment` | `COUNTER`, `MANAGER` | UC-08 bước 3–4 | Ghi nhận `UNPAID → PAID` kèm phương thức |
 | `POST /api/counter/orders/{id}/handover` | `COUNTER`, `MANAGER` | UC-09 bước 4–5 | `READY → PICKED_UP` khi đúng mã và đã `PAID` |
+| `POST /api/counter/walk-in/estimate` | `COUNTER`, `MANAGER` | UC-07 bước 2–3 | Khung dự kiến sớm nhất (BR-18) và số tiền cần thu; chưa giữ quota |
+| `POST /api/counter/walk-in` | `COUNTER`, `MANAGER` | UC-07 bước 5–7 | Xác nhận đơn walk-in đã thu tiền; 201 mới, 200 khi gửi lại cùng `requestId` |
+| `POST /api/auth/register` | Công khai | UC-01 | Đăng ký khách, đăng nhập luôn; 201 + `CurrentUser` |
+| `GET /api/admin/menu` | `MANAGER` | UC-13 | Mọi món kể cả ngừng bán, có `workloadPoints`; danh sách nhóm |
+| `POST /api/admin/menu/items`, `PUT /api/admin/menu/items/{id}` | `MANAGER` | UC-13.1, 13.2 | Thêm, sửa món |
+| `POST /api/admin/menu/items/{id}/availability`, `/discontinue`, `/restore` | `MANAGER` | UC-13.3, 13.4 | Còn bán/tạm hết; ngừng bán; bán lại |
+| `GET /api/admin/slots/today`, `PUT /api/admin/settings`, `PUT /api/admin/slots/today/{HH:mm}/quota` | `MANAGER` | UC-14 | Khung hôm nay có quota và điểm đã giữ; đổi giờ, quota mặc định; quota riêng (`null` = về mặc định) |
 | `GET /api/health` | Công khai | — | Có từ T-03 |
 
 ### 5.2. Dữ liệu vào/ra chính
@@ -162,6 +169,8 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 
 **`POST /api/counter/orders/{id}/handover`** với `{ "pickupCode": "K7M3QX" }` → 200 `{ "id": 41, "status": "PICKED_UP" }`. Mã so không phân biệt chữ hoa thường. Thiếu hoặc trống mã → 400; không có đơn → 404; đơn không ở `READY` (kể cả đã bàn giao) → 409 `INVALID_STATUS_TRANSITION` kèm `currentStatus`; sai mã → 409 `PICKUP_CODE_MISMATCH`; chưa thanh toán → 409 `ORDER_NOT_PAID`. Thứ tự kiểm tra: tồn tại, `READY`, mã, thanh toán.
 
+**Sprint 2.** `SLOT_FULL` của `POST /api/orders` kèm `alternatives`: tối đa 3 `SlotView` gợi ý (UC-18, BR-16). `SLOT_FULL` của `POST /api/counter/walk-in` kèm `nextSlot` (khung mới để báo lại khách, BR-19) nếu còn. `POST /api/counter/walk-in` nhận `{ requestId, slotStart, lines: [{menuItemId, quantity, unitPrice}], paymentMethod }`; ước tính nhận `{ lines }` cùng dạng dòng, trả `{ slot: {start, end}, totalAmount }`. Giữ quota (`QuotaService`) khóa chia sẻ dòng `store_settings`, đổi cấu hình khóa ghi, để BR-11 không bị chen ngang.
+
 ### 5.3. Mã lỗi
 Phản hồi lỗi dạng:
 ```json
@@ -186,6 +195,10 @@ Phản hồi lỗi dạng:
 | 409 | `ALREADY_PAID` | Đơn đã được ghi nhận thanh toán | UC-08 E1 |
 | 409 | `PICKUP_CODE_MISMATCH` | Mã nhận quầy nhập không khớp đơn | UC-09 E2 |
 | 409 | `ORDER_NOT_PAID` | Đơn chưa thanh toán nên chưa bàn giao | UC-09 E3 |
+| 409 | `LOGIN_ID_TAKEN` | Email hoặc số điện thoại đã có tài khoản | UC-01 E1 |
+| 409 | `QUOTA_BELOW_HELD` | Quota mới thấp hơn điểm khung đang giữ; kèm `slots` hoặc `heldPoints` | UC-14 E1, BR-11 |
+| 409 | `HOURS_CONFLICT_WITH_ORDERS` | Giờ mới làm mất khung đang có đơn; kèm `slots` | UC-14 E2, BR-11 |
+| 409 | `NO_SLOT_AVAILABLE` | Không còn khung nào hôm nay đủ chỗ cho đơn walk-in | UC-07 E1 |
 | 409 | `ORDER_NOT_PAYABLE` | Đơn đã bàn giao, hủy hoặc vắng mặt; kèm `currentStatus` | UC-08 E2 |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
 

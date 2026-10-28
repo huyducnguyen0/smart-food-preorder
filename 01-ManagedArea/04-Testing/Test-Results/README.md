@@ -66,3 +66,20 @@ Trước đó ghi là "Docker Desktop không khởi động". Nguyên nhân th�
 | `docker restart` container database | Đơn và 10 điểm giữ vẫn còn nguyên: dữ liệu bền, khác với PostgreSQL nhúng |
 
 Để thử được, tôi tạm đổi giờ đóng cửa trong database (lúc chạy là 22:29, quá 21:00) rồi trả về 21:00 và xóa đơn thử. Chưa chạy lại cả 131 ca trên database Docker; bộ test tự động vẫn dùng PostgreSQL nhúng.
+
+## Lượt 2026-10-28: Sprint 2
+Chạy trên nhánh `feature/sprint-2` (dựa trên PR #22, #23). Bảng ca: [BLACK_BOX_TEST_CASES_SPRINT_2.md](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_2.md).
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Java 25, PostgreSQL 18.6 nhúng trong test; Vite dev và backend dev cho phần chạy tay |
+| Backend | `./mvnw clean verify`: 399 test, **Passed 399**, Failed 0; Checkstyle sạch |
+| Frontend | `npm test`: 129 test, **Passed 129**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca black-box Sprint 2 (kèm T-29, T-30) | 61 ca, **Passed 61** |
+| NFR-01 hai kênh | TC-CON-08: 25 pre-order + 25 walk-in 3 điểm cùng lúc vào khung quota 20: đúng 6 đơn, giữ 18 điểm, khớp tổng điểm đơn |
+| Chạy tay trên trình duyệt thật | Đăng ký; quản lý thêm món; quota riêng một khung; quầy tạo đơn walk-in. Chưa chạy tay: khung gợi ý, các nhánh lỗi |
+
+**Lỗi phát hiện khi chạy và đã sửa:** 3 test cũ của trang đăng nhập (dạng `@WebMvcTest`) thiếu bean đăng ký mới; 1 test cũ chèn đơn walk-in thiếu người tạo (ràng buộc mới của V8 bắt được). Không có lỗi ở code tính năng.
+
+**Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
+
