@@ -59,7 +59,7 @@ class SlotAvailabilityServiceTest {
     private SlotAvailabilityService serviceAt(String localDateTime) {
         Clock clock =
                 Clock.fixed(LocalDateTime.parse(localDateTime).atZone(ZONE).toInstant(), ZONE);
-        return new SlotAvailabilityService(settings, slots, menu, new OrderingProperties(15, 30, 15, 3), clock);
+        return new SlotAvailabilityService(settings, slots, menu, new OrderingProperties(15, 30, 15, 3, 30), clock);
     }
 
     private static List<CartLine> cart(long itemId, int quantity) {

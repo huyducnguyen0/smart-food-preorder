@@ -87,6 +87,20 @@ public class SlotRepository {
     }
 
     /**
+     * Trả lại điểm của đơn bị hủy cho khung (BR-23, BR-24). Không bao giờ xuống dưới 0 nhờ điều kiện trong câu lệnh.
+     *
+     * @return true nếu đã trả
+     */
+    public boolean release(long slotId, int points) {
+        return jdbcTemplate.update(
+                        "UPDATE time_slots SET held_points = held_points - ? WHERE id = ? AND held_points >= ?",
+                        points,
+                        slotId,
+                        points)
+                > 0;
+    }
+
+    /**
      * Bảo đảm khung có dòng và trả về mã dòng. An toàn khi nhiều giao dịch gọi cùng lúc: giao dịch đến sau chờ
      * giao dịch đến trước kết thúc rồi bỏ qua việc chèn. Câu SELECT chạy riêng để thấy dòng vừa được giao dịch khác
      * ghi.

@@ -35,6 +35,21 @@ public class QuotaService {
     }
 
     /**
+     * Hoàn điểm của một đơn bị hủy (BR-23, BR-24). Chạy trong giao dịch của thao tác hủy: hủy và hoàn quota thành công
+     * cùng nhau.
+     */
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void release(long timeSlotId, int points) {
+        if (points == 0) {
+            return;
+        }
+        if (!slotRepository.release(timeSlotId, points)) {
+            throw new IllegalStateException(
+                    "Điểm đang giữ của khung " + timeSlotId + " ít hơn điểm cần hoàn " + points);
+        }
+    }
+
+    /**
      * Kiểm tra và giữ quota cho một khung (UC-17 bước 1–6).
      *
      * <p>Phải gọi trong giao dịch của use case gọi (MANDATORY): việc giữ quota và việc tạo đơn thành công hoặc thất bại

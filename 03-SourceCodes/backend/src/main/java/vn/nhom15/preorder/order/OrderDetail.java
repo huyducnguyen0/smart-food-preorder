@@ -19,6 +19,7 @@ import java.util.List;
  * @param totalAmount tổng tiền
  * @param confirmedAt thời điểm xác nhận
  * @param lines các dòng đơn
+ * @param cancelReason lý do cửa hàng hủy đơn (BR-24); null nếu không bị cửa hàng hủy
  */
 public record OrderDetail(
         long id,
@@ -30,7 +31,8 @@ public record OrderDetail(
         String paymentMethod,
         int totalAmount,
         OffsetDateTime confirmedAt,
-        List<OrderLineView> lines) {
+        List<OrderLineView> lines,
+        String cancelReason) {
 
     /** Bản sao với thời điểm xác nhận biểu diễn theo múi giờ của cửa hàng (cùng thời điểm, khác cách viết). */
     public OrderDetail inZone(ZoneId zone) {
@@ -44,6 +46,7 @@ public record OrderDetail(
                 paymentMethod,
                 totalAmount,
                 confirmedAt.atZoneSameInstant(zone).toOffsetDateTime(),
-                lines);
+                lines,
+                cancelReason);
     }
 }

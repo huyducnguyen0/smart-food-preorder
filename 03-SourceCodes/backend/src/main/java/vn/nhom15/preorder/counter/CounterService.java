@@ -23,6 +23,10 @@ public class CounterService {
 
     @Transactional(readOnly = true)
     public List<CounterOrder> listOpenOrders() {
-        return repository.findOpenOrders(LocalDate.now(clock), properties.slotMinutes());
+        // Khung bắt đầu trước hoặc đúng mốc này thì đã quá hạn nhận (giờ kết thúc + thời gian chờ ≤ bây giờ).
+        java.time.LocalDateTime noShowBefore = java.time.LocalDateTime.now(clock)
+                .minusMinutes(properties.slotMinutes())
+                .minusMinutes(properties.noShowGraceMinutes());
+        return repository.findOpenOrders(LocalDate.now(clock), properties.slotMinutes(), noShowBefore);
     }
 }

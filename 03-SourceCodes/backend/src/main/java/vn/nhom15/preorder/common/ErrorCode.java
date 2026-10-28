@@ -49,6 +49,10 @@ public enum ErrorCode {
     HOURS_CONFLICT_WITH_ORDERS(HttpStatus.CONFLICT),
     /** Không còn khung nào hôm nay nhận được đơn walk-in này (UC-07 E1, BR-18). */
     NO_SLOT_AVAILABLE(HttpStatus.CONFLICT),
+    /** Không được hủy đơn này: đã vào cửa sổ chuẩn bị (BR-23) hoặc vai trò không được hủy loại đơn này (BR-24). */
+    CANCEL_NOT_ALLOWED(HttpStatus.CONFLICT),
+    /** Đơn sẵn sàng chưa quá hạn nên chưa đánh dấu không đến nhận được (BR-25). */
+    NO_SHOW_TOO_EARLY(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 

@@ -22,9 +22,10 @@ class OrderingPropertiesTest {
                         "app.ordering.slot-minutes=15",
                         "app.ordering.min-lead-minutes=30",
                         "app.ordering.prep-window-minutes=15",
-                        "app.ordering.max-open-orders-per-customer=3")
+                        "app.ordering.max-open-orders-per-customer=3",
+                        "app.ordering.no-show-grace-minutes=30")
                 .run(context -> assertThat(context.getBean(OrderingProperties.class))
-                        .isEqualTo(new OrderingProperties(15, 30, 15, 3)));
+                        .isEqualTo(new OrderingProperties(15, 30, 15, 3, 30)));
     }
 
     @Test

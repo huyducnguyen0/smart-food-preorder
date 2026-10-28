@@ -330,15 +330,20 @@ abstract class BlackBoxBase {
 
     /**
      * Bất biến của Database Design mục 3 (TC-CON-07): với mọi khung, điểm đang giữ bằng tổng điểm các đơn đang giữ
-     * quota của khung. Ở Sprint 1 chưa có hủy đơn nên mọi đơn đều giữ quota.
+     * quota của khung. Đơn hủy từ {@code CONFIRMED} (chưa từng bắt đầu làm) đã được hoàn điểm nên không tính (BR-23,
+     * BR-24); mọi đơn khác vẫn giữ điểm.
      */
     void assertHeldMatchesOrders() {
         List<String> mismatches = jdbc.queryForList("""
+                        WITH holding AS (
+                            SELECT time_slot_id, workload_points FROM orders
+                            WHERE NOT (status = 'CANCELLED' AND preparing_at IS NULL))
                         SELECT s.start_time || ' held=' || s.held_points || ' orders='
-                               || COALESCE((SELECT sum(o.workload_points) FROM orders o WHERE o.time_slot_id = s.id), 0)
+                               || COALESCE((SELECT sum(h.workload_points) FROM holding h
+                                         WHERE h.time_slot_id = s.id), 0)
                         FROM time_slots s
-                        WHERE s.held_points <> COALESCE((SELECT sum(o.workload_points) FROM orders o
-                                                         WHERE o.time_slot_id = s.id), 0)
+                        WHERE s.held_points <> COALESCE((SELECT sum(h.workload_points) FROM holding h
+                                                         WHERE h.time_slot_id = s.id), 0)
                         """, String.class);
         if (!mismatches.isEmpty()) {
             throw new AssertionError("held_points khác tổng điểm đơn: " + mismatches);

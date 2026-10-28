@@ -27,7 +27,7 @@ public class CounterQueueRepository {
      * Đơn đang xử lý (xác nhận, đang chuẩn bị, sẵn sàng) có khung thuộc ngày {@code day}, sắp theo giờ khung rồi giờ
      * xác nhận. Đơn đã bàn giao, hủy hay vắng mặt không còn việc cho quầy nên không có trong danh sách.
      */
-    List<CounterOrder> findOpenOrders(LocalDate day, int slotMinutes) {
+    List<CounterOrder> findOpenOrders(LocalDate day, int slotMinutes, LocalDateTime noShowBefore) {
         Map<Long, List<CounterOrder.Line>> linesByOrder = new LinkedHashMap<>();
         jdbcTemplate.query(
                 """
@@ -70,7 +70,9 @@ public class CounterQueueRepository {
                             rs.getString("payment_status"),
                             method == null ? null : PaymentMethod.valueOf(method),
                             rs.getInt("total_amount"),
-                            List.copyOf(linesByOrder.getOrDefault(id, List.of())));
+                            List.copyOf(linesByOrder.getOrDefault(id, List.of())),
+                            OrderStatus.valueOf(rs.getString("status")) == OrderStatus.READY
+                                    && !start.isAfter(noShowBefore));
                 },
                 day);
     }
