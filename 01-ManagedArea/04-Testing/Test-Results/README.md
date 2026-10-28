@@ -112,3 +112,20 @@ Mọi yêu cầu trả thành công (200/201); p95 mọi loại dưới ngưỡn
 
 **Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
 
+## Lượt 2026-10-28: chạy toàn hệ thống bằng Docker (chuẩn bị phát hành)
+Nhánh `release/v1-prep` (dựa trên nhánh Sprint 3). Mục đích: kiểm tra bản đóng gói chạy được trọn vẹn, không thay cho bộ test tự động ở lượt Sprint 3.
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Docker Engine 29.6.2; image `eclipse-temurin:25`, `node:24-alpine`, `nginx:1.29-alpine`, `postgres:18-alpine` |
+| Build và khởi động | `docker compose --profile app up -d --build --wait`: cả ba container chạy, `backend` `healthy`. Database dev có sẵn (schema V5) được Flyway nâng lên V9 khi backend khởi động |
+| Đường đi qua nginx (cổng 8000) | `/api/health` trả `UP`, schema 9; mở thẳng `/orders/2` trả trang React (định tuyến phía trình duyệt) |
+| Vòng đời đơn qua HTTP | Script thử 14 bước qua cổng 8000: khách đăng nhập, xem menu, đặt đơn; bếp bắt đầu, hoàn tất; khách thấy `READY`; quầy thu tiền mặt, bàn giao đúng mã; đặt đơn thứ hai rồi khách hủy; quản lý xem theo dõi và nhân viên; khách bị chặn ở API quản lý (403); đăng xuất. **14/14 đúng** |
+| Giữ dữ liệu | Khởi động lại container `backend`: đơn đã tạo vẫn còn (database ở volume `pgdata`) |
+| Trình duyệt | Quản lý đăng nhập qua cổng 8000, mở thẳng `/admin` vẫn giữ phiên, số liệu khớp (1 đã nhận, 1 đã hủy) |
+| Kích thước image | backend 531 MB, frontend 94 MB |
+
+**Lỗi phát hiện và đã sửa:** healthcheck của backend ban đầu chạy bằng `sh` (không hỗ trợ `/dev/tcp`) nên container bị báo `unhealthy` dù backend chạy đúng; đổi sang `bash`.
+
+**Giới hạn:** script thử 14 bước chạy tay, chưa đưa vào repository; chưa thử chế độ không có dữ liệu mẫu (`FLYWAY_LOCATIONS`); không có HTTPS; chưa chạy trên máy khác ngoài máy phát triển.
+

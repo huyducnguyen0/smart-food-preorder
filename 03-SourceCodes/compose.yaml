@@ -1,5 +1,6 @@
-# PostgreSQL cho môi trường phát triển local. Backend và frontend chạy trực tiếp trên máy.
-# Biến lấy từ file .env cùng thư mục (copy từ .env.example).
+# Hai cách dùng (biến lấy từ file .env cùng thư mục, copy từ .env.example):
+#   docker compose up -d --wait                         chỉ PostgreSQL; backend, frontend chạy trực tiếp trên máy (phát triển)
+#   docker compose --profile app up -d --build --wait   toàn bộ hệ thống trong container; mở http://localhost:${APP_PORT}
 name: smart-food-preorder
 
 services:
@@ -23,6 +24,48 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  backend:
+    profiles: [app]
+    build: ./backend
+    environment:
+      # Trong mạng của compose, backend gọi database bằng tên dịch vụ "db" và cổng trong container.
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BACKEND_PORT: 8080
+      # Mặc định có dữ liệu mẫu để demo; triển khai thật đặt FLYWAY_LOCATIONS=classpath:db/migration (bỏ db/seed).
+      SPRING_FLYWAY_LOCATIONS: ${FLYWAY_LOCATIONS:-classpath:db/migration,classpath:db/seed}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Image JRE không có curl; dùng bash (sh không hỗ trợ /dev/tcp) mở kết nối tới cổng 8080 và gọi /api/health.
+      test:
+        - CMD
+        - bash
+        - -c
+        - >-
+          exec 3<>/dev/tcp/localhost/8080 &&
+          printf 'GET /api/health HTTP/1.0\r\n\r\n' >&3 &&
+          grep -q '"status":"UP"' <&3
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 20
+    restart: unless-stopped
+
+  frontend:
+    profiles: [app]
+    build: ./frontend
+    ports:
+      - "${APP_PORT:-8000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:
