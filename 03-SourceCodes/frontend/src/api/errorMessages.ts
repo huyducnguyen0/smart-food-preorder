@@ -20,6 +20,10 @@ const MESSAGES: Record<string, string> = {
   ORDER_NOT_PAYABLE: 'Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được.',
   PICKUP_CODE_MISMATCH: 'Mã nhận không khớp với đơn, hỏi lại khách và nhập lại.',
   ORDER_NOT_PAID: 'Đơn chưa thanh toán, hãy thu tiền trước khi bàn giao.',
+  LOGIN_ID_TAKEN: 'Email hoặc số điện thoại này đã có tài khoản. Hãy đăng nhập.',
+  QUOTA_BELOW_HELD: 'Quota mới thấp hơn điểm khung đang giữ.',
+  HOURS_CONFLICT_WITH_ORDERS: 'Giờ mới làm mất khung đang có đơn.',
+  NO_SLOT_AVAILABLE: 'Hôm nay không còn khung nào đủ chỗ cho đơn này.',
   INTERNAL_ERROR: 'Có lỗi hệ thống, vui lòng thử lại.',
 }
 

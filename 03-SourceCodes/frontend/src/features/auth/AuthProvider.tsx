@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { fetchMe, login, logout, type CurrentUser } from '../../api/auth'
+import { fetchMe, login, logout, register, type CurrentUser } from '../../api/auth'
 import { onSessionExpired } from '../../api/client'
 import { AuthContext, type AuthContextValue, type AuthState } from './authContext'
 
@@ -43,6 +43,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return user
   }, [])
 
+  const signUp = useCallback(
+    async (input: { loginId: string; displayName: string; password: string }) => {
+      const user = await register(input)
+      setState({ status: 'authenticated', user })
+      return user
+    },
+    [],
+  )
+
   const signOut = useCallback(async () => {
     try {
       await logout()
@@ -53,8 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const value = useMemo<AuthContextValue>(
-    () => ({ ...state, signIn, signOut }),
-    [state, signIn, signOut],
+    () => ({ ...state, signIn, signUp, signOut }),
+    [state, signIn, signUp, signOut],
   )
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -1,6 +1,9 @@
 import { Link, Navigate, Route, Routes } from 'react-router'
 import { AppShell } from '../components/AppShell'
+import { AdminMenuPage } from '../features/admin/AdminMenuPage'
+import { AdminSlotsPage } from '../features/admin/AdminSlotsPage'
 import { LoginPage } from '../features/auth/LoginPage'
+import { RegisterPage } from '../features/auth/RegisterPage'
 import { useAuth } from '../features/auth/useAuth'
 import { KitchenPage } from '../features/kitchen/KitchenPage'
 import { CartPage } from '../features/cart/CartPage'
@@ -48,6 +51,23 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<Home />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route
+          path="admin/menu"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminMenuPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/slots"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminSlotsPage />
+            </RequireRole>
+          }
+        />
         <Route path="forbidden" element={<ForbiddenPage />} />
         <Route
           path="cart"
