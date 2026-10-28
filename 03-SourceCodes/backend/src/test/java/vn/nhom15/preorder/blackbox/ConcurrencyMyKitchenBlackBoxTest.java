@@ -283,9 +283,10 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
         long mine = place(kh1, "12:00", line("Burger bò", 1));
         jdbc.update(
                 "INSERT INTO orders (customer_id, source, time_slot_id, status, payment_status, workload_points,"
-                        + " total_amount, pickup_code, confirmed_at)"
-                        + " SELECT NULL, 'WALK_IN', time_slot_id, 'CONFIRMED', 'UNPAID', 0, 0, 'WXYZ23', now()"
+                        + " total_amount, pickup_code, confirmed_at, created_by)"
+                        + " SELECT NULL, 'WALK_IN', time_slot_id, 'CONFIRMED', 'UNPAID', 0, 0, 'WXYZ23', now(), ?"
                         + " FROM orders WHERE id = ?",
+                kitchenId(),
                 mine);
 
         List<Integer> ids = get("/api/orders", kh1).at("$.orders[*].id");

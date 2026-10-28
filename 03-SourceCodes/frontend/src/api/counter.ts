@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { OrderStatus } from './orders'
+import type { OrderDetail, OrderStatus } from './orders'
 
 // Kiểu dữ liệu khớp CounterController (Architecture mục 5.2).
 
@@ -41,4 +41,27 @@ export function handOverOrder(id: number, pickupCode: string) {
     method: 'POST',
     body: { pickupCode },
   })
+}
+
+/** Khung dự kiến của đơn walk-in. */
+export type WalkInSlot = { start: string; end: string }
+
+export type WalkInLine = { menuItemId: number; quantity: number; unitPrice: number }
+
+/** UC-07 bước 2–3: khung dự kiến sớm nhất (BR-18) và số tiền cần thu; chưa giữ quota. */
+export function estimateWalkIn(lines: WalkInLine[]) {
+  return apiFetch<{ slot: WalkInSlot; totalAmount: number }>('/api/counter/walk-in/estimate', {
+    method: 'POST',
+    body: { lines },
+  })
+}
+
+/** UC-07 bước 5–7: xác nhận đơn walk-in khách đã đồng ý, kèm phương thức đã thu (BR-20). */
+export function confirmWalkIn(request: {
+  requestId: string
+  slotStart: string
+  lines: WalkInLine[]
+  paymentMethod: PaymentMethod
+}) {
+  return apiFetch<OrderDetail>('/api/counter/walk-in', { method: 'POST', body: request })
 }

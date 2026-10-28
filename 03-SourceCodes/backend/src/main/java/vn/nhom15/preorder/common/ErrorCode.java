@@ -41,6 +41,14 @@ public enum ErrorCode {
     PICKUP_CODE_MISMATCH(HttpStatus.CONFLICT),
     /** Đơn chưa thanh toán nên chưa bàn giao được (UC-09 E3, BR-29). */
     ORDER_NOT_PAID(HttpStatus.CONFLICT),
+    /** Email hoặc số điện thoại đã có tài khoản (UC-01 E1, BR-31). */
+    LOGIN_ID_TAKEN(HttpStatus.CONFLICT),
+    /** Quota mới thấp hơn điểm khung đang giữ (UC-14 E1, BR-11). */
+    QUOTA_BELOW_HELD(HttpStatus.CONFLICT),
+    /** Thu hẹp giờ mở cửa làm mất khung đang có đơn (UC-14 E2, BR-11). */
+    HOURS_CONFLICT_WITH_ORDERS(HttpStatus.CONFLICT),
+    /** Không còn khung nào hôm nay nhận được đơn walk-in này (UC-07 E1, BR-18). */
+    NO_SLOT_AVAILABLE(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 

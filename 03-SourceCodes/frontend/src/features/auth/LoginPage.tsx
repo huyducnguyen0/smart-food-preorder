@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router'
 import { messageOf } from '../../api/errorMessages'
 import { Alert } from '../../components/Alert'
 import { homePathOf } from './homePath'
@@ -81,6 +81,9 @@ export function LoginPage() {
         <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
           {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
         </button>
+        <p className="muted center">
+          Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+        </p>
       </form>
     </>
   )

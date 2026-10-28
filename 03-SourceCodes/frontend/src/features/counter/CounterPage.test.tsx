@@ -4,11 +4,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CurrentUser } from '../../api/auth'
 import { ApiError } from '../../api/client'
 import * as counterApi from '../../api/counter'
+import * as menuApi from '../../api/menu'
 import type { CounterOrder } from '../../api/counter'
 import { renderWithAuth } from '../../test/renderWithAuth'
 import { CounterPage } from './CounterPage'
 
 vi.mock('../../api/counter')
+// Khung tạo đơn walk-in tải menu; các test ở đây không dùng tới nên trả menu rỗng.
+vi.mock('../../api/menu')
+beforeEach(() => {
+  vi.mocked(menuApi.fetchMenu).mockResolvedValue([])
+})
 
 const counter: CurrentUser = { id: 5, displayName: 'Quầy Một', role: 'COUNTER' }
 

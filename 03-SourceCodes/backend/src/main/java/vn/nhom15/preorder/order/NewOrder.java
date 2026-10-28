@@ -17,6 +17,8 @@ import java.util.UUID;
  * @param requestId mã yêu cầu (BR-17)
  * @param confirmedAt thời điểm xác nhận
  * @param lines các dòng đơn
+ * @param createdBy nhân viên tạo đơn walk-in; null với pre-order
+ * @param paidWith phương thức đã thu khi tạo đơn (walk-in trả khi đặt, BR-20); null nếu chưa thanh toán
  */
 public record NewOrder(
         Long customerId,
@@ -27,7 +29,9 @@ public record NewOrder(
         String pickupCode,
         UUID requestId,
         OffsetDateTime confirmedAt,
-        List<NewOrderLine> lines) {
+        List<NewOrderLine> lines,
+        Long createdBy,
+        PaymentMethod paidWith) {
 
     /** Một dòng đơn sắp chèn. */
     public record NewOrderLine(long menuItemId, String itemName, int unitPrice, int quantity) {}

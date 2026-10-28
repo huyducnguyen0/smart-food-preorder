@@ -290,4 +290,31 @@ describe('CheckoutPage', () => {
     expect(await screen.findByText('Giỏ hàng đang trống')).toBeInTheDocument()
     expect(ordersApi.fetchSlots).not.toHaveBeenCalled()
   })
+
+  it('khung hết chỗ: hiện tối đa 3 khung gợi ý, chọn gợi ý rồi đặt lại được (UC-18)', async () => {
+    vi.mocked(ordersApi.placeOrder)
+      .mockRejectedValueOnce(
+        new ApiError(409, 'SLOT_FULL', 'x', {
+          alternatives: [
+            { start: '2031-03-05T12:15', end: '2031-03-05T12:30', bookable: true },
+            { start: '2031-03-05T11:45', end: '2031-03-05T12:00', bookable: true },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce(placedOrder)
+    renderCheckout()
+
+    await pickAndConfirm('12:00')
+
+    const suggestions = await screen.findByRole('region', { name: 'Khung gợi ý' })
+    expect(
+      within(suggestions)
+        .getAllByRole('button')
+        .map((b) => b.textContent),
+    ).toEqual(['12:15', '11:45'])
+    await userEvent.click(within(suggestions).getByRole('button', { name: 'Gợi ý 12:15' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Xác nhận đặt' }))
+
+    expect(vi.mocked(ordersApi.placeOrder).mock.calls[1][0].slotStart).toBe('2031-03-05T12:15')
+  })
 })

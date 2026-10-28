@@ -56,6 +56,37 @@ public class SlotRepository {
     }
 
     /**
+     * Đặt quota riêng cho khung, chỉ khi không thấp hơn điểm đang giữ (BR-11). {@code quota = null} trả khung về quota
+     * mặc định, cũng chỉ khi quota mặc định không thấp hơn điểm đang giữ. Một câu lệnh có điều kiện nên không bị chen
+     * ngang bởi lần giữ quota cùng lúc.
+     *
+     * @return true nếu đã đổi
+     */
+    public boolean setQuotaOverride(LocalDate date, LocalTime start, Integer quota, int defaultQuota) {
+        return jdbcTemplate.update("""
+                                UPDATE time_slots SET quota_override = ?
+                                WHERE slot_date = ? AND start_time = ? AND held_points <= COALESCE(?, ?)
+                                """, quota, date, start, quota, defaultQuota) > 0;
+    }
+
+    /** Số đơn đang xử lý (xác nhận, đang chuẩn bị, sẵn sàng) theo giờ bắt đầu khung của một ngày. */
+    public java.util.Map<LocalTime, Integer> countOpenOrdersByStart(LocalDate date) {
+        java.util.Map<LocalTime, Integer> counts = new java.util.HashMap<>();
+        jdbcTemplate.query(
+                """
+                        SELECT s.start_time, count(o.id) AS n
+                        FROM time_slots s JOIN orders o ON o.time_slot_id = s.id
+                        WHERE s.slot_date = ? AND o.status IN ('CONFIRMED', 'PREPARING', 'READY')
+                        GROUP BY s.start_time
+                        """,
+                rs -> {
+                    counts.put(rs.getObject("start_time", LocalTime.class), rs.getInt("n"));
+                },
+                date);
+        return counts;
+    }
+
+    /**
      * Bảo đảm khung có dòng và trả về mã dòng. An toàn khi nhiều giao dịch gọi cùng lúc: giao dịch đến sau chờ
      * giao dịch đến trước kết thúc rồi bỏ qua việc chèn. Câu SELECT chạy riêng để thấy dòng vừa được giao dịch khác
      * ghi.

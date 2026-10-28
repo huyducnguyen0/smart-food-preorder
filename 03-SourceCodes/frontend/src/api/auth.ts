@@ -26,3 +26,12 @@ export function login(loginId: string, password: string): Promise<CurrentUser> {
 export function logout(): Promise<void> {
   return apiFetch<void>('/api/auth/logout', { method: 'POST' })
 }
+
+/** UC-01: đăng ký tài khoản khách; thành công thì đã đăng nhập luôn. */
+export function register(input: {
+  loginId: string
+  displayName: string
+  password: string
+}): Promise<CurrentUser> {
+  return apiFetch<CurrentUser>('/api/auth/register', { method: 'POST', body: input })
+}

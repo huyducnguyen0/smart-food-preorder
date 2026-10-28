@@ -136,6 +136,11 @@ Lập ở T-05 ngày 2026-10-10 cho phạm vi Sprint 1. UC-03 và UC-17 tách fi
 | [UC-12 Xử lý đơn tại bếp](specifications/UC-12-xu-ly-don-tai-bep.md) (gồm UC-12.1, UC-12.2) | PB-12, PB-13 | A1, E1–E4 |
 | [UC-08 Ghi nhận thanh toán](specifications/UC-08-ghi-nhan-thanh-toan.md) (làm thêm Sprint 1, đặc tả ngắn) | PB-16 | E1–E6 |
 | [UC-09 Bàn giao đơn](specifications/UC-09-ban-giao-don.md) (làm thêm Sprint 1, đặc tả ngắn) | PB-15 | E1–E8 |
+| [UC-13 Quản lý món](specifications/UC-13-quan-ly-mon.md) (Sprint 2, đặc tả ngắn) | PB-03 | E1–E3 |
+| [UC-14 Cấu hình giờ mở cửa và quota](specifications/UC-14-cau-hinh-gio-va-quota.md) (Sprint 2, đặc tả ngắn) | PB-04 | E1–E4 |
+| [UC-01 Đăng ký tài khoản](specifications/UC-01-dang-ky-tai-khoan.md) (Sprint 2, đặc tả ngắn) | PB-19 | E1–E3 |
+| [UC-07 Tạo đơn walk-in](specifications/UC-07-tao-don-walk-in.md) (Sprint 2, đặc tả ngắn) | PB-11 | E1–E6 |
+| [UC-18 Đề xuất khung thay thế](specifications/UC-18-de-xuat-khung-thay-the.md) (Sprint 2, đặc tả ngắn) | PB-09 | E1 |
 
 Mỗi đặc tả có dòng "Story và AC" chỉ ra bước/luồng đáp ứng từng tiêu chí chấp nhận. Đối chiếu ngày 2026-10-10: đủ AC của 8 story Sprint 1; mọi BR được tham chiếu có trong SRS; trạng thái đơn khớp SRS B.5. Quyết định nghiệp vụ phát sinh khi đặc tả ghi thành BR-35–BR-38 trong SRS và RISK-13.
 

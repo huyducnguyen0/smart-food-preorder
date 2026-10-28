@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,10 +27,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final RegistrationService registrationService;
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, RegistrationService registrationService) {
         this.authService = authService;
+        this.registrationService = registrationService;
     }
 
     /** UC-02 bước 1–6: xác thực rồi tạo phiên gắn với tài khoản và vai trò. */
@@ -37,7 +40,20 @@ public class AuthController {
     public CurrentUser login(
             @Valid @RequestBody LoginRequest request, HttpServletRequest http, HttpServletResponse response) {
         CurrentUser user = authService.authenticate(request.loginId(), request.password());
+        startSession(user, http, response);
+        return user;
+    }
 
+    /** UC-01: tạo tài khoản khách rồi đăng nhập luôn, để khách đặt món ngay. */
+    @PostMapping("/register")
+    public ResponseEntity<CurrentUser> register(
+            @Valid @RequestBody RegisterRequest request, HttpServletRequest http, HttpServletResponse response) {
+        CurrentUser user = registrationService.register(request);
+        startSession(user, http, response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    }
+
+    private void startSession(CurrentUser user, HttpServletRequest http, HttpServletResponse response) {
         // Đổi mã phiên khi đăng nhập để chống tấn công cố định phiên (session fixation).
         if (http.getSession(false) != null) {
             http.changeSessionId();
@@ -48,7 +64,6 @@ public class AuthController {
         context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(user, null, authorities));
         SecurityContextHolder.setContext(context);
         securityContextRepository.saveContext(context, http, response);
-        return user;
     }
 
     /** UC-02 bước 7–8: hủy phiên; sau đó mọi thao tác cần đăng nhập đều bị từ chối. */

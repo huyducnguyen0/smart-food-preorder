@@ -17,8 +17,9 @@ public class OrderRepository {
 
     private static final String INSERT_ORDER_SQL = """
             INSERT INTO orders (customer_id, source, time_slot_id, status, payment_status, workload_points,
-                                total_amount, pickup_code, request_id, confirmed_at)
-            VALUES (?, ?, ?, 'CONFIRMED', 'UNPAID', ?, ?, ?, ?, ?)
+                                total_amount, pickup_code, request_id, confirmed_at, created_by, payment_method,
+                                paid_at, paid_by)
+            VALUES (?, ?, ?, 'CONFIRMED', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
             """;
 
@@ -162,11 +163,16 @@ public class OrderRepository {
                 order.customerId(),
                 order.source().name(),
                 order.timeSlotId(),
+                order.paidWith() == null ? "UNPAID" : "PAID",
                 order.workloadPoints(),
                 order.totalAmount(),
                 order.pickupCode(),
                 order.requestId(),
-                order.confirmedAt());
+                order.confirmedAt(),
+                order.createdBy(),
+                order.paidWith() == null ? null : order.paidWith().name(),
+                order.paidWith() == null ? null : order.confirmedAt(),
+                order.paidWith() == null ? null : order.createdBy());
         long orderId = Objects.requireNonNull(id);
         jdbcTemplate.batchUpdate(INSERT_LINE_SQL, order.lines(), order.lines().size(), (ps, line) -> {
             ps.setLong(1, orderId);
@@ -209,8 +215,26 @@ public class OrderRepository {
                 customerId);
     }
 
+    /** Đơn walk-in đã tạo cho mã yêu cầu này, nếu có (NFR-02 cho walk-in). */
+    public Optional<Long> findIdByWalkInRequest(UUID requestId) {
+        return jdbcTemplate
+                .queryForList(
+                        "SELECT id FROM orders WHERE source = 'WALK_IN' AND request_id = ?", Long.class, requestId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Chi tiết một đơn bất kỳ theo mã, dùng cho nhân viên (đơn walk-in không có khách). */
+    public Optional<OrderDetail> findDetailById(long orderId, int slotMinutes) {
+        return findDetail(orderId, null, slotMinutes);
+    }
+
     /** Chi tiết đơn của một khách; đơn không tồn tại hoặc của khách khác thì rỗng. */
     public Optional<OrderDetail> findDetail(long orderId, long customerId, int slotMinutes) {
+        return findDetail(orderId, Long.valueOf(customerId), slotMinutes);
+    }
+
+    private Optional<OrderDetail> findDetail(long orderId, Long customerId, int slotMinutes) {
         List<OrderLineView> lines = jdbcTemplate.query(
                 """
                         SELECT menu_item_id, item_name, quantity, unit_price FROM order_lines
@@ -229,7 +253,7 @@ public class OrderRepository {
                                 SELECT o.id, o.pickup_code, s.slot_date, s.start_time, o.status, o.payment_status,
                                        o.payment_method, o.total_amount, o.confirmed_at
                                 FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
-                                WHERE o.id = ? AND o.customer_id = ?
+                                WHERE o.id = ? AND (CAST(? AS bigint) IS NULL OR o.customer_id = ?)
                                 """,
                         (rs, rowNum) -> {
                             LocalDateTime start = LocalDateTime.of(
@@ -248,6 +272,7 @@ public class OrderRepository {
                                     lines);
                         },
                         orderId,
+                        customerId,
                         customerId)
                 .stream()
                 .findFirst();

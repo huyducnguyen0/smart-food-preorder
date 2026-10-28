@@ -46,6 +46,8 @@ public class QuotaService {
     @Transactional(propagation = Propagation.MANDATORY)
     public QuotaReservation reserve(LocalDate date, LocalTime start, List<QuotaLine> lines) {
         int points = orderPoints(lines);
+        // Xếp hàng với thao tác đổi cấu hình của quản lý (BR-11); nhiều lần đặt vẫn chạy song song với nhau.
+        storeSettingsRepository.lockShared();
         long slotId = slotRepository.ensureExists(date, start);
 
         // BR-13: đơn 0 điểm không chiếm quota; vẫn cần mã khung để gắn vào đơn.

@@ -55,7 +55,7 @@ public class SecurityConfig {
                         // UC-02, UC-03: chưa đăng nhập vẫn xem được menu và đăng nhập (BR-34).
                         .requestMatchers(HttpMethod.GET, "/api/health", "/api/menu", "/api/menu/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login")
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register")
                         .permitAll()
                         .requestMatchers("/api/auth/**")
                         .authenticated()
@@ -67,6 +67,9 @@ public class SecurityConfig {
                         // Quản lý làm được thao tác của quầy (SRS B.2).
                         .requestMatchers("/api/counter/**")
                         .hasAnyRole("COUNTER", "MANAGER")
+                        // Quản lý món, giờ mở cửa và quota (UC-13, UC-14).
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("MANAGER")
                         // Mặc định từ chối: đường dẫn mới phải được khai báo quyền ở đây.
                         .anyRequest()
                         .denyAll());

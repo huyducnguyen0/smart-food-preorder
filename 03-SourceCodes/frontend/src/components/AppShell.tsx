@@ -77,10 +77,20 @@ export function AppShell() {
           Thực đơn
         </NavLink>
         {user?.role === 'MANAGER' && (
-          <NavLink to="/counter">
-            <Icon name="receipt" />
-            Quầy
-          </NavLink>
+          <>
+            <NavLink to="/counter">
+              <Icon name="receipt" />
+              Quầy
+            </NavLink>
+            <NavLink to="/admin/menu">
+              <Icon name="bag" />
+              Món
+            </NavLink>
+            <NavLink to="/admin/slots">
+              <Icon name="check" />
+              Quota
+            </NavLink>
+          </>
         )}
         {user?.role === 'CUSTOMER' && (
           <NavLink to="/orders">

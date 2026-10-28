@@ -11,6 +11,7 @@ import { messageOf } from '../../api/errorMessages'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
 import { slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
+import { WalkInPanel } from './WalkInPanel'
 
 /** Tự làm mới mỗi 30 giây, như hàng chờ bếp. */
 export const REFRESH_MS = 30_000
@@ -232,6 +233,8 @@ export function CounterPage() {
           Tải lại
         </button>
       </div>
+
+      <WalkInPanel onCreated={reload} />
 
       {state.kind === 'error' && (
         <Alert kind="danger">

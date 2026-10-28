@@ -53,6 +53,7 @@ export function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<{ message: string; showOrders?: boolean } | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [alternatives, setAlternatives] = useState<SlotView[]>([])
   // Đặt xong thì giỏ bị xóa; cờ này để việc giỏ trống lúc đó không bị hiểu là A2 và đẩy về giỏ.
   const [placed, setPlaced] = useState(false)
 
@@ -95,6 +96,7 @@ export function CheckoutPage() {
     if (!selected || submitting) return
     setSubmitting(true)
     setError(null)
+    setAlternatives([])
     try {
       const order = await placeOrder({
         requestId,
@@ -144,9 +146,12 @@ export function CheckoutPage() {
         return
       case 'SLOT_NOT_BOOKABLE':
       case 'SLOT_FULL':
-        // E6, E8: ở lại, tải lại danh sách khung để chọn khung khác.
+        // E6, E8: ở lại, tải lại danh sách khung để chọn khung khác; khung hết chỗ thì kèm tối đa 3 gợi ý (UC-18).
         setSelected(null)
         setError({ message: messageOf(e) })
+        setAlternatives(
+          Array.isArray(e.extra.alternatives) ? (e.extra.alternatives as SlotView[]) : [],
+        )
         reloadSlots()
         return
       case 'OPEN_ORDER_LIMIT_REACHED':
@@ -200,6 +205,26 @@ export function CheckoutPage() {
             </>
           )}
         </Alert>
+      )}
+
+      {alternatives.length > 0 && (
+        <section className="alternatives" aria-label="Khung gợi ý">
+          <p className="notice-title">Khung gợi ý còn chỗ cho giỏ của bạn:</p>
+          <div className="slot-grid">
+            {alternatives.map((slot) => (
+              <button
+                key={slot.start}
+                type="button"
+                className={`slot${slot.start === selected ? ' selected' : ''}`}
+                aria-pressed={slot.start === selected}
+                aria-label={`Gợi ý ${timeOf(slot.start)}`}
+                onClick={() => setSelected(slot.start)}
+              >
+                {timeOf(slot.start)}
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
       {slots.kind === 'ready' && slots.list.slots.length > 0 && (
