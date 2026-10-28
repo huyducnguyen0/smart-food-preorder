@@ -26,7 +26,7 @@ Nhân viên bếp đã đăng nhập (UC-02).
    | Cần chuẩn bị | `CONFIRMED` và thời điểm hiện tại ≥ giờ bắt đầu khung − N phút, N = 15 cấu hình được (BR-21) |
    | Sắp tới | `CONFIRMED` còn lại |
 
-   Trong mỗi nhóm, sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận (BR-22), không theo thời điểm tạo trên giao diện. Mỗi đơn hiển thị: mã nhận, khung nhận, nguồn (pre-order/walk-in), danh sách món và số lượng, thời điểm xác nhận. Đơn `CONFIRMED` hoặc `PREPARING` đã qua giờ bắt đầu khung được **đánh dấu trễ** (BR-26), chỉ để hiển thị, không chặn thao tác.
+   Trong mỗi nhóm, sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận (BR-22), không theo thời điểm tạo trên giao diện. Mỗi đơn hiển thị: mã nhận, khung nhận, nguồn (pre-order/walk-in), danh sách món và số lượng, thời điểm xác nhận. Đơn `CONFIRMED` hoặc `PREPARING` đã qua giờ bắt đầu khung (walk-in: giờ kết thúc khung, sửa đổi 2026-10-28) được **đánh dấu trễ** (BR-26), chỉ để hiển thị, không chặn thao tác.
 3. Hệ thống: danh sách phản ánh dữ liệu tại thời điểm tải; được làm mới khi bếp tải lại hoặc tự làm mới định kỳ (UI chọn tự làm mới mỗi 30 giây, xem [UI Prototype](../../../03-Design/UI-Prototype/README.md) mục 2).
 
 **UC-12.2 — Cập nhật tiến độ đơn**

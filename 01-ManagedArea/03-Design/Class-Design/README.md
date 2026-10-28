@@ -114,7 +114,7 @@ Với `N = prepWindowMinutes`, `slotStart` là ngày + giờ bắt đầu khung:
 | `CONFIRMED` và `now ≥ slotStart − N` | `DUE_SOON` (Cần chuẩn bị, BR-21) |
 | `CONFIRMED` còn lại | `UPCOMING` (Sắp tới) |
 
-`late = now ≥ slotStart` (BR-26). Thứ tự trong nhóm giữ nguyên thứ tự truy vấn. `groupOf` và `isLate` để mức package để unit test với `Clock` cố định.
+`late` theo `LateRule.isLate` (module `order`, dùng chung với màn theo dõi): `now ≥ slotStart` với pre-order, `now ≥ slotEnd` với walk-in (BR-26, sửa đổi 2026-10-28). Thứ tự trong nhóm giữ nguyên thứ tự truy vấn. `groupOf` để mức package để unit test với `Clock` cố định.
 
 ### 4.4. Chuyển trạng thái (`OrderStatusService`)
 ```sql

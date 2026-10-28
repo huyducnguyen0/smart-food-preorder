@@ -69,3 +69,13 @@ Test: `Nfr04PerformanceTest` (một test, Tomcat thật trên cổng ngẫu nhi�
 
 ## PB-14 Trang đơn tự cập nhật
 Không có API mới (dùng `GET /api/orders/{id}` đã kiểm ở Sprint 1). Kiểm bằng test frontend: đơn chuyển `READY` sau một lượt 15 giây thì hiện thông báo nổi bật; đơn đã kết thúc thì không hỏi lại backend.
+
+## Bổ sung ở bước chuẩn bị phát hành (2026-10-28)
+Theo hai quyết định của người dùng cùng ngày. Test: `ReleasePrepBlackBoxTest`. TC-MNG-01 (Sprint 2) sửa theo: danh sách nhóm có thêm "Món khác" ở cuối.
+
+| ID | Kiểm chứng | Kết quả |
+|---|---|---|
+| TC-LATE-01 | Walk-in khung 11:00 tạo lúc 11:00: chưa trễ lúc 11:05 và 11:14; từ 11:15 (hết khung) mới trễ, ở cả màn theo dõi và hàng chờ bếp (BR-26 sửa đổi) | Passed |
+| TC-LATE-02 | Pre-order giữ quy tắc cũ: khung 11:30 chưa trễ lúc 11:29, trễ từ 11:30, ở cả hai màn | Passed |
+| TC-MNG-09 | Nhóm "Món khác" luôn có; thực đơn khách không hiện nhóm trống; quản lý thêm món vào nhóm này thì khách thấy | Passed |
+

@@ -1,5 +1,5 @@
 # Database Design
-Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cập nhật ngày 2026-10-28 (chuẩn bị phát hành) cho khớp database thật đến migration V10: các cột thanh toán, bàn giao, walk-in, hủy, no-show của `orders` (mục 2) đã đối chiếu với schema đang chạy trong Docker.
+Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cập nhật ngày 2026-10-28 (chuẩn bị phát hành) cho khớp database thật đến migration V11: các cột thanh toán, bàn giao, walk-in, hủy, no-show của `orders` (mục 2) đã đối chiếu với schema đang chạy trong Docker.
 
 Bước 13.1 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): từ mô hình khái niệm (thực thể, thuộc tính, quan hệ) sang mô hình logic (bảng, khóa chính, khóa ngoại).
 
@@ -188,13 +188,14 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 | `V5__create_orders.sql` | T-18 | `orders`, `order_lines` |
 | `V6__order_payment.sql` | T-29 | `orders.paid_at`, `paid_by`, ràng buộc `ck_orders_paid_audit` |
 | `V7__order_handover.sql` | T-30 | `orders.picked_up_at`, `picked_up_by`, ràng buộc `ck_orders_picked_up_audit` |
+| `V11__default_menu_category.sql` | Chuẩn bị phát hành | Nhóm "Món khác" (xếp cuối) luôn có, để quản lý luôn có nhóm để thêm món khi không nạp dữ liệu mẫu (quyết định 2026-10-28) |
 | `V10__default_store_settings.sql` | Chuẩn bị phát hành | Dòng `store_settings` mặc định (10:00–21:00, quota 20): cấu hình bắt buộc, phải có cả khi triển khai không nạp dữ liệu mẫu |
 | `V9__order_cancel_no_show.sql` | Sprint 3 (PB-10, PB-21, PB-18) | `orders.cancelled_at`, `cancelled_by`, `cancel_reason` (≤ 500 ký tự), `no_show_at`, `no_show_by`; ràng buộc có thời điểm thì có người (`ck_orders_cancelled_audit`, `ck_orders_no_show_audit`), lý do chỉ có khi đã hủy (`ck_orders_cancel_reason`) |
 | `V8__walk_in_orders.sql` | Sprint 2 (PB-11) | `orders.created_by` (walk-in bắt buộc có), chỉ mục duy nhất `uq_orders_walk_in_request_id` (`request_id` của walk-in, NFR-02) |
 
 Số phiên bản dịch theo thứ tự task thực tế: T-16 (giữ quota) làm trước T-15 (menu) nên bảng khung giờ là V3 và bảng menu là V4. Quy tắc: số phiên bản tăng dần theo thứ tự merge và không sửa migration đã chạy (Flyway từ chối chạy migration có số nhỏ hơn số đã áp dụng).
 
-**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Triển khai không nạp dữ liệu mẫu thì: cấu hình cửa hàng có từ V10; quản lý đầu tiên do backend tạo lúc khởi động từ biến môi trường `INITIAL_MANAGER_*` khi chưa có quản lý nào (BR-32); mọi dữ liệu khác do quản lý nhập. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
+**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Triển khai không nạp dữ liệu mẫu thì: cấu hình cửa hàng có từ V10, nhóm "Món khác" từ V11; quản lý đầu tiên do backend tạo lúc khởi động từ biến môi trường `INITIAL_MANAGER_*` khi chưa có quản lý nào (BR-32); mọi dữ liệu khác do quản lý nhập. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
 **Cột dự kiến cho Sprint sau** (đã tạo hết ở V6–V9; giữ bảng để truy nguồn):
 | Bảng | Cột | Use case |

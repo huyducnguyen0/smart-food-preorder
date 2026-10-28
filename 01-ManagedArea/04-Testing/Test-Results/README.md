@@ -137,11 +137,13 @@ Khi rà soát database theo yêu cầu của người dùng, phát hiện chế 
 | Project Docker riêng, database mới, không dữ liệu mẫu (cổng 8001, xóa sau khi thử) | 10 migration; log "Đã tạo tài khoản quản lý đầu tiên"; quản lý đăng nhập được; tài khoản mẫu `khach1` không tồn tại (401); khung hôm nay có từ cấu hình V10; quản lý tạo được tài khoản quầy; khách tự đăng ký được |
 | Khởi động lại với `INITIAL_MANAGER_*` khác | Không tạo quản lý thứ hai |
 | Database có sẵn của người dùng (cổng 8000) | Nâng lên V10, dữ liệu giữ nguyên, không tạo thêm quản lý |
-| **Còn thiếu**, chưa sửa | Không có nhóm món nào (nhóm chỉ có trong dữ liệu mẫu) và chưa có chức năng tạo nhóm, nên quản lý **không thêm được món**: chờ người dùng quyết định cách xử lý |
+| Nhóm món khi không có dữ liệu mẫu | Ban đầu không có nhóm nào nên quản lý không thêm được món. Người dùng quyết định (2026-10-28): luôn có nhóm "Món khác"; đã thêm migration V11 và thử lại (dòng dưới) |
 | `scripts/demo-data.sh` trên project riêng có dữ liệu mẫu (cổng 8002, xóa sau khi thử; giờ đóng cửa dời sang 23:45 vì lúc thử đã gần 21:00) | 21/21 bước OK: 9 đơn ở đủ trạng thái; lý do hủy tiếng Việt lưu đúng; màn theo dõi đếm 7 pre-order, 2 walk-in, 1 đã nhận, 2 đã hủy |
 | Lần chạy đầu của script trên database của người dùng | Script tự dồn 21 điểm vào một khung quota 20; hệ thống **từ chối đúng** đơn thứ ba; đã sửa script (giảm điểm, bỏ qua các bước sau của đơn đặt hỏng). Database local của người dùng giữ 8 đơn demo của lần chạy này |
 
-**Quan sát cần người dùng quyết:** đơn walk-in xếp vào khung hiện tại (đã bắt đầu) nên bị gắn "Trễ" ngay khi tạo, đúng theo chữ của BR-26 nhưng có thể không đúng ý nghĩa vận hành.
+**Quan sát và quyết định:** đơn walk-in xếp vào khung hiện tại (đã bắt đầu) nên bị gắn "Trễ" ngay khi tạo. Người dùng quyết định (2026-10-28): walk-in chỉ trễ từ giờ kết thúc khung. Đã sửa BR-26 trong SRS, gom quy tắc trễ của hàng chờ bếp và màn theo dõi về một chỗ (`LateRule`), thêm TC-LATE-01, 02 và TC-MNG-09. Backend `./mvnw clean verify`: **437 test, Passed 437**, Checkstyle sạch.
+
+**Thử lại chế độ triển khai thật sau V11** (project Docker riêng, database mới, cổng 8001, xóa sau khi thử): 11 migration; quản lý đầu tiên được tạo; danh sách nhóm chỉ có "Món khác"; quản lý thêm món "Bánh mì trứng" vào nhóm đó, khách vãng lai thấy món trên thực đơn; khách tự đăng ký; quản lý tạo tài khoản bếp; khách đặt 2 phần; bếp bắt đầu, hoàn tất; thu tiền mặt, bàn giao đúng mã; khách thấy "đã nhận" tổng 40.000đ; màn theo dõi đếm 1 đơn đã nhận. **14/14 đúng.** Giờ đóng cửa được dời sang 23:45 bằng chức năng của quản lý vì lúc thử đã 20:57. Database của người dùng (cổng 8000) lên V11, có thêm nhóm "Món khác", 10 đơn cũ giữ nguyên.
 
 **Lưu ý khi thử bằng `curl` trên Git Bash:** gõ tiếng Việt trực tiếp trong lệnh có thể không được gửi dạng UTF-8 (ví dụ tên thành "Qu?y"); gửi bằng file UTF-8 thì đúng. Đây là lỗi của cách thử, không phải của ứng dụng; script demo gửi bằng file.
 
