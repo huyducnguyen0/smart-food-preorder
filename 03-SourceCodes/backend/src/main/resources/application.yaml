@@ -36,3 +36,4 @@ app:
     min-lead-minutes: 30
     prep-window-minutes: 15
     max-open-orders-per-customer: 3
+    no-show-grace-minutes: 30

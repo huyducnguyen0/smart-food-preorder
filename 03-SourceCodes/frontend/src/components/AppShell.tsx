@@ -28,8 +28,10 @@ export function AppShell() {
   const navigate = useNavigate()
 
   async function handleSignOut() {
-    await signOut()
+    // Rời trang hiện tại trước: nếu đăng xuất trước, trang có bảo vệ vai trò (ví dụ /orders/2) tự chuyển tới đăng nhập
+    // và nhớ địa chỉ cũ, người đăng nhập tiếp theo với vai trò khác sẽ bị đưa tới trang "Không có quyền".
     navigate('/', { replace: true })
+    await signOut()
   }
 
   if (user?.role === 'KITCHEN' || user?.role === 'COUNTER') {
@@ -78,17 +80,17 @@ export function AppShell() {
         </NavLink>
         {user?.role === 'MANAGER' && (
           <>
+            <NavLink to="/admin" end>
+              <Icon name="alert" />
+              Theo dõi
+            </NavLink>
             <NavLink to="/counter">
               <Icon name="receipt" />
               Quầy
             </NavLink>
-            <NavLink to="/admin/menu">
-              <Icon name="bag" />
-              Món
-            </NavLink>
-            <NavLink to="/admin/slots">
+            <NavLink to="/admin/manage">
               <Icon name="check" />
-              Quota
+              Quản lý
             </NavLink>
           </>
         )}

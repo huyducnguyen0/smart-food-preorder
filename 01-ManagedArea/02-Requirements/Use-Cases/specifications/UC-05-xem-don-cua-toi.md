@@ -41,7 +41,7 @@ Tên trạng thái hiển thị cho khách:
 Không thay đổi dữ liệu. Khách thấy trạng thái đơn tại thời điểm tải.
 
 ## Ghi chú và giới hạn
-- PB-14 (trang đơn tự cập nhật khi `READY`, không cần khách thao tác) để Sprint sau; cơ chế (gọi định kỳ hay đẩy từ server) quyết định khi đó.
+- PB-14 (trang đơn tự cập nhật khi `READY`) làm ở Sprint 3 (2026-10-28): trang chi tiết và danh sách **tự hỏi lại backend mỗi 15 giây** khi còn đơn chưa kết thúc (bỏ lượt khi tab ẩn); đơn vừa chuyển `READY` thì trang chi tiết hiện thông báo nổi bật. Không dùng email/SMS. Chọn gọi định kỳ thay vì đẩy từ server vì đơn giản, đủ cho cửa hàng nhỏ; độ trễ tối đa khoảng 15 giây (lựa chọn của AI, chưa xác nhận).
 - Đơn walk-in không thuộc tài khoản khách nên không xuất hiện ở đây.
 - Trong Sprint 1, khách chỉ thấy `CONFIRMED`, `PREPARING`, `READY` trong thực tế; các trạng thái còn lại xuất hiện khi có UC-09, UC-06/UC-11, UC-10.
 

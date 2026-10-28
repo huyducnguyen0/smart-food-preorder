@@ -141,6 +141,12 @@ Lập ở T-05 ngày 2026-10-10 cho phạm vi Sprint 1. UC-03 và UC-17 tách fi
 | [UC-01 Đăng ký tài khoản](specifications/UC-01-dang-ky-tai-khoan.md) (Sprint 2, đặc tả ngắn) | PB-19 | E1–E3 |
 | [UC-07 Tạo đơn walk-in](specifications/UC-07-tao-don-walk-in.md) (Sprint 2, đặc tả ngắn) | PB-11 | E1–E6 |
 | [UC-18 Đề xuất khung thay thế](specifications/UC-18-de-xuat-khung-thay-the.md) (Sprint 2, đặc tả ngắn) | PB-09 | E1 |
+| [UC-06 Khách hủy đơn](specifications/UC-06-khach-huy-don.md) (Sprint 3, đặc tả ngắn) | PB-10 | E1–E4 |
+| [UC-11 Cửa hàng hủy đơn](specifications/UC-11-cua-hang-huy-don.md) (Sprint 3, đặc tả ngắn) | PB-21 | E1–E4 |
+| [UC-10 Đánh dấu no-show](specifications/UC-10-danh-dau-no-show.md) (Sprint 3, đặc tả ngắn) | PB-18 | E1–E3 |
+| [UC-15 Quản lý tài khoản nhân viên](specifications/UC-15-quan-ly-tai-khoan-nhan-vien.md) (Sprint 3, đặc tả ngắn) | PB-20 | E1–E4 |
+| [UC-16 Theo dõi vận hành](specifications/UC-16-theo-doi-van-hanh.md) (Sprint 3, đặc tả ngắn) | PB-17 | E1–E2 |
+| PB-14 tự cập nhật trang đơn: ghi ở [UC-05](specifications/UC-05-xem-don-cua-toi.md) mục Ghi chú (Sprint 3) | PB-14 | — |
 
 Mỗi đặc tả có dòng "Story và AC" chỉ ra bước/luồng đáp ứng từng tiêu chí chấp nhận. Đối chiếu ngày 2026-10-10: đủ AC của 8 story Sprint 1; mọi BR được tham chiếu có trong SRS; trạng thái đơn khớp SRS B.5. Quyết định nghiệp vụ phát sinh khi đặc tả ghi thành BR-35–BR-38 trong SRS và RISK-13.
 

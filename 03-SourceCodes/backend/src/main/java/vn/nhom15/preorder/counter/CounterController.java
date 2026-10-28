@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import vn.nhom15.preorder.auth.CurrentUser;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
+import vn.nhom15.preorder.order.OrderCancellationService;
 import vn.nhom15.preorder.order.OrderDetail;
 import vn.nhom15.preorder.order.OrderPaymentService;
 import vn.nhom15.preorder.order.OrderStatus;
@@ -45,6 +46,11 @@ public class CounterController {
     /** Món nhân viên đang nhập cho khách walk-in. */
     public record EstimateRequest(@NotEmpty List<@Valid @NotNull RequestedLine> lines) {}
 
+    /** Lý do cửa hàng hủy đơn, bắt buộc (BR-24); khách pre-order sẽ thấy. */
+    public record CancelRequest(
+            @NotBlank(message = "Nhập lý do hủy") @jakarta.validation.constraints.Size(max = 500)
+            String reason) {}
+
     /** Kết quả ghi nhận thanh toán. */
     public record PaymentResult(long id, String paymentStatus, PaymentMethod paymentMethod) {}
 
@@ -52,16 +58,19 @@ public class CounterController {
     private final OrderPaymentService paymentService;
     private final OrderStatusService orderStatusService;
     private final WalkInService walkInService;
+    private final OrderCancellationService cancellationService;
 
     public CounterController(
             CounterService counterService,
             OrderPaymentService paymentService,
             OrderStatusService orderStatusService,
-            WalkInService walkInService) {
+            WalkInService walkInService,
+            OrderCancellationService cancellationService) {
         this.counterService = counterService;
         this.paymentService = paymentService;
         this.orderStatusService = orderStatusService;
         this.walkInService = walkInService;
+        this.cancellationService = cancellationService;
     }
 
     /** Đơn hôm nay đang xử lý, để quầy thu tiền và giao món. */
@@ -118,5 +127,20 @@ public class CounterController {
                     .body(result.order());
         }
         return ResponseEntity.ok(result.order());
+    }
+
+    /** UC-11: cửa hàng hủy đơn kèm lý do; quyền theo vai trò (BR-24). */
+    @PostMapping("/orders/{id}/cancel")
+    public HandoverResult cancel(
+            @PathVariable long id,
+            @Valid @RequestBody CancelRequest request,
+            @AuthenticationPrincipal CurrentUser user) {
+        return new HandoverResult(id, cancellationService.cancelByStore(id, user.id(), user.role(), request.reason()));
+    }
+
+    /** UC-10: đánh dấu đơn sẵn sàng quá hạn là không đến nhận (BR-25). */
+    @PostMapping("/orders/{id}/no-show")
+    public HandoverResult noShow(@PathVariable long id, @AuthenticationPrincipal CurrentUser user) {
+        return new HandoverResult(id, cancellationService.markNoShow(id, user.id()));
     }
 }

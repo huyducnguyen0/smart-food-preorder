@@ -40,19 +40,29 @@ public class RegistrationService {
      */
     @Transactional
     public CurrentUser register(RegisterRequest request) {
-        String loginId = AuthService.normalizeLoginId(request.loginId());
-        if (!EMAIL.matcher(loginId).matches() && !PHONE.matcher(loginId).matches()) {
-            throw invalid("loginId", "Email hoặc số điện thoại không đúng dạng");
-        }
-        if (request.password().getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
-            throw invalid("password", "Mật khẩu quá dài (tối đa 72 byte)");
-        }
+        String loginId = validLoginId(request.loginId());
+        checkPasswordLength(request.password());
         String displayName = request.displayName().strip();
         long id = accountRepository
                 .insertIfAbsent(loginId, passwordEncoder.encode(request.password()), displayName, Role.CUSTOMER)
                 .orElseThrow(() ->
                         new ApiException(ErrorCode.LOGIN_ID_TAKEN, "Email hoặc số điện thoại này đã có tài khoản"));
         return new CurrentUser(id, displayName, Role.CUSTOMER);
+    }
+
+    /** Định danh đã chuẩn hóa, đúng dạng email hoặc số điện thoại (BR-31, BR-32); dùng chung cho nhân viên. */
+    static String validLoginId(String raw) {
+        String loginId = AuthService.normalizeLoginId(raw);
+        if (!EMAIL.matcher(loginId).matches() && !PHONE.matcher(loginId).matches()) {
+            throw invalid("loginId", "Email hoặc số điện thoại không đúng dạng");
+        }
+        return loginId;
+    }
+
+    static void checkPasswordLength(String password) {
+        if (password.getBytes(StandardCharsets.UTF_8).length > MAX_PASSWORD_BYTES) {
+            throw invalid("password", "Mật khẩu quá dài (tối đa 72 byte)");
+        }
     }
 
     private static ApiException invalid(String field, String message) {

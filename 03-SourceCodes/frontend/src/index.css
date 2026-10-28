@@ -1102,6 +1102,81 @@ h1 {
   margin: 4px 0 12px;
 }
 
+/* Sprint 3: hủy đơn, no-show, nhân viên, theo dõi vận hành */
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+.cancel-box {
+  margin: 12px 0;
+}
+
+.c-cancel {
+  margin-top: 8px;
+  color: var(--danger);
+}
+
+.c-overdue {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--danger-bg);
+}
+
+.c-overdue p {
+  margin: 0 0 8px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin: 12px 0 16px;
+}
+
+.stat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.stat b {
+  display: block;
+  font-size: 24px;
+}
+
+.stat.alert-stat b {
+  color: var(--danger);
+}
+
+.usage-bar {
+  flex: 1 1 120px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.usage-bar span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+
+.staff-row.locked {
+  opacity: 0.6;
+}
+
+.manage-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

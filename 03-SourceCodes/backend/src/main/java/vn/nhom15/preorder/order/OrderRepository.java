@@ -122,6 +122,62 @@ public class OrderRepository {
     /** Ảnh chụp trạng thái đơn và tình trạng thanh toán, để giải thích vì sao một thao tác bị từ chối. */
     public record PaymentState(OrderStatus status, String paymentStatus) {}
 
+    /** Ảnh chụp một đơn đang bị khóa để đổi trạng thái (hủy, không đến nhận). */
+    public record LockedOrder(
+            long id,
+            Long customerId,
+            OrderSource source,
+            OrderStatus status,
+            long timeSlotId,
+            int workloadPoints,
+            LocalDateTime slotStart) {}
+
+    /**
+     * Khóa dòng đơn đến hết giao dịch và đọc những gì cần để quyết định hủy hay đánh dấu không đến nhận. Bếp đổi trạng
+     * thái cùng lúc phải chờ, rồi kiểm tra lại trạng thái mới nên không có hai thay đổi chồng nhau.
+     */
+    public Optional<LockedOrder> lockForChange(long orderId) {
+        return jdbcTemplate
+                .query(
+                        """
+                                SELECT o.id, o.customer_id, o.source, o.status, o.time_slot_id, o.workload_points,
+                                       s.slot_date, s.start_time
+                                FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                                WHERE o.id = ?
+                                FOR UPDATE OF o
+                                """,
+                        (rs, rowNum) -> new LockedOrder(
+                                rs.getLong("id"),
+                                rs.getObject("customer_id", Long.class),
+                                OrderSource.valueOf(rs.getString("source")),
+                                OrderStatus.valueOf(rs.getString("status")),
+                                rs.getLong("time_slot_id"),
+                                rs.getInt("workload_points"),
+                                LocalDateTime.of(
+                                        rs.getObject("slot_date", LocalDate.class),
+                                        rs.getObject("start_time", LocalTime.class))),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ghi hủy đơn đã khóa; {@code reason} null khi khách tự hủy. */
+    public void markCancelled(long orderId, long byUserId, String reason, OffsetDateTime at) {
+        jdbcTemplate.update("""
+                        UPDATE orders SET status = 'CANCELLED', cancelled_at = ?, cancelled_by = ?, cancel_reason = ?
+                        WHERE id = ?
+                        """, at, byUserId, reason, orderId);
+    }
+
+    /** Ghi đơn không đến nhận (đơn đã khóa). */
+    public void markNoShow(long orderId, long byUserId, OffsetDateTime at) {
+        jdbcTemplate.update(
+                "UPDATE orders SET status = 'NO_SHOW', no_show_at = ?, no_show_by = ? WHERE id = ?",
+                at,
+                byUserId,
+                orderId);
+    }
+
     /** Trạng thái hiện tại của đơn, rỗng nếu không có đơn. */
     public Optional<OrderStatus> findStatus(long orderId) {
         return jdbcTemplate.queryForList("SELECT status FROM orders WHERE id = ?", String.class, orderId).stream()
@@ -251,7 +307,7 @@ public class OrderRepository {
                 .query(
                         """
                                 SELECT o.id, o.pickup_code, s.slot_date, s.start_time, o.status, o.payment_status,
-                                       o.payment_method, o.total_amount, o.confirmed_at
+                                       o.payment_method, o.total_amount, o.confirmed_at, o.cancel_reason
                                 FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
                                 WHERE o.id = ? AND (CAST(? AS bigint) IS NULL OR o.customer_id = ?)
                                 """,
@@ -269,7 +325,8 @@ public class OrderRepository {
                                     rs.getString("payment_method"),
                                     rs.getInt("total_amount"),
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
-                                    lines);
+                                    lines,
+                                    rs.getString("cancel_reason"));
                         },
                         orderId,
                         customerId,

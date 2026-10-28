@@ -26,14 +26,17 @@ public class OrderController {
     private final PlaceOrderService placeOrderService;
     private final MyOrderService myOrderService;
     private final SlotAvailabilityService slotAvailabilityService;
+    private final OrderCancellationService cancellationService;
 
     public OrderController(
             PlaceOrderService placeOrderService,
             MyOrderService myOrderService,
-            SlotAvailabilityService slotAvailabilityService) {
+            SlotAvailabilityService slotAvailabilityService,
+            OrderCancellationService cancellationService) {
         this.placeOrderService = placeOrderService;
         this.myOrderService = myOrderService;
         this.slotAvailabilityService = slotAvailabilityService;
+        this.cancellationService = cancellationService;
     }
 
     /**
@@ -74,5 +77,14 @@ public class OrderController {
     @GetMapping("/{id}")
     public OrderDetail getMyOrder(@PathVariable long id, @AuthenticationPrincipal CurrentUser user) {
         return myOrderService.getOrder(user.id(), id);
+    }
+
+    /** Kết quả đổi trạng thái. */
+    public record StatusResult(long id, OrderStatus status) {}
+
+    /** UC-06: khách hủy đơn của mình khi còn được hủy (BR-23). */
+    @PostMapping("/{id}/cancel")
+    public StatusResult cancel(@PathVariable long id, @AuthenticationPrincipal CurrentUser user) {
+        return new StatusResult(id, cancellationService.cancelByCustomer(id, user.id()));
     }
 }

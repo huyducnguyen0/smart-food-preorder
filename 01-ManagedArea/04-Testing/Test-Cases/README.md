@@ -1,5 +1,5 @@
 # Test Cases
-Trạng thái: Black-box Sprint 1 đã thiết kế ở T-23 (2026-10-24): [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md), 131 test case, chưa chạy. Sprint 2: [BLACK_BOX_TEST_CASES_SPRINT_2.md](BLACK_BOX_TEST_CASES_SPRINT_2.md) (quản lý món, cấu hình, đăng ký, walk-in, khung thay thế; kèm ca của T-29, T-30).
+Trạng thái: Black-box Sprint 1 đã thiết kế ở T-23 (2026-10-24): [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md), 131 test case, chưa chạy. Sprint 2: [BLACK_BOX_TEST_CASES_SPRINT_2.md](BLACK_BOX_TEST_CASES_SPRINT_2.md) (quản lý món, cấu hình, đăng ký, walk-in, khung thay thế; kèm ca của T-29, T-30). Sprint 3: [BLACK_BOX_TEST_CASES_SPRINT_3.md](BLACK_BOX_TEST_CASES_SPRINT_3.md) (hủy đơn, no-show, tài khoản nhân viên, theo dõi, NFR-04).
 
 White-box cho logic giữ quota đã thiết kế ở T-24: [WHITE_BOX_QUOTA.md](WHITE_BOX_QUOTA.md) (Control Flow Graph, 5 đường độc lập, bảng giá trị biên, độ phủ đo được).
 

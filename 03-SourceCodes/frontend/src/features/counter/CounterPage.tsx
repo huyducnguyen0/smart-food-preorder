@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError } from '../../api/client'
+import type { Role } from '../../api/auth'
 import {
+  cancelStoreOrder,
   fetchCounterOrders,
   handOverOrder,
+  markNoShow,
   recordPayment,
   type CounterOrder,
   type PaymentMethod,
@@ -11,6 +14,8 @@ import { messageOf } from '../../api/errorMessages'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
 import { slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
+import { canStoreCancel } from '../../lib/storeRules'
+import { useAuth } from '../auth/useAuth'
 import { WalkInPanel } from './WalkInPanel'
 
 /** Tự làm mới mỗi 30 giây, như hàng chờ bếp. */
@@ -67,19 +72,82 @@ function HandoverForm({
   )
 }
 
-function OrderCard({
+/** Hủy kèm lý do bắt buộc (UC-11): bấm "Hủy đơn" mới hiện ô lý do để tránh hủy nhầm. */
+function CancelForm({
   order,
   busy,
-  onPay,
-  onHandOver,
+  onCancel,
 }: {
   order: CounterOrder
   busy: boolean
+  onCancel: (order: CounterOrder, reason: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [reason, setReason] = useState('')
+  if (!open) {
+    return (
+      <button
+        type="button"
+        className="link-btn c-cancel"
+        disabled={busy}
+        aria-label={`Hủy đơn ${order.pickupCode}`}
+        onClick={() => setOpen(true)}
+      >
+        Hủy đơn
+      </button>
+    )
+  }
+  return (
+    <form
+      className="c-handover"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onCancel(order, reason.trim())
+      }}
+    >
+      <input
+        type="text"
+        className="c-search"
+        placeholder="Lý do hủy (khách sẽ thấy)"
+        aria-label={`Lý do hủy đơn ${order.pickupCode}`}
+        maxLength={500}
+        value={reason}
+        onChange={(event) => setReason(event.target.value)}
+      />
+      <button
+        type="submit"
+        className="btn btn-danger"
+        disabled={busy || reason.trim() === ''}
+        aria-label={`Xác nhận hủy đơn ${order.pickupCode}`}
+      >
+        Xác nhận hủy
+      </button>
+      <button type="button" className="btn" onClick={() => setOpen(false)}>
+        Thôi
+      </button>
+    </form>
+  )
+}
+
+function OrderCard({
+  order,
+  busy,
+  role,
+  onPay,
+  onHandOver,
+  onCancel,
+  onNoShow,
+}: {
+  order: CounterOrder
+  busy: boolean
+  role: Role | undefined
   onPay: (order: CounterOrder, method: PaymentMethod) => void
   onHandOver: (order: CounterOrder, code: string) => void
+  onCancel: (order: CounterOrder, reason: string) => void
+  onNoShow: (order: CounterOrder) => void
 }) {
   return (
-    <li className="k-card">
+    <li className={`k-card${order.overdue ? ' late' : ''}`}>
       <div className="k-card-head">
         <strong className="k-code">{order.pickupCode}</strong>
         <span className="k-time">{slotRange(order.slotStart, order.slotEnd)}</span>
@@ -136,15 +204,32 @@ function OrderCard({
       {order.paymentStatus === 'UNPAID' && order.status === 'READY' && (
         <p className="muted c-hint">Đơn sẵn sàng. Thu tiền trước khi bàn giao.</p>
       )}
+      {order.overdue && (
+        <div className="c-overdue">
+          <p>Quá hạn nhận: khách chưa đến sau giờ kết thúc khung và thời gian chờ.</p>
+          <button
+            type="button"
+            className="btn"
+            disabled={busy}
+            aria-label={`Đánh dấu không đến nhận đơn ${order.pickupCode}`}
+            onClick={() => onNoShow(order)}
+          >
+            Không đến nhận
+          </button>
+        </div>
+      )}
+      {canStoreCancel(order, role) && <CancelForm order={order} busy={busy} onCancel={onCancel} />}
     </li>
   )
 }
 
 /**
  * Màn hình quầy (UC-08): đơn hôm nay còn đang xử lý, tìm theo mã nhận, ghi nhận thanh toán tiền mặt hoặc chuyển khoản
- * (BR-27); đơn sẵn sàng và đã thanh toán thì nhập mã khách đọc để bàn giao (UC-09, BR-29). Tự làm mới mỗi 30 giây.
+ * (BR-27); đơn sẵn sàng và đã thanh toán thì nhập mã khách đọc để bàn giao (UC-09, BR-29). Hủy đơn kèm lý do (UC-11,
+ * BR-24) và đánh dấu không đến nhận đơn quá hạn (UC-10, BR-25). Tự làm mới mỗi 30 giây.
  */
 export function CounterPage() {
+  const { user } = useAuth()
   const [state, setState] = useState<State>({ kind: 'loading' })
   const [tick, setTick] = useState(0)
   const [search, setSearch] = useState('')
@@ -212,6 +297,40 @@ export function CounterPage() {
     [reload],
   )
 
+  const handleCancel = useCallback(
+    async (order: CounterOrder, reason: string) => {
+      setBusyId(order.id)
+      setNotice(null)
+      try {
+        await cancelStoreOrder(order.id, reason)
+        setNotice(`Đã hủy đơn ${order.pickupCode}.`)
+      } catch (error) {
+        setNotice(`Đơn ${order.pickupCode}: ${messageOf(error)}`)
+      } finally {
+        setBusyId(null)
+        reload()
+      }
+    },
+    [reload],
+  )
+
+  const handleNoShow = useCallback(
+    async (order: CounterOrder) => {
+      setBusyId(order.id)
+      setNotice(null)
+      try {
+        await markNoShow(order.id)
+        setNotice(`Đã ghi nhận đơn ${order.pickupCode} không đến nhận.`)
+      } catch (error) {
+        setNotice(`Đơn ${order.pickupCode}: ${messageOf(error)}`)
+      } finally {
+        setBusyId(null)
+        reload()
+      }
+    },
+    [reload],
+  )
+
   const orders = state.kind === 'loading' ? null : state.orders
   const visible = useMemo(() => {
     const needle = search.trim().toUpperCase()
@@ -262,8 +381,11 @@ export function CounterPage() {
               key={order.id}
               order={order}
               busy={busyId !== null}
+              role={user?.role}
               onPay={handlePay}
               onHandOver={handleHandOver}
+              onCancel={handleCancel}
+              onNoShow={handleNoShow}
             />
           ))}
         </ul>
