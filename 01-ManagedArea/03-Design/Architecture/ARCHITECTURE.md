@@ -228,7 +228,11 @@ Quyết định:
 - **Thông báo lỗi**: bảng ánh xạ `code` → câu tiếng Việt ở `src/api/errorMessages.ts`.
 
 ## 7. Môi trường chạy
-Sprint 1 chỉ chạy local như hướng dẫn ở [03-SourceCodes](../../../03-SourceCodes/README.md): Vite dev server (5173) chuyển `/api` sang Spring Boot (8080), PostgreSQL trong Docker (5433). Cách đóng gói và triển khai lên máy chủ chưa thuộc phạm vi; quyết định khi lập kế hoạch release.
+Hai cách chạy, hướng dẫn ở [03-SourceCodes](../../../03-SourceCodes/README.md):
+- **Phát triển**: Vite dev server (5173) chuyển `/api` sang Spring Boot (8080) chạy trên máy, PostgreSQL trong Docker (5433).
+- **Toàn hệ thống trong container** (chuẩn bị phát hành, 2026-10-28): `docker compose --profile app up -d --build --wait` dựng ba container. `frontend` là nginx phục vụ bản build React và chuyển tiếp `/api` tới `backend`, nên trình duyệt chỉ thấy một origin (cổng `APP_PORT`, mặc định 8000) như khi dùng proxy của Vite, cookie phiên và CSRF không đổi, không cần CORS. `backend` là jar Spring Boot chạy bằng JRE 25, người dùng không phải root, không mở cổng ra máy host; Flyway áp migration khi khởi động. `db` là PostgreSQL 18 với volume `pgdata`. Dữ liệu mẫu bật mặc định cho demo, tắt bằng `FLYWAY_LOCATIONS=classpath:db/migration`.
+
+Chưa có: HTTPS (cookie phiên chưa đặt `Secure`), máy chủ triển khai thật, sao lưu database, CI. Các việc này cần khi đưa lên máy chủ thật.
 
 ## 8. Kiểm tra NFR-05
 NFR-05 yêu cầu đặt đơn, điều phối quota và luồng bếp/bàn giao tách trách nhiệm. Kiến trúc đáp ứng bằng:

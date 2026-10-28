@@ -5,15 +5,16 @@ Quy trình: task → tạo/checkout branch, pull mới nhất → implement → 
 
 Output: source code, commit history, Pull Request và reviewed/merged code.
 
-Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend, frontend, database chạy local và endpoint `/api/health`; chưa có chức năng nghiệp vụ. Coding convention và formatter/linter chốt ở T-02: [CODING_CONVENTION.md](CODING_CONVENTION.md). Kiến trúc package chốt ở T-08; schema database thiết kế ở T-09.
+Trạng thái: khung dự án dựng ở task T-03 (Sprint 1); chức năng nghiệp vụ làm qua Sprint 1–3. Từ bước chuẩn bị phát hành (2026-10-28) chạy được toàn bộ hệ thống trong container bằng một lệnh (mục Chạy toàn bộ hệ thống bằng Docker). Coding convention và formatter/linter chốt ở T-02: [CODING_CONVENTION.md](CODING_CONVENTION.md). Kiến trúc package chốt ở T-08; schema database thiết kế ở T-09.
 
 ## Cấu trúc
 ```text
 03-SourceCodes/
 ├── CODING_CONVENTION.md  # Quy ước code, formatter, linter (T-02)
-├── compose.yaml          # PostgreSQL cho môi trường local (Docker Compose)
+├── compose.yaml          # PostgreSQL (mặc định); thêm backend + frontend với --profile app
 ├── .env.example          # Mẫu cấu hình; copy thành .env (không commit .env)
 ├── backend/              # Spring Boot (Maven Wrapper)
+│   ├── Dockerfile        # Image chạy backend (build jar rồi chạy bằng JRE)
 │   ├── mvnw, mvnw.cmd    # Maven Wrapper: tự tải Maven, không cần cài Maven
 │   ├── pom.xml           # Thư viện, plugin Spotless (format) và Checkstyle (lint)
 │   ├── config/checkstyle/checkstyle.xml
@@ -29,7 +30,11 @@ Trạng thái: khung dự án dựng ở task T-03 (Sprint 1). Đã có backend,
 │       │   ├── db/migration/            # Flyway: cấu trúc bảng V1__init.sql, V2__..., ...
 │       │   └── db/seed/                 # Dữ liệu mẫu R__...sql (chỉ local/demo)
 │       └── test/java/...                # JUnit test; support/TestDatabase = PostgreSQL thật chạy trong test
+├── scripts/
+│   └── demo-data.sh      # Tạo đơn mẫu của hôm nay qua API để demo
 └── frontend/             # React + TypeScript (Vite)
+    ├── Dockerfile        # Image frontend: build React, nginx phục vụ file tĩnh
+    ├── nginx.conf        # nginx chuyển tiếp /api tới backend, mọi đường dẫn khác trả index.html
     ├── vite.config.ts    # Proxy /api → backend
     ├── .prettierrc.json  # Cấu hình Prettier (format)
     ├── .oxlintrc.json    # Cấu hình oxlint (lint)
@@ -101,6 +106,33 @@ Mở http://localhost:5173. Trang hiển thị Trạng thái chung `UP`, Databas
 
 **Dừng**: `Ctrl+C` ở terminal backend và frontend; `docker compose stop` để dừng database (giữ dữ liệu).
 
+## Chạy toàn bộ hệ thống bằng Docker (demo, chuẩn bị phát hành)
+Chỉ cần **Git** và **Docker Desktop** đang chạy; không cần JDK hay Node trên máy. Trong `03-SourceCodes/`:
+```bash
+cp .env.example .env
+docker compose --profile app up -d --build --wait
+```
+Lần đầu build mất vài phút (tải image nền, thư viện Maven và npm). Lệnh chờ tới khi cả ba container `healthy`/`running`. Mở http://localhost:8000 (đổi bằng `APP_PORT`) và đăng nhập bằng tài khoản mẫu.
+
+| Container | Nội dung | Cổng ra máy host |
+|---|---|---|
+| `db` | PostgreSQL 18, dữ liệu trong volume `pgdata` | `DB_PORT` (5433) |
+| `backend` | Spring Boot; Flyway tự áp migration khi khởi động | Không mở ra ngoài; chỉ frontend gọi tới |
+| `frontend` | nginx: trang React và chuyển tiếp `/api` tới backend | `APP_PORT` (8000) |
+
+- Xem log: `docker compose --profile app logs -f backend`.
+- Dừng, giữ dữ liệu: `docker compose --profile app stop`. Xóa container và **cả dữ liệu**: `docker compose --profile app down -v`.
+- Sửa code thì chạy lại lệnh `up ... --build` để build lại image.
+- Image không chạy test; chạy test bằng `./mvnw verify` và `npm test` trước khi merge (mục Kiểm thử).
+- Triển khai thật (không có dữ liệu mẫu): trong `.env` bỏ comment bốn dòng `FLYWAY_LOCATIONS`, `INITIAL_MANAGER_LOGIN_ID`, `INITIAL_MANAGER_PASSWORD`, `INITIAL_MANAGER_NAME` và đặt mật khẩu riêng; đổi `DB_PASSWORD`. Lần khởi động đầu, backend tạo tài khoản quản lý đầu tiên (log có dòng `Đã tạo tài khoản quản lý đầu tiên`); các lần sau đã có quản lý thì không làm gì. Giờ mở cửa 10:00–21:00 và quota 20 có sẵn từ migration V10, quản lý sửa lại ở màn "Quản lý → Giờ mở cửa và quota". Chưa có HTTPS (cần đặt phía trước khi đưa lên mạng).
+
+### Tạo dữ liệu demo
+Hệ thống đang chạy **có dữ liệu mẫu** thì chạy, trong `03-SourceCodes/`:
+```bash
+bash scripts/demo-data.sh
+```
+Script đăng nhập bằng các tài khoản mẫu và gọi API thật như người dùng: tạo 9 đơn của hôm nay ở đủ trạng thái (chờ bếp, đang làm, sẵn sàng chưa trả tiền, đã nhận, khách hủy, cửa hàng hủy kèm lý do, hai đơn walk-in) rồi in bảng mã nhận. Chạy ngay trước buổi demo, trong giờ mở cửa và còn ít nhất khoảng 45 phút trước giờ đóng cửa (đơn đặt trước phải cách ít nhất 30 phút). Với cách chạy dev: `BASE_URL=http://localhost:5173 bash scripts/demo-data.sh`. Mỗi khách mẫu chỉ có tối đa 3 đơn chưa kết thúc nên chạy lại trong cùng ngày có thể bị từ chối; làm lại từ đầu bằng `docker compose --profile app down -v` (mất dữ liệu local) rồi `up` lại.
+
 ## Chạy nhanh không cần Docker (dùng để phát triển và thử tay)
 Nếu Docker Desktop chưa chạy được, backend vẫn chạy được trên một PostgreSQL 18 thật khởi động ngay trong tiến trình (cùng thư viện với test). Mỗi lần chạy tạo database mới có sẵn dữ liệu mẫu; tắt là mất dữ liệu.
 ```bash
@@ -129,6 +161,8 @@ Nếu báo lỗi định dạng, chạy `./mvnw spotless:apply` (backend) hoặc
 | `DB_PORT` | `5433` | Compose (cổng máy host), backend |
 | `DB_NAME`, `DB_USER`, `DB_PASSWORD` | `preorder`, `preorder`, `change-me-local-only` | Compose (tạo database lần đầu), backend |
 | `BACKEND_PORT` | `8080` | Backend, proxy của Vite |
+| `APP_PORT` | `8000` | Compose `--profile app`: cổng mở trang web |
+| `FLYWAY_LOCATIONS` | (không đặt: có dữ liệu mẫu) | Compose `--profile app`: thư mục migration backend nạp |
 
 Compose tự đọc `.env` cạnh `compose.yaml`; backend đọc qua `spring.config.import` trong `application.yaml`; Vite đọc qua `loadEnv` trong `vite.config.ts`. Biến môi trường hệ điều hành có cùng tên sẽ ghi đè giá trị trong `.env`.
 

@@ -3,7 +3,7 @@
 hide circle
 hide empty methods
 skinparam linetype ortho
-title Relational Schema — Sprint 1 (PostgreSQL)
+title Relational Schema — đến migration V10 (PostgreSQL)
 
 entity user_accounts {
   * id : bigint <<PK>>
@@ -76,8 +76,19 @@ entity orders {
   preparing_by : bigint <<FK>>
   ready_at : timestamptz
   ready_by : bigint <<FK>>
+  paid_at : timestamptz
+  paid_by : bigint <<FK>>
+  picked_up_at : timestamptz
+  picked_up_by : bigint <<FK>>
+  created_by : bigint <<FK>>
+  cancelled_at : timestamptz
+  cancelled_by : bigint <<FK>>
+  cancel_reason : varchar(500)
+  no_show_at : timestamptz
+  no_show_by : bigint <<FK>>
   ..
   <<UQ>> (customer_id, request_id)
+  <<UQ>> (request_id) khi WALK_IN
 }
 
 entity order_lines {
@@ -97,5 +108,5 @@ user_accounts |o--o{ orders : customer_id
 time_slots ||--o{ orders
 orders ||--|{ order_lines
 menu_items ||--o{ order_lines
-user_accounts |o..o{ orders : preparing_by,\nready_by
+user_accounts |o..o{ orders : preparing_by, ready_by, paid_by,\npicked_up_by, created_by, cancelled_by, no_show_by
 @enduml

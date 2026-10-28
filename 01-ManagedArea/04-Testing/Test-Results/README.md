@@ -112,3 +112,38 @@ Mọi yêu cầu trả thành công (200/201); p95 mọi loại dưới ngưỡn
 
 **Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
 
+## Lượt 2026-10-28: chạy toàn hệ thống bằng Docker (chuẩn bị phát hành)
+Nhánh `release/v1-prep` (dựa trên nhánh Sprint 3). Mục đích: kiểm tra bản đóng gói chạy được trọn vẹn, không thay cho bộ test tự động ở lượt Sprint 3.
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Docker Engine 29.6.2; image `eclipse-temurin:25`, `node:24-alpine`, `nginx:1.29-alpine`, `postgres:18-alpine` |
+| Build và khởi động | `docker compose --profile app up -d --build --wait`: cả ba container chạy, `backend` `healthy`. Database dev có sẵn (schema V5) được Flyway nâng lên V9 khi backend khởi động |
+| Đường đi qua nginx (cổng 8000) | `/api/health` trả `UP`, schema 9; mở thẳng `/orders/2` trả trang React (định tuyến phía trình duyệt) |
+| Vòng đời đơn qua HTTP | Script thử 14 bước qua cổng 8000: khách đăng nhập, xem menu, đặt đơn; bếp bắt đầu, hoàn tất; khách thấy `READY`; quầy thu tiền mặt, bàn giao đúng mã; đặt đơn thứ hai rồi khách hủy; quản lý xem theo dõi và nhân viên; khách bị chặn ở API quản lý (403); đăng xuất. **14/14 đúng** |
+| Giữ dữ liệu | Khởi động lại container `backend`: đơn đã tạo vẫn còn (database ở volume `pgdata`) |
+| Trình duyệt | Quản lý đăng nhập qua cổng 8000, mở thẳng `/admin` vẫn giữ phiên, số liệu khớp (1 đã nhận, 1 đã hủy) |
+| Kích thước image | backend 531 MB, frontend 94 MB |
+
+**Lỗi phát hiện và đã sửa:** healthcheck của backend ban đầu chạy bằng `sh` (không hỗ trợ `/dev/tcp`) nên container bị báo `unhealthy` dù backend chạy đúng; đổi sang `bash`.
+
+**Giới hạn:** script thử 14 bước chạy tay, chưa đưa vào repository; chưa thử chế độ không có dữ liệu mẫu (`FLYWAY_LOCATIONS`); không có HTTPS; chưa chạy trên máy khác ngoài máy phát triển.
+
+### Bổ sung 2026-10-28: chế độ triển khai không có dữ liệu mẫu, dữ liệu demo
+Khi rà soát database theo yêu cầu của người dùng, phát hiện chế độ triển khai không nạp dữ liệu mẫu (`FLYWAY_LOCATIONS=classpath:db/migration`, hướng dẫn ở lượt trên) **không dùng được**: không có tài khoản quản lý nào và không có dòng cấu hình cửa hàng. Đã sửa bằng migration V10 (cấu hình cửa hàng mặc định) và tạo quản lý đầu tiên từ biến môi trường `INITIAL_MANAGER_*` lúc khởi động (BR-32), kèm 5 test (`InitialManagerProvisionerTest`) trên PostgreSQL thật không có dữ liệu mẫu. Backend `./mvnw clean verify`: **432 test, Passed 432**, Checkstyle sạch. Một test cũ (`SlotRepositoryTest`) giả định database không dữ liệu mẫu thì thiếu cấu hình cửa hàng; đã sửa test để tự xóa dòng cấu hình trước khi kiểm nhánh lỗi.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Project Docker riêng, database mới, không dữ liệu mẫu (cổng 8001, xóa sau khi thử) | 10 migration; log "Đã tạo tài khoản quản lý đầu tiên"; quản lý đăng nhập được; tài khoản mẫu `khach1` không tồn tại (401); khung hôm nay có từ cấu hình V10; quản lý tạo được tài khoản quầy; khách tự đăng ký được |
+| Khởi động lại với `INITIAL_MANAGER_*` khác | Không tạo quản lý thứ hai |
+| Database có sẵn của người dùng (cổng 8000) | Nâng lên V10, dữ liệu giữ nguyên, không tạo thêm quản lý |
+| Nhóm món khi không có dữ liệu mẫu | Ban đầu không có nhóm nào nên quản lý không thêm được món. Người dùng quyết định (2026-10-28): luôn có nhóm "Món khác"; đã thêm migration V11 và thử lại (dòng dưới) |
+| `scripts/demo-data.sh` trên project riêng có dữ liệu mẫu (cổng 8002, xóa sau khi thử; giờ đóng cửa dời sang 23:45 vì lúc thử đã gần 21:00) | 21/21 bước OK: 9 đơn ở đủ trạng thái; lý do hủy tiếng Việt lưu đúng; màn theo dõi đếm 7 pre-order, 2 walk-in, 1 đã nhận, 2 đã hủy |
+| Lần chạy đầu của script trên database của người dùng | Script tự dồn 21 điểm vào một khung quota 20; hệ thống **từ chối đúng** đơn thứ ba; đã sửa script (giảm điểm, bỏ qua các bước sau của đơn đặt hỏng). Database local của người dùng giữ 8 đơn demo của lần chạy này |
+
+**Quan sát và quyết định:** đơn walk-in xếp vào khung hiện tại (đã bắt đầu) nên bị gắn "Trễ" ngay khi tạo. Người dùng quyết định (2026-10-28): walk-in chỉ trễ từ giờ kết thúc khung. Đã sửa BR-26 trong SRS, gom quy tắc trễ của hàng chờ bếp và màn theo dõi về một chỗ (`LateRule`), thêm TC-LATE-01, 02 và TC-MNG-09. Backend `./mvnw clean verify`: **437 test, Passed 437**, Checkstyle sạch.
+
+**Thử lại chế độ triển khai thật sau V11** (project Docker riêng, database mới, cổng 8001, xóa sau khi thử): 11 migration; quản lý đầu tiên được tạo; danh sách nhóm chỉ có "Món khác"; quản lý thêm món "Bánh mì trứng" vào nhóm đó, khách vãng lai thấy món trên thực đơn; khách tự đăng ký; quản lý tạo tài khoản bếp; khách đặt 2 phần; bếp bắt đầu, hoàn tất; thu tiền mặt, bàn giao đúng mã; khách thấy "đã nhận" tổng 40.000đ; màn theo dõi đếm 1 đơn đã nhận. **14/14 đúng.** Giờ đóng cửa được dời sang 23:45 bằng chức năng của quản lý vì lúc thử đã 20:57. Database của người dùng (cổng 8000) lên V11, có thêm nhóm "Món khác", 10 đơn cũ giữ nguyên.
+
+**Lưu ý khi thử bằng `curl` trên Git Bash:** gõ tiếng Việt trực tiếp trong lệnh có thể không được gửi dạng UTF-8 (ví dụ tên thành "Qu?y"); gửi bằng file UTF-8 thì đúng. Đây là lỗi của cách thử, không phải của ứng dụng; script demo gửi bằng file.
+

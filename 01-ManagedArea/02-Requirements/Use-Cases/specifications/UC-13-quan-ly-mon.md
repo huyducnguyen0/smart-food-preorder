@@ -25,7 +25,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 2 ngày 2026-10-28 theo chế
 Đơn đã xác nhận không đổi: dòng đơn lưu tên, giá; đơn lưu điểm lúc xác nhận (BR-05, BR-08).
 
 ## Ghi chú
-- Không quản lý tồn kho nguyên liệu (PB-03 AC4). Không quản lý nhóm món (dùng nhóm có sẵn).
+- Không quản lý tồn kho nguyên liệu (PB-03 AC4). Không quản lý nhóm món: nhóm mẫu (Burger, Gà rán, Đồ uống) chỉ có khi nạp dữ liệu mẫu; nhóm **"Món khác"** luôn có (migration V11, quyết định của người dùng ngày 2026-10-28) để quản lý luôn thêm được món, kể cả khi triển khai không có dữ liệu mẫu. Thực đơn của khách không hiện nhóm chưa có món đang bán.
 - Lựa chọn chưa xác nhận: có thao tác "bán lại" món đã ngừng bán (SRS không cấm, giúp sửa khi bấm nhầm).
 
 ## Output chuyển giao

@@ -46,6 +46,12 @@ public class AccountRepository {
                 .findFirst();
     }
 
+    /** Có ít nhất một tài khoản với vai trò này chưa (BR-32: quản lý đầu tiên). */
+    public boolean existsByRole(Role role) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject(
+                "SELECT EXISTS (SELECT 1 FROM user_accounts WHERE role = ?)", Boolean.class, role.name()));
+    }
+
     /** Một tài khoản nhân viên như quản lý thấy (không có mật khẩu). */
     public record StaffAccount(long id, String loginId, String displayName, Role role, boolean locked) {}
 

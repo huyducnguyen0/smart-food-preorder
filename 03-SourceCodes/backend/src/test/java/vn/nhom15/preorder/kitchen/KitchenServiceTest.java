@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import vn.nhom15.preorder.kitchen.KitchenService.Group;
+import vn.nhom15.preorder.order.LateRule;
+import vn.nhom15.preorder.order.OrderSource;
 import vn.nhom15.preorder.order.OrderStatus;
 
 /** Quy tắc chia nhóm và đánh dấu trễ của hàng chờ bếp (UC-12 bước 2; BR-21, BR-26) tại các giá trị biên. */
@@ -45,9 +47,37 @@ class KitchenServiceTest {
     }
 
     @Test
-    void orderIsLateFromTheMomentTheSlotStarts() {
-        assertThat(KitchenService.isLate(SLOT, SLOT.minusSeconds(1))).isFalse();
-        assertThat(KitchenService.isLate(SLOT, SLOT)).isTrue(); // BR-26: đã tới giờ bắt đầu khung là trễ
-        assertThat(KitchenService.isLate(SLOT, SLOT.plusMinutes(5))).isTrue();
+    void preOrderIsLateFromTheMomentTheSlotStarts() {
+        LocalDateTime end = SLOT.plusMinutes(15);
+        assertThat(LateRule.isLate(OrderStatus.CONFIRMED, OrderSource.PRE_ORDER, SLOT, end, SLOT.minusSeconds(1)))
+                .isFalse();
+        // BR-26: đã tới giờ bắt đầu khung là trễ
+        assertThat(LateRule.isLate(OrderStatus.CONFIRMED, OrderSource.PRE_ORDER, SLOT, end, SLOT))
+                .isTrue();
+        assertThat(LateRule.isLate(OrderStatus.PREPARING, OrderSource.PRE_ORDER, SLOT, end, SLOT.plusMinutes(5)))
+                .isTrue();
+    }
+
+    @Test
+    void walkInIsLateOnlyFromTheEndOfItsSlot() {
+        // Walk-in được xếp vào khung đang diễn ra: chỉ trễ khi đã qua giờ kết thúc khung (quyết định 2026-10-28).
+        LocalDateTime end = SLOT.plusMinutes(15);
+        assertThat(LateRule.isLate(OrderStatus.CONFIRMED, OrderSource.WALK_IN, SLOT, end, SLOT.plusMinutes(5)))
+                .isFalse();
+        assertThat(LateRule.isLate(OrderStatus.PREPARING, OrderSource.WALK_IN, SLOT, end, end.minusSeconds(1)))
+                .isFalse();
+        assertThat(LateRule.isLate(OrderStatus.CONFIRMED, OrderSource.WALK_IN, SLOT, end, end))
+                .isTrue();
+    }
+
+    @Test
+    void readyOrFinishedOrdersAreNeverLate() {
+        LocalDateTime later = SLOT.plusHours(2);
+        for (OrderStatus status :
+                new OrderStatus[] {OrderStatus.READY, OrderStatus.PICKED_UP, OrderStatus.CANCELLED, OrderStatus.NO_SHOW
+                }) {
+            assertThat(LateRule.isLate(status, OrderSource.PRE_ORDER, SLOT, SLOT.plusMinutes(15), later))
+                    .isFalse();
+        }
     }
 }

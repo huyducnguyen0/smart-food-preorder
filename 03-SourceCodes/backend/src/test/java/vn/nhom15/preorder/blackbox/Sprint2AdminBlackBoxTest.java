@@ -36,7 +36,9 @@ class Sprint2AdminBlackBoxTest extends BlackBoxBase {
         Res menu = get("/api/admin/menu", login("quanly@example.com"));
 
         assertThat(menu.status()).isEqualTo(200);
-        assertThat(menu.<List<String>>at("$.categories[*].name")).containsExactly("Burger", "Gà rán", "Đồ uống");
+        // "Món khác" luôn có từ V11 (quyết định 2026-10-28), xếp cuối.
+        assertThat(menu.<List<String>>at("$.categories[*].name"))
+                .containsExactly("Burger", "Gà rán", "Đồ uống", "Món khác");
         assertThat(menu.<List<String>>at("$.items[*].name"))
                 .contains("Combo cũ")
                 .hasSize(8);

@@ -120,7 +120,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-23 | Khách hủy được đơn của mình khi đơn còn `CONFIRMED` và chưa vào cửa sổ chuẩn bị (BR-21). Hoàn toàn bộ điểm quota. | Quyết định 2026-10-08 |
 | BR-24 | Quản lý hủy được đơn `CONFIRMED` hoặc `PREPARING`; nhân viên quầy hủy được đơn walk-in `CONFIRMED`. Bắt buộc nhập lý do; khách pre-order thấy lý do. Hủy từ `CONFIRMED` thì hoàn toàn bộ điểm; hủy từ `PREPARING` thì không hoàn. | Quyết định 2026-10-08 |
 | BR-25 | Đơn `READY` quá giờ kết thúc khung + 30 phút (cấu hình được) thì quầy hoặc quản lý được đánh dấu `NO_SHOW` bằng tay. Không hoàn quota. | Quyết định 2026-10-08 |
-| BR-26 | Đơn trễ: đơn `CONFIRMED` hoặc `PREPARING` khi đã qua giờ bắt đầu khung nhận. Hệ thống chỉ hiển thị, không chặn thao tác. | NT9; quyết định 2026-10-08 |
+| BR-26 | Đơn trễ: đơn `CONFIRMED` hoặc `PREPARING` khi đã qua giờ bắt đầu khung nhận; riêng đơn walk-in (được xếp vào khung đang diễn ra) tính từ giờ **kết thúc** khung. Hệ thống chỉ hiển thị, không chặn thao tác. | NT9; quyết định 2026-10-08; ngoại lệ walk-in: quyết định 2026-10-28 |
 
 **Thanh toán và bàn giao**
 | ID | Quy tắc | Nguồn |

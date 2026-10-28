@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.nhom15.preorder.config.OrderingProperties;
+import vn.nhom15.preorder.order.LateRule;
+import vn.nhom15.preorder.order.OrderSource;
+import vn.nhom15.preorder.order.OrderStatus;
 import vn.nhom15.preorder.slot.AdminSlotService;
 
 /**
@@ -18,7 +22,7 @@ import vn.nhom15.preorder.slot.AdminSlotService;
 @Service
 public class DashboardService {
 
-    /** Một đơn đang xử lý, kèm cờ trễ. */
+    /** Một đơn đang xử lý, kèm cờ trễ theo {@link LateRule}. */
     public record DashboardOrder(
             long id,
             String pickupCode,
@@ -47,11 +51,17 @@ public class DashboardService {
 
     private final DashboardRepository repository;
     private final AdminSlotService adminSlotService;
+    private final OrderingProperties properties;
     private final Clock clock;
 
-    public DashboardService(DashboardRepository repository, AdminSlotService adminSlotService, Clock clock) {
+    public DashboardService(
+            DashboardRepository repository,
+            AdminSlotService adminSlotService,
+            OrderingProperties properties,
+            Clock clock) {
         this.repository = repository;
         this.adminSlotService = adminSlotService;
+        this.properties = properties;
         this.clock = clock;
     }
 
@@ -68,8 +78,12 @@ public class DashboardService {
                         order.slotStart(),
                         order.status(),
                         order.source(),
-                        // BR-26: đơn xác nhận hoặc đang làm đã qua giờ bắt đầu khung là trễ.
-                        !"READY".equals(order.status()) && !now.isBefore(order.slotStart())))
+                        LateRule.isLate(
+                                OrderStatus.valueOf(order.status()),
+                                OrderSource.valueOf(order.source()),
+                                order.slotStart(),
+                                order.slotStart().plusMinutes(properties.slotMinutes()),
+                                now)))
                 .toList();
 
         Map<String, Integer> counts = repository.countBySourceAndStatus(today);
