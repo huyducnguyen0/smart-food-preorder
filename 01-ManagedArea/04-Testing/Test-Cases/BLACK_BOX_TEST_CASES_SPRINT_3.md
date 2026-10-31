@@ -1,5 +1,5 @@
 # Black-box Test Cases — Sprint 3
-Trạng thái: Thiết kế và chạy ở Sprint 3 ngày 2026-10-28 theo chế độ "mỗi lần prompt một Sprint"; người dùng chưa review. **28 ca, tất cả Passed** ở lượt chạy ngày 2026-10-28 ([Test Results](../Test-Results/README.md)).
+Trạng thái: Thiết kế và chạy ở Sprint 3 ngày 2026-10-28 theo chế độ "mỗi lần prompt một Sprint"; người dùng chưa review. **28 ca, tất cả Passed** (cộng 3 ca bước chuẩn bị phát hành và 7 ca sửa sau review 2026-10-31, cùng Passed) ở lượt chạy ngày 2026-10-28 ([Test Results](../Test-Results/README.md)).
 
 Như Sprint 2: ca test viết cùng lúc với code, mỗi ca **là** một test tự động gọi API HTTP thật trên PostgreSQL thật, tên test bắt đầu bằng ID ca; bảng dưới là tóm tắt. Dữ liệu và tài khoản như mục 2 của [Sprint 1](BLACK_BOX_TEST_CASES.md); giờ hiện tại mặc định 11:00, cửa sổ chuẩn bị 15 phút, thời gian chờ no-show 30 phút. Phần giao diện (nút hủy, tự cập nhật, màn quầy, nhân viên, theo dõi) kiểm bằng test frontend `features/sprint3.test.tsx` (15 test), không lặp lại ở đây.
 
@@ -78,4 +78,19 @@ Theo hai quyết định của người dùng cùng ngày. Test: `ReleasePrepBla
 | TC-LATE-01 | Walk-in khung 11:00 tạo lúc 11:00: chưa trễ lúc 11:05 và 11:14; từ 11:15 (hết khung) mới trễ, ở cả màn theo dõi và hàng chờ bếp (BR-26 sửa đổi) | Passed |
 | TC-LATE-02 | Pre-order giữ quy tắc cũ: khung 11:30 chưa trễ lúc 11:29, trễ từ 11:30, ở cả hai màn | Passed |
 | TC-MNG-09 | Nhóm "Món khác" luôn có; thực đơn khách không hiện nhóm trống; quản lý thêm món vào nhóm này thì khách thấy | Passed |
+
+## Sửa sau buổi review (2026-10-31)
+Các lỗi tìm thấy khi review lại luồng sản phẩm và cách sửa người dùng đã duyệt. Test: `ReviewFixesBlackBoxTest`. Test frontend: `features/reviewFixes.test.tsx`.
+
+| ID | Lỗi được kiểm | Kiểm chứng | Kết quả |
+|---|---|---|---|
+| TC-FIX-01 | Đơn tồn chặn khách (BR-37 sửa đổi) | 3 đơn chưa kết thúc của hôm qua không chặn khách đặt đơn hôm nay | Passed |
+| TC-FIX-02 | Đơn tồn không ai thấy | Màn quầy trả đơn tồn kèm cờ `stale`; màn theo dõi đếm `staleOpen`; quầy đánh dấu không đến nhận đơn sẵn sàng, quản lý hủy đơn chưa làm; dọn xong thì hết | Passed |
+| TC-FIX-03 | — | Đơn hôm nay không bị gắn cờ tồn | Passed |
+| TC-FIX-04 | Khách tự hủy đơn đã trả tiền (BR-23 sửa đổi) | Khách bị từ chối (`reason` = `PAID`), đơn và điểm giữ nguyên; cửa hàng hủy kèm lý do được, hoàn điểm | Passed |
+| TC-FIX-05 | Khóa tài khoản không có tác dụng với phiên đang mở (BR-32) | Bếp đang mở màn hình, quản lý khóa: yêu cầu kế tiếp 401, phiên bị hủy; người khác không ảnh hưởng; mở khóa thì đăng nhập lại được | Passed |
+| TC-FIX-06 | Đổi giờ cùng lúc đặt đơn lọt đơn ngoài giờ (BR-11) | 15 vòng: khách đặt khung 20:45 đồng thời quản lý rút giờ đóng cửa về 20:45; không vòng nào cả hai cùng thành công. **Gỡ chỗ sửa thì test thất bại ngay vòng 1** | Passed |
+| TC-FIX-07 | Bếp bắt đầu quá sớm (BR-21 sửa đổi) | Khung 12:00: lúc 11:00 và 11:44 bị từ chối (`PREPARATION_TOO_EARLY`, `allowedFrom` 11:45), khách vẫn tự hủy được; từ 11:45 bắt đầu được | Passed |
+
+Ca cũ sửa theo quy tắc mới: **TC-KIT-25** đổi từ "bếp được bắt đầu đơn sắp tới" thành "bị từ chối"; **TC-PAY-11** danh sách quầy có thêm đơn tồn đứng đầu; TC-KIT-13 → 23, TC-HAND-11, TC-ORD-17 đưa đồng hồ thử tới thời gian chuẩn bị trước khi bếp bấm "Bắt đầu".
 

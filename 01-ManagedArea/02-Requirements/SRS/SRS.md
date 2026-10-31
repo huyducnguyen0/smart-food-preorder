@@ -99,7 +99,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-17 | Gửi lại cùng một yêu cầu đặt (do retry, bấm lặp) chỉ tạo tối đa một đơn và trả lại kết quả của đơn đó. | Proposal mục 8 |
 | BR-35 | Khi gửi đơn, hệ thống kiểm tra lại giá và tình trạng từng món. Nếu khác nội dung khách đang xem (giá đổi, món tạm hết hoặc ngừng bán) thì không tạo đơn, báo các món thay đổi để khách xem lại rồi gửi lại. Đơn lưu giá từng món tại thời điểm xác nhận; đổi giá sau đó không ảnh hưởng đơn đã xác nhận. | Quyết định 2026-10-10 |
 | BR-36 | Danh sách khung cho khách chỉ hiển thị "đặt được" hoặc "không đủ chỗ", tính theo điểm của giỏ hiện tại so với quota còn lại; không hiển thị con số quota hay điểm đã giữ. Khung không đủ chỗ vẫn hiện nhưng không chọn được. Kết quả hiển thị chỉ mang tính tham khảo; việc xác nhận cuối cùng theo BR-09 lúc gửi đơn. | Quyết định 2026-10-10 |
-| BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. | Quyết định 2026-10-10; N = 3 xác nhận 2026-10-11 |
+| BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) **có khung từ hôm nay trở đi** cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. Đơn chưa kết thúc của ngày đã qua (đơn tồn) không chặn khách; cửa hàng dọn ở màn quầy. | Quyết định 2026-10-10; N = 3 xác nhận 2026-10-11; chỉ tính từ hôm nay: 2026-10-31 |
 
 **Walk-in**
 | ID | Quy tắc | Nguồn |
@@ -111,13 +111,13 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 **Bếp và trạng thái đơn**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-21 | Đơn `CONFIRMED` thuộc nhóm "cần chuẩn bị" khi thời điểm hiện tại ≥ giờ bắt đầu khung − N phút (N = 15, cấu hình được); trước đó thuộc nhóm "sắp tới". Bếp vẫn được bắt đầu đơn sắp tới. | NT6 |
+| BR-21 | Đơn `CONFIRMED` thuộc nhóm "cần chuẩn bị" khi thời điểm hiện tại ≥ giờ bắt đầu khung − N phút (N = 15, cấu hình được); trước đó thuộc nhóm "sắp tới". Bếp chỉ được bắt đầu đơn đã vào nhóm "cần chuẩn bị" (thời gian chuẩn bị); bắt đầu sớm hơn sẽ lấy mất quyền tự hủy của khách (BR-23). | NT6; sửa đổi 2026-10-31: bỏ "bếp được bắt đầu đơn sắp tới" |
 | BR-22 | Hàng chờ bếp sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận. Cập nhật tiến độ theo cả đơn. | NT7; quyết định 2026-10-08 |
 
 **Hủy, no-show, trễ**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-23 | Khách hủy được đơn của mình khi đơn còn `CONFIRMED` và chưa vào cửa sổ chuẩn bị (BR-21). Hoàn toàn bộ điểm quota. | Quyết định 2026-10-08 |
+| BR-23 | Khách hủy được đơn của mình khi đơn còn `CONFIRMED`, **chưa thanh toán** và chưa vào cửa sổ chuẩn bị (BR-21). Hoàn toàn bộ điểm quota. Đơn đã thanh toán thì khách liên hệ cửa hàng; cửa hàng hủy kèm lý do (BR-24) để biết mà hoàn tiền (BR-30). | Quyết định 2026-10-08; điều kiện "chưa thanh toán" thêm 2026-10-31 |
 | BR-24 | Quản lý hủy được đơn `CONFIRMED` hoặc `PREPARING`; nhân viên quầy hủy được đơn walk-in `CONFIRMED`. Bắt buộc nhập lý do; khách pre-order thấy lý do. Hủy từ `CONFIRMED` thì hoàn toàn bộ điểm; hủy từ `PREPARING` thì không hoàn. | Quyết định 2026-10-08 |
 | BR-25 | Đơn `READY` quá giờ kết thúc khung + 30 phút (cấu hình được) thì quầy hoặc quản lý được đánh dấu `NO_SHOW` bằng tay. Không hoàn quota. | Quyết định 2026-10-08 |
 | BR-26 | Đơn trễ: đơn `CONFIRMED` hoặc `PREPARING` khi đã qua giờ bắt đầu khung nhận; riêng đơn walk-in (được xếp vào khung đang diễn ra) tính từ giờ **kết thúc** khung. Hệ thống chỉ hiển thị, không chặn thao tác. | NT9; quyết định 2026-10-08; ngoại lệ walk-in: quyết định 2026-10-28 |
@@ -135,7 +135,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | ID | Quy tắc | Nguồn |
 |---|---|---|
 | BR-31 | Khách tự đăng ký bằng email hoặc số điện thoại (duy nhất) và mật khẩu. | Quyết định 2026-10-08 |
-| BR-32 | Quản lý tạo, khóa và mở khóa tài khoản nhân viên quầy/bếp; tài khoản nhân viên đăng nhập bằng email hoặc số điện thoại như khách (xác nhận 2026-10-11). Tài khoản bị khóa không đăng nhập được. Tài khoản quản lý đầu tiên có sẵn khi cài đặt. | Quyết định 2026-10-08 |
+| BR-32 | Quản lý tạo, khóa và mở khóa tài khoản nhân viên quầy/bếp; tài khoản nhân viên đăng nhập bằng email hoặc số điện thoại như khách (xác nhận 2026-10-11). Tài khoản bị khóa không đăng nhập được, và phiên đang mở của tài khoản đó mất hiệu lực ngay ở thao tác kế tiếp. Tài khoản quản lý đầu tiên có sẵn khi cài đặt. | Quyết định 2026-10-08; hiệu lực với phiên đang mở: 2026-10-31 |
 | BR-33 | Mọi thao tác kiểm tra quyền theo vai trò và quyền sở hữu đơn tại nơi xử lý yêu cầu, không chỉ trên giao diện. | Proposal mục 8; RISK-07 |
 | BR-34 | Xem menu không cần đăng nhập. Thêm vào giỏ, đặt đơn và mọi thao tác khác (trừ đăng ký, đăng nhập) cần đăng nhập. | Quyết định 2026-10-10 |
 

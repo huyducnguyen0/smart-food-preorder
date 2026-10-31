@@ -1,6 +1,6 @@
 @startuml navigation-flow
 !include ../_style.iuml
-title Navigation Flow — Sprint 1
+title Navigation Flow — đến Sprint 3 (cập nhật 2026-10-31)
 hide empty description
 skinparam state {
   BackgroundColor #FFFFFF
@@ -9,37 +9,53 @@ skinparam state {
 
 state "Menu  /" as Menu
 state "Đăng nhập  /login" as Login
+state "Đăng ký  /register" as Register
 state "Giỏ hàng  /cart" as Cart
 state "Chọn giờ nhận  /checkout" as Checkout
 state "Chi tiết đơn  /orders/:id" as Detail
 state "Đơn của tôi  /orders" as MyOrders
 state "Hàng chờ bếp  /kitchen" as Kitchen
+state "Quầy  /counter" as Counter
+state "Theo dõi  /admin" as Dashboard
+state "Quản lý  /admin/manage" as Manage
+state "Món  /admin/menu" as AdminMenu
+state "Giờ và quota  /admin/slots" as AdminSlots
+state "Nhân viên  /admin/staff" as AdminStaff
 
 [*] --> Menu : mở trang
 Menu --> Login : "Đăng nhập" / khách vãng lai\nbấm "Thêm vào giỏ" (A3)
-Login --> Menu : Khách, Quầy, Quản lý
+Login --> Register : "Đăng ký"
+Register --> Menu : đăng ký xong (đăng nhập luôn)
+Login --> Menu : Khách, Quản lý
 Login --> Kitchen : Nhân viên bếp
-Login --> Cart : quay lại trang đang mở (E4),\nví dụ giỏ
+Login --> Counter : Nhân viên quầy
 
-Menu --> Cart : "Giỏ" trên thanh điều hướng
-Cart --> Menu : "Tiếp tục chọn món"
-Cart --> Checkout : "Chọn giờ nhận"\n(giỏ không trống)
-Checkout --> Cart : "Quay lại giỏ" / E7, E9
-Checkout --> Checkout : E6, E8: tải lại danh sách khung
-Checkout --> Detail : đặt thành công / A1\n(xóa giỏ)
-Checkout --> MyOrders : E5: liên kết "Đơn của tôi"
-
+Menu --> Cart : "Giỏ"
+Cart --> Checkout : "Chọn giờ nhận"
+Checkout --> Cart : E7, E9
+Checkout --> Checkout : E6, E8: tải lại khung,\nkhung gợi ý (UC-18)
+Checkout --> Detail : đặt thành công
 Menu --> MyOrders : "Đơn của tôi"
 MyOrders --> Detail : chọn một đơn
-Detail --> MyOrders : "Về Đơn của tôi"
+Detail --> Detail : tự làm mới 15 giây;\n"Hủy đơn" (UC-06)
 
-Kitchen --> Kitchen : Bắt đầu / Hoàn tất / tự làm mới
+Kitchen --> Kitchen : Bắt đầu (từ thời gian chuẩn bị)\n/ Hoàn tất / tự làm mới 30 giây
+Counter --> Counter : tạo walk-in, thu tiền, bàn giao,\nhủy, không đến nhận, đơn tồn
+
+Menu --> Dashboard : tab "Theo dõi" (Quản lý)
+Menu --> Counter : tab "Quầy" (Quản lý)
+Menu --> Manage : tab "Quản lý"
+Manage --> AdminMenu
+Manage --> AdminSlots
+Manage --> AdminStaff
+Dashboard --> Counter : có đơn tồn từ ngày trước
+Dashboard --> AdminSlots : "Giờ và quota"
 
 note right of Login
-  Mọi trang trừ Menu, Đăng nhập cần đăng nhập.
-  Chưa đăng nhập hoặc phiên hết hạn → Đăng nhập,
-  xong quay về trang đang mở (UC-02 E4).
+  Mọi trang trừ Menu, Đăng nhập, Đăng ký cần đăng nhập.
+  Chưa đăng nhập, phiên hết hạn hoặc tài khoản vừa bị khóa
+  → Đăng nhập (UC-02 E4, BR-32).
   Sai vai trò → trang "Không có quyền" (UC-02 E5).
-  "Đăng xuất" ở mọi trang → Menu (UC-02 bước 8).
+  "Đăng xuất" ở mọi trang → Menu.
 end note
 @enduml

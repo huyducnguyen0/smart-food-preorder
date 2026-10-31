@@ -157,12 +157,13 @@ Các bảng đạt dạng chuẩn 3 (3NF): mỗi cột không khóa phụ thuộ
 ## 3. Bất biến dữ liệu và cách bảo vệ
 | Bất biến | Bảo vệ bởi |
 |---|---|
+| Không có đơn mở nằm ngoài giờ mở cửa (BR-11) | Đặt đơn và walk-in lấy khóa chia sẻ dòng `store_settings` trước khi kiểm tra khung; đổi giờ lấy khóa ghi rồi mới đếm đơn (2026-10-31) |
 | Tổng điểm đang giữ của khung ≤ quota của khung (BR-09, NFR-01) | Câu `UPDATE` có điều kiện trên dòng `time_slots` trong giao dịch đặt đơn ([Class Design](../Class-Design/README.md) mục 3); thêm `CHECK` khi có quota riêng |
 | `held_points` = tổng `workload_points` của các đơn đang giữ quota (mọi đơn trừ đơn hủy từ `CONFIRMED`, nhận biết bằng `status = 'CANCELLED' AND preparing_at IS NULL`) | Chỉ `QuotaService` cộng/trừ, trong cùng giao dịch với tạo/hủy đơn (BR-10). Kiểm bằng truy vấn đối chiếu trong test (`assertHeldMatchesOrders`) |
 | Một mã yêu cầu tạo tối đa một đơn (BR-17, NFR-02) | Khóa dòng tài khoản khi đặt + `uq_orders_customer_id_request_id` làm lưới an toàn |
-| Tối đa N đơn chưa kết thúc mỗi khách (BR-37) | Khóa dòng tài khoản khi đặt rồi mới đếm |
+| Tối đa N đơn chưa kết thúc mỗi khách (BR-37), chỉ tính đơn có khung từ hôm nay (2026-10-31) | Khóa dòng tài khoản khi đặt rồi mới đếm (nối `time_slots` để lọc ngày) |
 | Mã nhận không trùng (BR-38) | `UNIQUE` + `CHECK` định dạng |
-| Chỉ chuyển trạng thái hợp lệ (SRS B.5) | `UPDATE … WHERE id = ? AND status = <trạng thái nguồn>` trong `OrderStatusService`; không thấy dòng nào bị đổi thì báo `INVALID_STATUS_TRANSITION` |
+| Chỉ chuyển trạng thái hợp lệ (SRS B.5) | `UPDATE … WHERE id = ? AND status = <trạng thái nguồn>` trong `OrderStatusService`, hoặc khóa dòng đơn rồi kiểm tra trong `OrderCancellationService` và lần bếp bắt đầu; không thấy dòng nào bị đổi thì báo `INVALID_STATUS_TRANSITION` |
 
 Ràng buộc trong database là lớp phòng vệ cuối: code đúng thì không bao giờ chạm tới, code sai thì bị chặn thay vì âm thầm ghi dữ liệu hỏng.
 

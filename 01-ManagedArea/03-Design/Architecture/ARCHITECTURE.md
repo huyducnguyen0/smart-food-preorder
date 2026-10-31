@@ -40,7 +40,7 @@ Mã nguồn chia theo **module nghiệp vụ** (package by feature) thay vì the
 | `config` | Clock, Spring Security, thuộc tính cấu hình | — | — |
 | `health` | `GET /api/health` (đã có từ T-03) | — | — |
 
-Sprint sau dự kiến thêm: `counter` (walk-in UC-07, thanh toán UC-08, bàn giao UC-09, no-show UC-10), `admin` (quản lý món UC-13, cấu hình UC-14, tài khoản UC-15, theo dõi UC-16). Walk-in gọi `QuotaService` của `slot` như pre-order; bàn giao, hủy và no-show gọi `OrderStatusService` của `order`.
+Đã thêm ở Sprint 1–3 (cập nhật 2026-10-31 cho khớp code): `counter` (màn quầy: thanh toán, bàn giao, walk-in, hủy, no-show), `report` (theo dõi UC-16, chỉ đọc). Quản lý món nằm trong `menu`, cấu hình giờ và quota trong `slot`, tài khoản nhân viên trong `auth` (không có module `admin` riêng; đường dẫn `/api/admin/**` chỉ là nhóm quyền). Walk-in gọi `QuotaService` của `slot` như pre-order. Chuyển trạng thái đơn nằm ở hai service của `order`: `OrderStatusService` (tiến độ: bếp bắt đầu, hoàn tất; quầy bàn giao) và `OrderCancellationService` (ngoại lệ: hủy, không đến nhận, có hoàn quota).
 
 ### Tầng trong một module
 | Tầng | Hậu tố | Được làm | Không được làm |
@@ -55,7 +55,7 @@ Dùng `JdbcTemplate` như T-03, không dùng JPA: các câu SQL quan trọng (gi
 ### Quy tắc phụ thuộc giữa module
 1. Chỉ gọi **Service** của module khác; không gọi Repository hay Controller của module khác.
 2. Phụ thuộc một chiều, không vòng: `kitchen → order → slot → menu`; `order → menu`; mọi module → `auth` (người dùng hiện tại), `common`, `config`.
-3. **Chỉ module `order` ghi bảng `orders`, `order_lines`.** Mọi chuyển trạng thái đơn đi qua `OrderStatusService`, nơi duy nhất cài bảng chuyển trạng thái SRS B.5. Module khác được đọc bằng truy vấn riêng (ví dụ `KitchenQueueRepository` chỉ `SELECT`).
+3. **Chỉ module `order` ghi bảng `orders`, `order_lines`.** Mọi chuyển trạng thái đơn đi qua hai service của `order`: `OrderStatusService` (tiến độ) và `OrderCancellationService` (hủy, không đến nhận). Mỗi chuyển chỉ thực hiện khi trạng thái hiện tại đúng trạng thái nguồn của SRS B.5 (câu cập nhật có điều kiện hoặc khóa dòng đơn rồi kiểm tra). Module khác được đọc bằng truy vấn riêng (ví dụ `KitchenQueueRepository` chỉ `SELECT`).
 4. **Chỉ module `slot` ghi `time_slots.held_points`**, qua `QuotaService`. Đây là cách đáp ứng NFR-05: quy tắc quota nằm ở một chỗ, pre-order và walk-in dùng chung.
 
 Các quy tắc này được kiểm khi review PR. Chưa dùng công cụ tự động kiểm phụ thuộc (ví dụ ArchUnit); xét lại khi có thêm module ở Sprint sau.
@@ -178,6 +178,8 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 
 **Sprint 3.** `OrderDetail` có thêm `cancelReason` (null nếu chưa hủy hoặc khách tự hủy). `CounterOrder` có thêm `overdue` (đơn `READY` đã qua giờ kết thúc khung + `app.ordering.no-show-grace-minutes`, mặc định 30). Hủy và no-show nằm ở `OrderCancellationService` (module `order`): khóa dòng đơn `FOR UPDATE`, kiểm tra quy tắc, đổi trạng thái, gọi `QuotaService.release` trong cùng giao dịch; `release` trừ `held_points` bằng câu `UPDATE … WHERE held_points >= ?`, không đủ thì ném lỗi để giao dịch hủy. Tài khoản nhân viên ở `StaffAccountService` (module `auth`, dùng lại kiểm tra định danh của đăng ký). Bảng theo dõi ở module mới `report`, chỉ đọc. `StaffAccount`: `id`, `loginId`, `displayName`, `role`, `locked`. `Dashboard`: `date`, `slots` (như `AdminSlot`), `activeOrders` (`id`, `pickupCode`, `slotStart`, `status`, `source`, `late`), `stats` (`preOrders`, `walkIns`, `pickedUp`, `cancelled`, `noShow`, `lateNow`, `heldPoints`, `quotaPoints`, `quotaUsagePercent`).
 
+**Sửa sau review (2026-10-31).** `CounterOrder` có thêm `stale` (đơn chưa kết thúc của ngày đã qua; `GET /api/counter/orders` trả cả các đơn này, đứng đầu). `KitchenOrder` có thêm `prepareFrom` (thời điểm được bắt đầu). `Dashboard.stats` có thêm `staleOpen`. `CANCEL_NOT_ALLOWED` kèm `reason` = `PAID` hoặc `PREPARATION_WINDOW`. Bộ lọc `LockedAccountFilter` (sau `SecurityContextHolderFilter`) hỏi `AuthService.isBlocked` ở mỗi yêu cầu đã đăng nhập; tài khoản bị khóa thì hủy phiên, trả 401 `UNAUTHENTICATED`. Kiểm tra khung hợp lệ (`checkBookable`, `checkWalkInSlot`) lấy khóa chia sẻ `store_settings` **trước** khi đọc giờ mở cửa, nên đổi giờ cùng lúc không lọt đơn ngoài giờ (BR-11).
+
 ### 5.3. Mã lỗi
 Phản hồi lỗi dạng:
 ```json
@@ -208,6 +210,7 @@ Phản hồi lỗi dạng:
 | 409 | `NO_SLOT_AVAILABLE` | Không còn khung nào hôm nay đủ chỗ cho đơn walk-in | UC-07 E1 |
 | 409 | `ORDER_NOT_PAYABLE` | Đơn đã bàn giao, hủy hoặc vắng mặt; kèm `currentStatus` | UC-08 E2 |
 | 409 | `CANCEL_NOT_ALLOWED` | Khách hủy khi đã vào cửa sổ chuẩn bị (kèm `cancelDeadline`); quầy hủy đơn pre-order | UC-06 E1, UC-11 E2 |
+| 409 | `PREPARATION_TOO_EARLY` | Bếp bắt đầu đơn chưa tới thời gian chuẩn bị; kèm `allowedFrom` | UC-12 E5 (2026-10-31) |
 | 409 | `NO_SHOW_TOO_EARLY` | Đơn chưa quá hạn chờ khách; kèm `allowedFrom` | UC-10 E1 |
 | 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
 

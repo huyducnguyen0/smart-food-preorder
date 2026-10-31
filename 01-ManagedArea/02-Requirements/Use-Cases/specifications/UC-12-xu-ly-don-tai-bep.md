@@ -31,8 +31,8 @@ Nhân viên bếp đã đăng nhập (UC-02).
 
 **UC-12.2 — Cập nhật tiến độ đơn**
 
-4. Nhân viên bếp: chọn "Bắt đầu" ở một đơn `CONFIRMED`, thuộc nhóm cần chuẩn bị hoặc sắp tới (bếp được bắt đầu đơn sắp tới, BR-21).
-5. Hệ thống: kiểm tra đơn **đang** ở `CONFIRMED`, chuyển sang `PREPARING`, ghi thời điểm và người thực hiện. Đơn chuyển sang nhóm "Đang làm".
+4. Nhân viên bếp: chọn "Bắt đầu" ở một đơn `CONFIRMED` thuộc nhóm cần chuẩn bị. Đơn sắp tới không có nút này; màn hình hiện "Bắt đầu được từ HH:mm" (BR-21, sửa đổi 2026-10-31).
+5. Hệ thống: khóa dòng đơn, kiểm tra đơn **đang** ở `CONFIRMED` và đã tới thời gian chuẩn bị, chuyển sang `PREPARING`, ghi thời điểm và người thực hiện. Đơn chuyển sang nhóm "Đang làm".
 6. Nhân viên bếp: khi làm xong cả đơn, chọn "Hoàn tất" ở đơn `PREPARING`.
 7. Hệ thống: kiểm tra đơn **đang** ở `PREPARING`, chuyển sang `READY`, ghi thời điểm và người thực hiện. Đơn rời hàng chờ bếp; khách thấy "Sẵn sàng nhận" ở UC-05; quầy thấy đơn ở danh sách bàn giao (UC-09, khi có).
 
@@ -40,10 +40,11 @@ Cập nhật theo **cả đơn**, không theo từng món (BR-22).
 
 ## Alternative Flow
 - **A1 — Hàng chờ trống** (bước 2): hiển thị "Chưa có đơn cần làm".
-- **E1 — Chuyển trạng thái không hợp lệ** (bước 5 hoặc 7): trạng thái hiện tại của đơn không còn như màn hình đang hiển thị. Ví dụ: hai nhân viên bếp cùng bấm "Bắt đầu" một đơn; đơn đã bị cửa hàng hủy (Sprint sau); màn hình đã cũ. Hệ thống không thay đổi đơn, báo trạng thái hiện tại và làm mới hàng chờ. Chỉ các chuyển `CONFIRMED → PREPARING` và `PREPARING → READY` được phép cho bếp (SRS B.5).
+- **E1 — Chuyển trạng thái không hợp lệ** (bước 5 hoặc 7): trạng thái hiện tại của đơn không còn như màn hình đang hiển thị. Ví dụ: hai nhân viên bếp cùng bấm "Bắt đầu" một đơn; đơn đã bị khách hoặc cửa hàng hủy; màn hình đã cũ. Hệ thống không thay đổi đơn, báo trạng thái hiện tại và làm mới hàng chờ. Chỉ các chuyển `CONFIRMED → PREPARING` và `PREPARING → READY` được phép cho bếp (SRS B.5).
 - **E2 — Không phải nhân viên bếp** (bước 4–7): tài khoản vai trò khác gọi thao tác chuyển trạng thái. Hệ thống từ chối, không thay đổi đơn (BR-33, PB-13 AC3, NFR-03).
 - **E3 — Không tải được hàng chờ hoặc lỗi khi cập nhật** (bước 2, 5, 7): báo lỗi, cho thử lại; trạng thái đơn không đổi nếu cập nhật thất bại.
 - **E4 — Phiên đăng nhập hết hạn**: UC-02 E4.
+- **E5 — Bắt đầu đơn chưa tới thời gian chuẩn bị** (bước 5, ví dụ gọi thẳng API): từ chối (`PREPARATION_TOO_EARLY`, kèm `allowedFrom`), đơn không đổi (2026-10-31).
 
 ## Postcondition
 - **Thành công (bước 5)**: đơn ở `PREPARING`, có thời điểm và người bắt đầu; quota vẫn giữ (BR-14).
