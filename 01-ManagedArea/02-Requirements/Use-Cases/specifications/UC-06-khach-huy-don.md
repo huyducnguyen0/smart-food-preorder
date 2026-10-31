@@ -13,7 +13,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 1. Khách: mở chi tiết một đơn `CONFIRMED` của mình (UC-05) và chọn "Hủy đơn".
 2. Hệ thống: hỏi lại để tránh bấm nhầm.
 3. Khách: xác nhận hủy.
-4. Hệ thống: khóa dòng đơn, kiểm tra đơn của khách, còn `CONFIRMED` và **chưa tới mốc** giờ bắt đầu khung trừ cửa sổ chuẩn bị (15 phút; khung 12:00 thì hủy được tới trước 11:45).
+4. Hệ thống: khóa dòng đơn, kiểm tra đơn của khách, còn `CONFIRMED`, chưa thanh toán và **chưa tới mốc** giờ bắt đầu khung trừ cửa sổ chuẩn bị (15 phút; khung 12:00 thì hủy được tới trước 11:45).
 5. Hệ thống: chuyển `CANCELLED`, ghi người hủy và thời điểm, **hoàn toàn bộ điểm** cho khung trong cùng giao dịch (BR-23). Trang hiện "Đã hủy", không còn nút hủy.
 
 ## Luồng lỗi
@@ -21,10 +21,12 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 - **E2 — Đơn không còn `CONFIRMED`** (bếp vừa bắt đầu, đã hủy trước đó): từ chối (`INVALID_STATUS_TRANSITION`).
 - **E3 — Đơn không phải của mình hoặc không có**: trả như không tồn tại (BR-33, NFR-03).
 - **E4 — Bấm hủy nhiều lần cùng lúc**: khóa dòng đơn nên chỉ một lần thành công, điểm chỉ hoàn một lần.
+- **E5 — Đơn đã thanh toán** (quầy đã thu tiền trước): từ chối (`CANCEL_NOT_ALLOWED`, `reason` = `PAID`); trang đơn không hiện nút hủy, hướng dẫn liên hệ cửa hàng để hủy và hoàn tiền (2026-10-31).
 
 ## Ghi chú
-- Lựa chọn chưa xác nhận: khách tự hủy không cần nhập lý do; nút hủy hiện với mọi đơn `CONFIRMED`, mốc thời gian do backend quyết (màn hình không tự tính để khỏi lệch giờ máy khách).
+- Lựa chọn chưa xác nhận: khách tự hủy không cần nhập lý do; nút hủy hiện với mọi đơn `CONFIRMED` chưa thanh toán, mốc thời gian do backend quyết (màn hình không tự tính để khỏi lệch giờ máy khách).
 - Đơn hủy không tính vào giới hạn 3 đơn chưa kết thúc (BR-37), nên khách đặt lại được ngay.
+- Bếp được làm trước (BR-21). Khi đó đơn chuyển `PREPARING` và khách hết quyền tự hủy (E2), dù chưa tới hạn. Trang đơn ghi "Bạn có thể tự hủy tới HH:mm nếu cửa hàng chưa bắt đầu làm món" (`cancelDeadline` trong chi tiết đơn) để khách biết trước (2026-10-31).
 
 ## Output chuyển giao
 `POST /api/orders/{id}/cancel`, migration V9, nút hủy ở trang chi tiết đơn, test TC-CAN-01 → 07.

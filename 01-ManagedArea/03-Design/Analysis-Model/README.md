@@ -99,6 +99,14 @@ Hai sơ đồ cho UC-04.2, phần có nhiều quy tắc và rủi ro nhất củ
 - **Vì sao các yêu cầu của cùng một khách xử lý lần lượt.** Cùng lý do ở mức khách: hai lần gửi đồng thời cùng mã yêu cầu có thể cùng thấy "chưa có đơn" (vi phạm BR-17). Tương tự, hai đơn khác nhau gửi đồng thời khi khách đang có 2 đơn có thể cùng thấy "mới 2 đơn" (vi phạm BR-37).
 - **E8 và E9 khác nhau.** E9 (đơn lớn hơn quota của cả khung) thì đổi khung nào cũng không được, nên khách quay lại giỏ để bớt món. E8 (khung vừa bị người khác giữ) thì khách quay lại chọn khung khác.
 
+### 4.3. Hủy đơn và hoàn quota (UC-06, UC-11; thêm 2026-10-31)
+![Sequence hủy đơn](sequence_UC-06-11_huy-don.svg)
+
+Điểm cần hiểu:
+- **Đổi trạng thái và hoàn điểm trong cùng một giao dịch.** Nếu hoàn điểm thất bại thì đơn cũng không bị hủy, nên điểm đang giữ của khung luôn bằng tổng điểm các đơn còn giữ quota.
+- **Khóa dòng đơn trước khi kiểm tra.** Khách bấm hủy hai lần, hay bếp bấm "Bắt đầu" đúng lúc khách hủy: bên đến sau phải chờ rồi đọc lại trạng thái mới, nên điểm chỉ hoàn một lần và không có đơn vừa "đang làm" vừa "đã hủy".
+- **Hủy từ "đang chuẩn bị" không hoàn điểm** vì bếp đã tốn công trong khung đó (BR-24).
+
 ## 5. Chuyển sang thiết kế
 Các câu hỏi mô hình phân tích đặt ra, trả lời ở bước sau:
 | Câu hỏi | Trả lời ở |

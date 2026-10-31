@@ -39,6 +39,15 @@ public class DashboardRepository {
                 day);
     }
 
+    /** Số đơn chưa kết thúc của các ngày trước {@code day}: cửa hàng cần dọn ở màn quầy. */
+    int countStaleOpenOrders(LocalDate day) {
+        Integer count = jdbcTemplate.queryForObject("""
+                        SELECT count(*) FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                        WHERE s.slot_date < ? AND o.status IN ('CONFIRMED', 'PREPARING', 'READY')
+                        """, Integer.class, day);
+        return count == null ? 0 : count;
+    }
+
     /** Số đơn của ngày theo cặp (nguồn, trạng thái). */
     Map<String, Integer> countBySourceAndStatus(LocalDate day) {
         Map<String, Integer> counts = new LinkedHashMap<>();

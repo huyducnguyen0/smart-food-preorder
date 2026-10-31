@@ -41,7 +41,8 @@ public class DashboardService {
             int lateNow,
             int heldPoints,
             int quotaPoints,
-            int quotaUsagePercent) {}
+            int quotaUsagePercent,
+            int staleOpen) {}
 
     public record Dashboard(
             LocalDate date,
@@ -103,7 +104,8 @@ public class DashboardService {
                 (int) active.stream().filter(DashboardOrder::late).count(),
                 held,
                 quota,
-                quota == 0 ? 0 : Math.round(held * 100f / quota));
+                quota == 0 ? 0 : Math.round(held * 100f / quota),
+                repository.countStaleOpenOrders(today));
         return new Dashboard(today, day.slots(), active, stats);
     }
 

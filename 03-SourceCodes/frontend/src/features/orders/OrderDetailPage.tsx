@@ -17,6 +17,13 @@ type State =
   | { kind: 'ready'; order: OrderDetail }
 
 function cancelErrorMessage(error: unknown): string {
+  if (
+    error instanceof ApiError &&
+    error.code === 'CANCEL_NOT_ALLOWED' &&
+    error.extra.reason === 'PAID'
+  ) {
+    return 'Đơn đã thanh toán nên không tự hủy được, vui lòng liên hệ cửa hàng để hủy và hoàn tiền.'
+  }
   if (error instanceof ApiError && error.code === 'CANCEL_NOT_ALLOWED') {
     const deadline =
       typeof error.extra.cancelDeadline === 'string' ? error.extra.cancelDeadline : null
@@ -25,7 +32,7 @@ function cancelErrorMessage(error: unknown): string {
       : 'Đơn đã vào thời gian chuẩn bị nên không tự hủy được, vui lòng liên hệ cửa hàng.'
   }
   if (error instanceof ApiError && error.code === 'INVALID_STATUS_TRANSITION') {
-    return 'Đơn đã thay đổi trạng thái nên không hủy được.'
+    return 'Cửa hàng đã bắt đầu làm món nên đơn không tự hủy được nữa, vui lòng liên hệ cửa hàng.'
   }
   return messageOf(error)
 }

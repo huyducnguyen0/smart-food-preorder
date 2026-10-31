@@ -1,6 +1,7 @@
 package vn.nhom15.preorder.order;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,7 +73,7 @@ public class PlaceOrderService {
         }
 
         // 3. Giới hạn đơn chưa kết thúc (E5, BR-37).
-        int openOrders = orderRepository.countOpenOrders(customerId);
+        int openOrders = orderRepository.countOpenOrders(customerId, LocalDate.now(clock));
         if (openOrders >= properties.maxOpenOrdersPerCustomer()) {
             throw new ApiException(
                             ErrorCode.OPEN_ORDER_LIMIT_REACHED,
@@ -169,6 +170,6 @@ public class PlaceOrderService {
         return orderRepository
                 .findDetail(orderId, customerId, properties.slotMinutes())
                 .orElseThrow(() -> new IllegalStateException("Không đọc lại được đơn vừa tạo: " + orderId))
-                .inZone(clock.getZone());
+                .inZone(clock.getZone(), properties.prepWindowMinutes());
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import vn.nhom15.preorder.auth.AuthService;
 import vn.nhom15.preorder.config.SecurityConfig;
 
 /**
@@ -26,6 +27,10 @@ class HealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    /** Bộ lọc tài khoản bị khóa (BR-32) hỏi AuthService ở mỗi yêu cầu; mock trả false: không bị khóa. */
+    @MockitoBean
+    AuthService authService;
 
     @MockitoBean
     private HealthService healthService;

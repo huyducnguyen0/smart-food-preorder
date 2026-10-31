@@ -49,7 +49,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 - **E2 — Không còn khung hợp lệ trong ngày** (bước 6): đã quá giờ hoặc khung cuối cách hiện tại dưới 30 phút. Hệ thống báo "Hôm nay không còn khung nhận"; giỏ được giữ. Kết thúc.
 - **E3 — Mọi khung hợp lệ đều không đủ chỗ** (bước 6): hệ thống báo hết chỗ trong ngày; giỏ được giữ để khách có thể bớt món. Quay lại bước 3 hoặc kết thúc.
 - **E4 — Giỏ lớn hơn quota của mọi khung** (bước 6): điểm giỏ vượt quota của từng khung, kể cả khung chưa có đơn. Hệ thống báo đơn quá lớn cho một khung và đề nghị liên hệ cửa hàng (BR-12). Quay lại bước 3 hoặc kết thúc.
-- **E5 — Đã đủ N đơn chưa kết thúc** (bước 8a): hệ thống từ chối, báo số đơn đang chờ và hướng dẫn xem ở "Đơn của tôi" (UC-05); giỏ được giữ (BR-37). Kết thúc.
+- **E5 — Đã đủ N đơn chưa kết thúc** (bước 8a): hệ thống từ chối, báo số đơn đang chờ và hướng dẫn xem ở "Đơn của tôi" (UC-05); giỏ được giữ (BR-37). Chỉ đếm đơn có khung từ hôm nay (2026-10-31). Kết thúc.
 - **E6 — Khung không còn hợp lệ** (bước 8b): khách để quá lâu, khung đã cách hiện tại dưới 30 phút. Hệ thống từ chối, báo khung không còn đặt được, quay lại bước 6 với danh sách mới.
 - **E7 — Món thay đổi so với giỏ** (bước 8c): có món đổi giá, tạm hết hoặc ngừng bán. Hệ thống không tạo đơn, báo từng món đã thay đổi, cập nhật giỏ (giá mới, bỏ món không còn bán) và quay lại bước 4 để khách xem lại rồi gửi lại (BR-35). Khách không bao giờ bị tính giá chưa thấy.
 - **E8 — Khung vừa hết chỗ** (bước 9, UC-17 E2): khung đặt được lúc hiển thị nhưng quota đã bị đơn khác giữ trước. Hệ thống không tạo đơn, báo khung vừa hết chỗ, quay lại bước 6 với trạng thái mới. *Điểm mở rộng UC-18 (Sprint sau): đề xuất tối đa 3 khung thay thế (BR-16).*

@@ -13,7 +13,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 1. Quản lý: mở "Quản lý" → "Tài khoản nhân viên".
 2. Hệ thống: liệt kê tài khoản **quầy và bếp** (tên, định danh, vai trò, đã khóa hay chưa). Không có mật khẩu, không có khách hay quản lý.
 3. **UC-15.1 Tạo**: quản lý nhập email hoặc số điện thoại, tên, mật khẩu ban đầu (≥ 8 ký tự), chọn vai trò Quầy hoặc Bếp. Hệ thống chuẩn hóa định danh như UC-01, lưu mật khẩu dạng băm, tài khoản dùng được ngay.
-4. **UC-15.2 Khóa**: tài khoản bị khóa không đăng nhập được nữa (`ACCOUNT_LOCKED`).
+4. **UC-15.2 Khóa**: tài khoản bị khóa không đăng nhập được nữa (`ACCOUNT_LOCKED`); phiên đang mở bị hủy ở thao tác kế tiếp.
 5. **UC-15.3 Mở khóa**: tài khoản đăng nhập lại được.
 
 ## Luồng lỗi
@@ -23,7 +23,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 - **E4 — Không phải quản lý**: 403.
 
 ## Ghi chú
-- **Giới hạn đã biết, chưa xác nhận**: khóa tài khoản chỉ chặn đăng nhập mới; phiên đang mở của người đó vẫn dùng được tới khi hết hạn (mặc định 30 phút không thao tác) hoặc đăng xuất. Muốn đá phiên ngay cần lưu phiên tập trung, để sau.
+- Khóa tài khoản có hiệu lực ngay cả với phiên đang mở (2026-10-31): mỗi yêu cầu đã đăng nhập kiểm tra lại tài khoản; bị khóa thì phiên bị hủy, trả 401 và màn hình chuyển về trang đăng nhập. Trước đó màn quầy và bếp tự làm mới 30 giây/lần nên phiên không bao giờ hết hạn, khóa không có tác dụng với màn đang mở.
 - Chưa có đổi mật khẩu, sửa tên hay xóa tài khoản (ngoài BR-32).
 
 ## Output chuyển giao

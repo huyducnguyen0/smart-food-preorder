@@ -20,6 +20,8 @@ import java.util.List;
  * @param confirmedAt thời điểm xác nhận
  * @param lines các dòng đơn
  * @param cancelReason lý do cửa hàng hủy đơn (BR-24); null nếu không bị cửa hàng hủy
+ * @param cancelDeadline hạn khách tự hủy: giờ bắt đầu khung trừ cửa sổ chuẩn bị (BR-23); khách chỉ hủy được trước mốc
+ *     này và khi cửa hàng chưa bắt đầu làm, chưa thu tiền
  */
 public record OrderDetail(
         long id,
@@ -32,10 +34,14 @@ public record OrderDetail(
         int totalAmount,
         OffsetDateTime confirmedAt,
         List<OrderLineView> lines,
-        String cancelReason) {
+        String cancelReason,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime cancelDeadline) {
 
-    /** Bản sao với thời điểm xác nhận biểu diễn theo múi giờ của cửa hàng (cùng thời điểm, khác cách viết). */
-    public OrderDetail inZone(ZoneId zone) {
+    /**
+     * Bản sao cho khách: thời điểm xác nhận theo múi giờ cửa hàng (cùng thời điểm, khác cách viết) và hạn tự hủy tính
+     * theo cửa sổ chuẩn bị.
+     */
+    public OrderDetail inZone(ZoneId zone, int prepWindowMinutes) {
         return new OrderDetail(
                 id,
                 pickupCode,
@@ -47,6 +53,7 @@ public record OrderDetail(
                 totalAmount,
                 confirmedAt.atZoneSameInstant(zone).toOffsetDateTime(),
                 lines,
-                cancelReason);
+                cancelReason,
+                slotStart.minusMinutes(prepWindowMinutes));
     }
 }

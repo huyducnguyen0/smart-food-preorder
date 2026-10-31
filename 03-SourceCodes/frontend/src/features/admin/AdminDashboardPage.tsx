@@ -76,6 +76,12 @@ export function AdminDashboardPage() {
 
       {data && (
         <>
+          {data.stats.staleOpen > 0 && (
+            <Alert kind="warning">
+              Có {data.stats.staleOpen} đơn tồn từ ngày trước chưa xử lý. Vào{' '}
+              <Link to="/counter">Quầy</Link> để hủy hoặc đánh dấu không đến nhận.
+            </Alert>
+          )}
           <section className="stat-grid" aria-label="Thống kê hôm nay">
             <Stat label="Đơn đặt trước" value={data.stats.preOrders} />
             <Stat label="Đơn tại quầy" value={data.stats.walkIns} />

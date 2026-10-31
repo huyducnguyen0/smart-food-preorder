@@ -11,7 +11,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 
 ## Main Flow
 1. Hệ thống: ở danh sách đơn của Quầy, gắn cờ **quá hạn nhận** cho đơn `READY` đã qua giờ kết thúc khung cộng thời gian chờ (30 phút, cấu hình `app.ordering.no-show-grace-minutes`). Khung 12:00–12:15 thì quá hạn từ 12:45.
-2. Quầy: thấy thẻ đơn có viền đỏ và nút "Không đến nhận".
+2. Quầy: thấy thẻ đơn có viền đỏ và nút "Không đến nhận". Đơn sẵn sàng của **ngày đã qua** nằm ở mục "Đơn tồn từ ngày trước" đầu màn hình (2026-10-31).
 3. Quầy: bấm nút.
 4. Hệ thống: khóa dòng đơn, kiểm tra lại `READY` và đã quá hạn; chuyển `NO_SHOW`, ghi người và thời điểm. **Không hoàn quota** (khung đã qua). Đơn rời danh sách quầy; khách thấy "Không đến nhận".
 

@@ -153,6 +153,8 @@ export type DayStats = {
   heldPoints: number
   quotaPoints: number
   quotaUsagePercent: number
+  /** Số đơn chưa kết thúc của các ngày trước, cần dọn ở màn Quầy. */
+  staleOpen: number
 }
 
 export type Dashboard = {

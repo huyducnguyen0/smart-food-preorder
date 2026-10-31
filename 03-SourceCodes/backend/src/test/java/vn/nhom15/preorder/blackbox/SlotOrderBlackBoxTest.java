@@ -415,6 +415,7 @@ class SlotOrderBlackBoxTest extends BlackBoxBase {
         long b = ((Number) order(kh1, "12:15", line("Burger bò", 1)).json("$.id")).longValue();
         order(kh1, "12:30", line("Burger bò", 1));
         MockHttpSession kitchen = login("bep1@example.com");
+        at("12:00"); // cả khung 12:00 và 12:15 đã vào thời gian chuẩn bị (BR-21)
         post("/api/kitchen/orders/" + a + "/start", kitchen, null);
         post("/api/kitchen/orders/" + b + "/start", kitchen, null);
         post("/api/kitchen/orders/" + b + "/complete", kitchen, null);

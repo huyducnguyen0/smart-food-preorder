@@ -8,9 +8,10 @@ import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
 
 /**
- * Nơi duy nhất đổi trạng thái đơn của bếp (Architecture mục 2). Chỉ cài hai bước SRS B.5 mà bếp được làm:
- * {@code CONFIRMED → PREPARING} và {@code PREPARING → READY}; mọi chuyển khác bị từ chối vì không có câu lệnh nào cho
- * phép. Cập nhật theo cả đơn, không theo từng món (BR-22). Quota vẫn giữ sau khi chuyển (BR-14).
+ * Các chuyển trạng thái theo tiến độ (SRS B.5): bếp {@code CONFIRMED → PREPARING → READY}, quầy bàn giao
+ * {@code READY → PICKED_UP}. Các chuyển ngoại lệ (hủy, không đến nhận) ở {@link OrderCancellationService}; cả hai đều
+ * thuộc module order (Architecture mục 2). Cập nhật theo cả đơn, không theo từng món (BR-22). Quota vẫn giữ sau khi
+ * chuyển (BR-14).
  */
 @Service
 public class OrderStatusService {
@@ -24,18 +25,26 @@ public class OrderStatusService {
     }
 
     /**
-     * Bếp bắt đầu làm đơn (UC-12 bước 4–5), kể cả đơn sắp tới (BR-21).
+     * Bếp bắt đầu làm đơn (UC-12 bước 4–5), kể cả đơn chưa tới thời gian chuẩn bị: quán tranh thủ làm trước lúc vắng để
+     * giảm quá tải giờ đông (BR-21, người dùng quyết định 2026-10-31). Đơn đã bắt đầu thì khách không tự hủy được nữa
+     * (BR-23); trang đơn ghi rõ điều kiện này. Khóa dòng đơn để không chen ngang lần hủy cùng lúc.
      *
-     * @throws ApiException {@code ORDER_NOT_FOUND} nếu không có đơn;
-     *     {@code INVALID_STATUS_TRANSITION} nếu đơn không còn
-     *     ở {@code CONFIRMED} (UC-12 E1)
+     * @throws ApiException {@code ORDER_NOT_FOUND} nếu không có đơn; {@code INVALID_STATUS_TRANSITION} nếu đơn không
+     *     còn ở {@code CONFIRMED} (UC-12 E1)
      */
     @Transactional
     public OrderStatus startPreparing(long orderId, long staffId) {
-        if (orderRepository.markPreparing(orderId, staffId, OffsetDateTime.now(clock))) {
-            return OrderStatus.PREPARING;
+        OrderRepository.LockedOrder order = orderRepository
+                .lockForChange(orderId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
+        if (order.status() != OrderStatus.CONFIRMED) {
+            throw new ApiException(
+                            ErrorCode.INVALID_STATUS_TRANSITION,
+                            "Đơn đang ở trạng thái " + order.status() + ", cần CONFIRMED mới chuyển được")
+                    .with("currentStatus", order.status());
         }
-        throw rejection(orderId, OrderStatus.CONFIRMED);
+        orderRepository.markPreparing(orderId, staffId, OffsetDateTime.now(clock));
+        return OrderStatus.PREPARING;
     }
 
     /**

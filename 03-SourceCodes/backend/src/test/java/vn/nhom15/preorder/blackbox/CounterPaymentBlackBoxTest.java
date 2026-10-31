@@ -199,7 +199,8 @@ class CounterPaymentBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-PAY-11 Danh sách của quầy: đơn hôm nay đang xử lý, đủ thông tin thu tiền, sắp theo khung")
+    @DisplayName(
+            "TC-PAY-11 Danh sách quầy: đơn hôm nay đang xử lý và đơn tồn ngày trước (cờ stale), sắp theo ngày, khung")
     void pay11() throws Exception {
         MockHttpSession kh1 = login("khach1@example.com");
         MockHttpSession kh2 = login("0901234567");
@@ -217,11 +218,13 @@ class CounterPaymentBlackBoxTest extends BlackBoxBase {
 
         Res list = get("/api/counter/orders", login("quay1@example.com"));
 
-        assertThat(list.<List<Integer>>at("$.orders[*].id")).containsExactly((int) early, (int) late);
-        assertThat((String) list.at("$.orders[0].customerName")).isEqualTo("Khách Hai");
-        assertThat((String) list.at("$.orders[0].slotStart")).isEqualTo(slot("12:00"));
-        assertThat((Integer) list.at("$.orders[0].totalAmount")).isEqualTo(45000);
-        assertThat((String) list.at("$.orders[0].pickupCode")).hasSize(6);
-        assertThat(list.<List<String>>at("$.orders[0].lines[*].name")).containsExactly("Burger bò");
+        // Đơn chưa kết thúc của hôm qua vẫn hiện, đứng đầu và gắn cờ tồn để cửa hàng dọn (quyết định 2026-10-31).
+        assertThat(list.<List<Integer>>at("$.orders[*].id")).containsExactly((int) yesterday, (int) early, (int) late);
+        assertThat(list.<List<Boolean>>at("$.orders[*].stale")).containsExactly(true, false, false);
+        assertThat((String) list.at("$.orders[1].customerName")).isEqualTo("Khách Hai");
+        assertThat((String) list.at("$.orders[1].slotStart")).isEqualTo(slot("12:00"));
+        assertThat((Integer) list.at("$.orders[1].totalAmount")).isEqualTo(45000);
+        assertThat((String) list.at("$.orders[1].pickupCode")).hasSize(6);
+        assertThat(list.<List<String>>at("$.orders[1].lines[*].name")).containsExactly("Burger bò");
     }
 }

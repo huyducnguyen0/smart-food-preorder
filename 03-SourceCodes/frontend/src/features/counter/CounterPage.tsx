@@ -13,7 +13,7 @@ import {
 import { messageOf } from '../../api/errorMessages'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
-import { slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
+import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
 import { canStoreCancel } from '../../lib/storeRules'
 import { useAuth } from '../auth/useAuth'
 import { WalkInPanel } from './WalkInPanel'
@@ -150,7 +150,10 @@ function OrderCard({
     <li className={`k-card${order.overdue ? ' late' : ''}`}>
       <div className="k-card-head">
         <strong className="k-code">{order.pickupCode}</strong>
-        <span className="k-time">{slotRange(order.slotStart, order.slotEnd)}</span>
+        <span className="k-time">
+          {order.stale && `${dateOf(order.slotStart)} · `}
+          {slotRange(order.slotStart, order.slotEnd)}
+        </span>
         <span className={`status-pill tone-${STATUS_TONES[order.status]}`}>
           {STATUS_LABELS[order.status]}
         </span>
@@ -336,6 +339,21 @@ export function CounterPage() {
     const needle = search.trim().toUpperCase()
     return (orders ?? []).filter((order) => needle === '' || order.pickupCode.includes(needle))
   }, [orders, search])
+  // Đơn của ngày đã qua mà chưa kết thúc: tách riêng để cửa hàng dọn (quyết định 2026-10-31).
+  const stale = visible.filter((order) => order.stale)
+  const today = visible.filter((order) => !order.stale)
+  const renderCard = (order: CounterOrder) => (
+    <OrderCard
+      key={order.id}
+      order={order}
+      busy={busyId !== null}
+      role={user?.role}
+      onPay={handlePay}
+      onHandOver={handleHandOver}
+      onCancel={handleCancel}
+      onNoShow={handleNoShow}
+    />
+  )
 
   return (
     <div className="k-page">
@@ -374,22 +392,18 @@ export function CounterPage() {
         <p className="empty">Không có đơn nào khớp mã "{search.trim()}".</p>
       )}
 
-      {visible.length > 0 && (
-        <ul className="c-grid">
-          {visible.map((order) => (
-            <OrderCard
-              key={order.id}
-              order={order}
-              busy={busyId !== null}
-              role={user?.role}
-              onPay={handlePay}
-              onHandOver={handleHandOver}
-              onCancel={handleCancel}
-              onNoShow={handleNoShow}
-            />
-          ))}
-        </ul>
+      {stale.length > 0 && (
+        <section aria-label="Đơn tồn từ ngày trước" className="c-stale">
+          <h2 className="section-title">Đơn tồn từ ngày trước ({stale.length})</h2>
+          <p className="muted">
+            Đơn chưa kết thúc của ngày đã qua. Đơn sẵn sàng: đánh dấu không đến nhận. Đơn chưa làm
+            hoặc đang làm: quản lý hủy kèm lý do.
+          </p>
+          <ul className="c-grid">{stale.map(renderCard)}</ul>
+        </section>
       )}
+
+      {today.length > 0 && <ul className="c-grid">{today.map(renderCard)}</ul>}
     </div>
   )
 }

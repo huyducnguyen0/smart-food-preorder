@@ -29,7 +29,15 @@ Ký hiệu: `+` public, `-` private, `~` dùng trong package (để test), gạc
 | `PlaceOrderService` | Giao dịch đặt đơn theo đúng thứ tự kiểm tra (mục 3) | `PlaceOrderControl` | BR-10, BR-17, BR-35, BR-37, BR-38 | T-18 |
 | `PickupCodeGenerator` | Sinh mã 6 ký tự từ 31 ký tự cho phép, dùng `SecureRandom` | `PlaceOrderControl` | BR-38 | T-18 |
 | `MyOrderService` | Danh sách, chi tiết đơn **của khách đang đăng nhập** | `MyOrdersControl` | BR-33, UC-05 E1 | T-20 |
-| `OrderStatusService` | Nơi duy nhất đổi `orders.status`; chỉ chuyển khi trạng thái hiện tại đúng | `OrderProgressControl` | SRS B.5 | T-22 |
+| `OrderStatusService` | Chuyển trạng thái theo tiến độ: bếp bắt đầu (kể cả làm trước), hoàn tất; quầy bàn giao. Chỉ chuyển khi trạng thái hiện tại đúng | `OrderProgressControl` | SRS B.5, BR-21, BR-29 | T-22, T-30, 2026-10-31 |
+| `OrderCancellationService` | Chuyển ngoại lệ: khách hủy, cửa hàng hủy, không đến nhận. Khóa dòng đơn, kiểm tra quy tắc, đổi trạng thái và hoàn quota trong một giao dịch | — | BR-23, BR-24, BR-25 | Sprint 3 |
+| `OrderPaymentService` | Ghi nhận thanh toán `UNPAID → PAID` | — | BR-27 | T-29 |
+| `WalkInService` | Ước tính khung sớm nhất, xác nhận đơn walk-in (giữ quota như pre-order) | — | BR-18–BR-20 | Sprint 2 |
+| `LateRule` | Quy tắc đơn trễ dùng chung cho bếp và màn theo dõi | — | BR-26 | 2026-10-28 |
+| `StaffAccountService` | Tạo, khóa, mở khóa tài khoản quầy, bếp | — | BR-32 | Sprint 3 |
+| `InitialManagerProvisioner` | Tạo quản lý đầu tiên từ biến môi trường khi chưa có | — | BR-32 | 2026-10-28 |
+| `LockedAccountFilter` | Mỗi yêu cầu đã đăng nhập hỏi `AuthService.isBlocked`; bị khóa thì hủy phiên, trả 401 | `AuthControl` | BR-32 | 2026-10-31 |
+| `DashboardService` | Số liệu theo dõi trong ngày, đơn tồn (module `report`, chỉ đọc) | — | FR-20, BR-26 | Sprint 3 |
 | `KitchenService` | Hàng chờ ba nhóm, sắp xếp, đánh dấu trễ (mục 4.3); gọi `OrderStatusService` | `KitchenQueueControl`, `OrderProgressControl` | BR-21, BR-22, BR-26 | T-21, T-22 |
 | `...Repository` | SQL qua `JdbcTemplate` cho bảng của module mình (Architecture mục 2) | Entity | — | theo module |
 | `ApiException`, `ErrorCode` | Lỗi nghiệp vụ có mã; `ErrorCode` biết HTTP status | — | Architecture mục 5.3 | T-12 |
@@ -116,7 +124,9 @@ Với `N = prepWindowMinutes`, `slotStart` là ngày + giờ bắt đầu khung:
 
 `late` theo `LateRule.isLate` (module `order`, dùng chung với màn theo dõi): `now ≥ slotStart` với pre-order, `now ≥ slotEnd` với walk-in (BR-26, sửa đổi 2026-10-28). Thứ tự trong nhóm giữ nguyên thứ tự truy vấn. `groupOf` để mức package để unit test với `Clock` cố định.
 
-### 4.4. Chuyển trạng thái (`OrderStatusService`)
+### 4.4. Chuyển trạng thái (`OrderStatusService`, `OrderCancellationService`)
+
+Từ 2026-10-31, bếp bắt đầu đơn theo cách khóa dòng đơn (`SELECT … FOR UPDATE`), kiểm tra `CONFIRMED`, rồi mới chạy câu cập nhật dưới đây. Hủy và không đến nhận cũng khóa dòng đơn trước, nên bếp bấm "Bắt đầu" cùng lúc khách bấm hủy thì chỉ một bên thắng và quota đúng.
 ```sql
 UPDATE orders SET status = 'PREPARING', preparing_at = :now, preparing_by = :staffId
 WHERE id = :id AND status = 'CONFIRMED'
@@ -131,7 +141,8 @@ Một dòng đổi → thành công. Không dòng nào → đọc trạng thái 
 | `SlotAvailabilityService` | Unit, `Clock` cố định | Biên 30 phút, giờ đóng cửa, E2/E3/E4, điểm 0 |
 | `QuotaService`, `PlaceOrderService` | Tích hợp với PostgreSQL | Mục 3: đồng thời, A1, E5–E10, hủy giao dịch |
 | `KitchenService` | Unit, `Clock` cố định | Biên cửa sổ chuẩn bị 15 phút, trễ |
-| `OrderStatusService` | Tích hợp | Chuyển hợp lệ, chuyển sai, hai bếp cùng bấm |
+| `OrderStatusService` | Tích hợp | Chuyển hợp lệ, chuyển sai, hai bếp cùng bấm, làm trước rồi khách hủy |
+| `OrderCancellationService` | Black-box qua API | Biên thời gian, quyền, hoàn quota, hủy đồng thời, đơn đã thanh toán |
 | `PickupCodeGenerator` | Unit | Độ dài, chỉ ký tự cho phép |
 
 Test tích hợp cần PostgreSQL. Cách chạy (Testcontainers hay database của Docker Compose) chốt ở T-16 cùng cấu hình test.

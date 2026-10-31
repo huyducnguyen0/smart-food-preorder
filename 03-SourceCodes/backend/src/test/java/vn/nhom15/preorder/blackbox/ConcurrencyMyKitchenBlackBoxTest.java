@@ -448,7 +448,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-13 BẾP bấm Bắt đầu: PREPARING, ghi người và thời điểm, sang nhóm Đang làm")
     void kit13() throws Exception {
         long id = placeEarly(login("khach1@example.com"), "13:00", "09:00", line("Burger bò", 1));
-        at("11:00");
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
 
         Res result = post("/api/kitchen/orders/" + id + "/start", kitchen, null);
@@ -466,6 +466,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-14 BẾP bấm Hoàn tất: READY, ghi người và thời điểm, rời hàng chờ, quota vẫn giữ")
     void kit14() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
         post("/api/kitchen/orders/" + id + "/start", kitchen, null);
 
@@ -487,6 +488,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     void kit15() throws Exception {
         MockHttpSession kh1 = login("khach1@example.com");
         long id = place(kh1, "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
         post("/api/kitchen/orders/" + id + "/start", kitchen, null);
         post("/api/kitchen/orders/" + id + "/complete", kitchen, null);
@@ -498,6 +500,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-16 Bếp thứ hai bấm Bắt đầu trên màn cũ: không đổi đơn, báo trạng thái hiện tại")
     void kit16() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         post("/api/kitchen/orders/" + id + "/start", login("bep1@example.com"), null);
 
         Res second = post("/api/kitchen/orders/" + id + "/start", login("bep1@example.com"), null);
@@ -512,6 +515,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-17 Hai bếp bấm Bắt đầu cùng lúc: đúng một lần thành công")
     void kit17() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchenA = login("bep1@example.com");
         MockHttpSession kitchenB = login("bep1@example.com");
 
@@ -532,6 +536,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-18 Hoàn tất khi đơn còn CONFIRMED: bị từ chối, đơn không đổi")
     void kit18() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
 
         Res result = post("/api/kitchen/orders/" + id + "/complete", login("bep1@example.com"), null);
 
@@ -543,6 +548,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-19 Đơn READY: Bắt đầu và Hoàn tất đều bị từ chối, đơn giữ nguyên")
     void kit19() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
         post("/api/kitchen/orders/" + id + "/start", kitchen, null);
         post("/api/kitchen/orders/" + id + "/complete", kitchen, null);
@@ -559,6 +565,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-20 (phần API) Không có API nào đưa đơn đang làm về Đã xác nhận")
     void kit20() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
         post("/api/kitchen/orders/" + id + "/start", kitchen, null);
 
@@ -573,6 +580,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-21 KH1, QUẦY, QL gọi API bắt đầu và hoàn tất: bị từ chối, đơn không đổi")
     void kit21() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
 
         for (String loginId : List.of("khach1@example.com", "quay1@example.com", "quanly@example.com")) {
             MockHttpSession session = login(loginId);
@@ -603,6 +611,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-KIT-23 Lỗi database khi cập nhật: báo lỗi, trạng thái đơn không đổi, thử lại được")
     void kit23() throws Exception {
         long id = place(login("khach1@example.com"), "13:00", line("Burger bò", 1));
+        at("12:45"); // thời gian chuẩn bị của khung 13:00 (BR-21)
         MockHttpSession kitchen = login("bep1@example.com");
         doThrow(new IllegalStateException("Lỗi database giả lập"))
                 .when(orderRepository)
@@ -619,7 +628,7 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-KIT-25 Đơn ở nhóm Sắp tới (còn hơn 15 phút): bếp được bắt đầu sớm")
+    @DisplayName("TC-KIT-25 Đơn ở nhóm Sắp tới: bếp được làm trước; khách hết quyền tự hủy (BR-21, BR-23)")
     void kit25() throws Exception {
         long id = placeEarly(login("khach1@example.com"), "13:00", "09:00", line("Burger bò", 1));
         at("11:00");
@@ -629,5 +638,8 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
         assertThat(post("/api/kitchen/orders/" + id + "/start", kitchen, null).status())
                 .isEqualTo(200);
         assertThat(statusOf(id)).isEqualTo("PREPARING");
+        Res cancel = post("/api/orders/" + id + "/cancel", login("khach1@example.com"), null);
+        assertThat(cancel.status()).isEqualTo(409);
+        assertThat((String) cancel.at("$.code")).isEqualTo("INVALID_STATUS_TRANSITION");
     }
 }

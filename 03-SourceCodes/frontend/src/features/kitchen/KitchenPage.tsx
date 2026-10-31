@@ -50,6 +50,9 @@ function OrderCard({
         ))}
       </ul>
       <span className="k-confirmed">Xác nhận {timeOf(order.confirmedAt)}</span>
+      {!emphasis && action === 'start' && (
+        <span className="k-wait">Cần chuẩn bị từ {timeOf(order.prepareFrom)} · làm trước được</span>
+      )}
       <button
         type="button"
         className={`btn k-action${emphasis ? ' btn-primary' : ''}`}
@@ -101,7 +104,7 @@ function Column({
 
 /**
  * UC-12.1 Hàng chờ bếp: đơn hôm nay chia ba nhóm Đang làm, Cần chuẩn bị, Sắp tới; đơn trễ có nhãn đỏ. Tự tải lại mỗi 30
- * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn đã xác nhận (kể cả đơn sắp tới, BR-21) và "Hoàn tất" ở đơn đang làm
+ * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn cần chuẩn bị, hoặc làm trước đơn sắp tới lúc vắng (BR-21) và "Hoàn tất" ở đơn đang làm
  * (UC-12.2). Đơn đổi trạng thái ở nơi khác thì báo và làm mới (E1).
  */
 export function KitchenPage() {

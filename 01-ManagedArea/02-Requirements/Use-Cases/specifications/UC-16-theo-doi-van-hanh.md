@@ -14,7 +14,8 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 2. Hệ thống: **theo từng khung hôm nay**: quota, điểm đã giữ, số đơn còn mở (màn hình chỉ liệt kê khung đang có đơn, kèm thanh mức dùng).
 3. Hệ thống: **đơn đang xử lý** (`CONFIRMED`, `PREPARING`, `READY`) với nguồn và trạng thái; đơn `CONFIRMED`/`PREPARING` đã qua giờ bắt đầu khung (walk-in: giờ kết thúc khung) gắn nhãn **Trễ** (BR-26, chỉ hiển thị, không chặn; cùng quy tắc với hàng chờ bếp).
 4. Hệ thống: **thống kê ngày**: số đơn pre-order, walk-in, đã nhận, đang trễ, đã hủy, không đến nhận; tỉ lệ dùng quota = điểm đang giữ / tổng quota các khung trong ngày.
-5. Hệ thống: ghi rõ quota là mức tải cửa hàng tự đặt, **không phải năng lực bếp đo được** (NT9).
+5. Hệ thống: có đơn chưa kết thúc của ngày đã qua thì nhắc "Có N đơn tồn từ ngày trước", dẫn tới màn Quầy (2026-10-31).
+6. Hệ thống: ghi rõ quota là mức tải cửa hàng tự đặt, **không phải năng lực bếp đo được** (NT9).
 
 ## Luồng lỗi
 - **E1 — Không tải được**: báo lỗi; nếu đang có số liệu cũ thì ghi "có thể đã cũ".

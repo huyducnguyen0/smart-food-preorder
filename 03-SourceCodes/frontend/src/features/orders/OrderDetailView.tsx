@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import type { OrderDetail } from '../../api/orders'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
-import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
+import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES, timeOf } from '../../lib/orderLabels'
 
 /**
  * Chi tiết một đơn (UC-05 bước 4) và kết quả đặt thành công (UC-04 bước 11): thẻ mã nhận, khung nhận, trạng thái,
@@ -79,8 +79,19 @@ export function OrderDetailView({
         </Alert>
       )}
       {cancelError && <Alert kind="danger">{cancelError}</Alert>}
-      {onCancel && order.status === 'CONFIRMED' && (
+      {onCancel && order.status === 'CONFIRMED' && order.paymentStatus === 'PAID' && (
+        <p className="muted">
+          Đơn đã thanh toán. Muốn hủy, vui lòng liên hệ cửa hàng để được hủy và hoàn tiền.
+        </p>
+      )}
+      {onCancel && order.status === 'CONFIRMED' && order.paymentStatus === 'UNPAID' && (
         <div className="cancel-box">
+          {order.cancelDeadline && (
+            <p className="muted">
+              Bạn có thể tự hủy tới {timeOf(order.cancelDeadline)} nếu cửa hàng chưa bắt đầu làm
+              món.
+            </p>
+          )}
           {confirming ? (
             <>
               <p>Hủy đơn {order.pickupCode}? Chỗ trong khung giờ sẽ được trả lại cho người khác.</p>

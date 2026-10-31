@@ -10,7 +10,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 | Quan hệ | Thực hiện ở màn Quầy; hoàn quota qua `QuotaService` khi hủy từ `CONFIRMED` |
 
 ## Main Flow
-1. Quản lý hoặc quầy: ở màn Quầy, chọn "Hủy đơn" trên một đơn được phép hủy.
+1. Quản lý hoặc quầy: ở màn Quầy, chọn "Hủy đơn" trên một đơn được phép hủy. Đơn chưa kết thúc của ngày đã qua hiện ở mục "Đơn tồn từ ngày trước" để quản lý dọn (2026-10-31). Đơn khách đã thanh toán mà muốn hủy cũng đi qua bước này (BR-23).
 2. Hệ thống: hiện ô lý do; nút xác nhận chỉ bật khi đã nhập lý do.
 3. Người dùng: nhập lý do (tối đa 500 ký tự) và xác nhận.
 4. Hệ thống: khóa dòng đơn, kiểm tra quyền theo BR-24: quản lý hủy được đơn `CONFIRMED` hoặc `PREPARING`; quầy chỉ hủy được đơn **walk-in** `CONFIRMED`.

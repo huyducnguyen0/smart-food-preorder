@@ -46,11 +46,19 @@ public class OrderCancellationService {
                 .filter(found -> found.customerId() != null && found.customerId() == customerId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
         requireStatus(order, OrderStatus.CONFIRMED);
+        if (order.paid()) {
+            // Cửa hàng đã thu tiền: hủy phải qua cửa hàng (kèm lý do) để cửa hàng biết mà hoàn tiền (BR-23, BR-30).
+            throw new ApiException(
+                            ErrorCode.CANCEL_NOT_ALLOWED,
+                            "Đơn đã thanh toán nên không tự hủy được, vui lòng liên hệ cửa hàng để hủy và hoàn tiền")
+                    .with("reason", "PAID");
+        }
         LocalDateTime windowStart = order.slotStart().minusMinutes(properties.prepWindowMinutes());
         if (!LocalDateTime.now(clock).isBefore(windowStart)) {
             throw new ApiException(
                             ErrorCode.CANCEL_NOT_ALLOWED,
                             "Đơn đã vào thời gian chuẩn bị nên không tự hủy được, vui lòng liên hệ cửa hàng")
+                    .with("reason", "PREPARATION_WINDOW")
                     .with("cancelDeadline", windowStart.toString());
         }
         orderRepository.markCancelled(orderId, customerId, null, OffsetDateTime.now(clock));

@@ -147,3 +147,30 @@ Khi rà soát database theo yêu cầu của người dùng, phát hiện chế 
 
 **Lưu ý khi thử bằng `curl` trên Git Bash:** gõ tiếng Việt trực tiếp trong lệnh có thể không được gửi dạng UTF-8 (ví dụ tên thành "Qu?y"); gửi bằng file UTF-8 thì đúng. Đây là lỗi của cách thử, không phải của ứng dụng; script demo gửi bằng file.
 
+## Lượt 2026-10-31: review luồng sản phẩm và sửa lỗi
+Nhánh `fix/review-findings` (dựa trên `release/v1-prep`). Người dùng yêu cầu review lại thiết kế luồng, backend, database; AI đọc lại toàn bộ code backend, đối chiếu tài liệu, chạy thử những chỗ nghi ngờ bằng một test tạm (đã xóa), rồi sửa theo đề xuất người dùng đồng ý.
+
+**Lỗi tìm thấy** (đều đã tái hiện bằng chạy thật trước khi sửa, trừ ghi chú):
+| # | Lỗi | Cách tái hiện | Sửa |
+|---|---|---|---|
+| ① | Khách đặt 3 đơn, cửa hàng không xử lý, sang hôm sau khách bị chặn đặt đơn mới, không tự hủy được, và màn quầy, bếp, theo dõi đều không thấy 3 đơn đó | Dời đồng hồ sang hôm sau | BR-37 chỉ đếm đơn từ hôm nay; màn quầy có mục "Đơn tồn từ ngày trước"; màn theo dõi nhắc |
+| ② | Quầy thu tiền đơn đặt trước khi còn "đã xác nhận", khách vẫn tự hủy được, đơn biến mất khỏi màn quầy nên không ai biết phải hoàn tiền | Thu tiền rồi khách hủy | Khách không tự hủy đơn đã thanh toán (BR-23 sửa đổi) |
+| ③ | Khóa tài khoản nhân viên không có tác dụng với màn đang mở (màn quầy, bếp tự làm mới nên phiên không hết hạn) | Đọc code; sau khi sửa đã thử trên ứng dụng thật: khóa bếp đang mở màn → yêu cầu kế tiếp 401 | Kiểm tra tài khoản ở mỗi yêu cầu đã đăng nhập |
+| ④ | Quản lý rút giờ đóng cửa đúng lúc khách đặt khung cuối: đơn vẫn được tạo ngoài giờ mới | Lúc review đánh giá "hiếm, chưa tái hiện"; TC-FIX-06 cho thấy xảy ra ngay vòng đầu khi chưa sửa | Khóa cấu hình trước khi kiểm tra khung |
+| ⑤ | Bếp bắt đầu đơn khung 20:00 từ 11:00 làm khách mất quyền tự hủy | Bếp bấm sớm rồi khách hủy | Bếp chỉ bắt đầu từ thời gian chuẩn bị (BR-21 sửa đổi) |
+
+Trong lúc sửa còn phát hiện chính bản sửa ③ ban đầu vi phạm quy tắc kiến trúc (module `config` gọi thẳng repository của `auth`); đã đổi sang gọi `AuthService`.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `./mvnw clean verify`: **444 test, Passed 444**; Checkstyle sạch. 15 test cũ sửa theo quy tắc mới (mục Test Cases) |
+| Frontend | **149 test, Passed 149**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca mới | TC-FIX-01 → 07 Passed; test frontend đơn đã thanh toán, đơn tồn, cảnh báo đơn tồn |
+| Chạy thật (backend với PostgreSQL nhúng, cổng 8080) | `scripts/demo-data.sh` đã sửa: 23/23 bước đúng; khóa tài khoản bếp đang mở màn: 401 ngay |
+| NFR-04 (lượt verify cuối) | p95: xem menu 214 ms, đặt đơn 448 ms, hàng chờ bếp 296 ms, bàn giao 94 ms; vẫn dưới 1 giây nhưng cao hơn lượt Sprint 3 (48, 155, 70, 37 ms) |
+
+**Giới hạn:** số đo NFR-04 lần này chạy khi một backend thử khác cũng đang chạy trên máy; ngoài ra mỗi yêu cầu đã đăng nhập thêm một truy vấn kiểm tra tài khoản (sửa ③). Chưa tách được hai nguyên nhân; nên đo lại trên máy rảnh. Docker Desktop tắt trong lượt này nên chưa chạy lại bản Docker.
+
+### Bổ sung 2026-10-31: khôi phục làm trước, hạn tự hủy hiển thị cho khách
+Người dùng chỉ ra quy tắc "bếp chỉ bắt đầu từ 15 phút trước khung" (sửa ⑤ ở trên) làm dồn việc vào giờ đông, walk-in không được phục vụ. Đã khôi phục: bếp làm trước được; khách tự hủy khi cửa hàng chưa bắt đầu làm, chậm nhất 15 phút trước giờ nhận; chi tiết đơn có `cancelDeadline`, trang đơn ghi rõ điều kiện. Bỏ mã lỗi `PREPARATION_TOO_EARLY`. Phân tích sâu hơn và mô phỏng: [02-FreeZone/2026-10-31_lich-bep](../../../02-FreeZone/2026-10-31_lich-bep/README.md); thay đổi mô hình quota làm ở Sprint 4.
+

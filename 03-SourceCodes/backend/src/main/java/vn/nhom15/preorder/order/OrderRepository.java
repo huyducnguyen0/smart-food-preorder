@@ -130,7 +130,8 @@ public class OrderRepository {
             OrderStatus status,
             long timeSlotId,
             int workloadPoints,
-            LocalDateTime slotStart) {}
+            LocalDateTime slotStart,
+            boolean paid) {}
 
     /**
      * Khóa dòng đơn đến hết giao dịch và đọc những gì cần để quyết định hủy hay đánh dấu không đến nhận. Bếp đổi trạng
@@ -141,7 +142,7 @@ public class OrderRepository {
                 .query(
                         """
                                 SELECT o.id, o.customer_id, o.source, o.status, o.time_slot_id, o.workload_points,
-                                       s.slot_date, s.start_time
+                                       s.slot_date, s.start_time, o.payment_status
                                 FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
                                 WHERE o.id = ?
                                 FOR UPDATE OF o
@@ -155,7 +156,8 @@ public class OrderRepository {
                                 rs.getInt("workload_points"),
                                 LocalDateTime.of(
                                         rs.getObject("slot_date", LocalDate.class),
-                                        rs.getObject("start_time", LocalTime.class))),
+                                        rs.getObject("start_time", LocalTime.class)),
+                                "PAID".equals(rs.getString("payment_status"))),
                         orderId)
                 .stream()
                 .findFirst();
@@ -197,12 +199,16 @@ public class OrderRepository {
                 .findFirst();
     }
 
-    /** Số đơn chưa kết thúc của khách (BR-37): cùng tập trạng thái với {@link OrderStatus#isOpen()}. */
-    public int countOpenOrders(long customerId) {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM orders WHERE customer_id = ? AND status IN ('CONFIRMED', 'PREPARING', 'READY')",
-                Integer.class,
-                customerId);
+    /**
+     * Số đơn chưa kết thúc của khách (BR-37) có khung từ {@code today} trở đi. Đơn của ngày đã qua mà chưa ai xử lý
+     * không chặn khách đặt đơn mới (quyết định 2026-10-31); cửa hàng dọn chúng ở mục "đơn tồn" của màn quầy.
+     */
+    public int countOpenOrders(long customerId, LocalDate today) {
+        Integer count = jdbcTemplate.queryForObject("""
+                        SELECT count(*) FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                        WHERE o.customer_id = ? AND o.status IN ('CONFIRMED', 'PREPARING', 'READY')
+                          AND s.slot_date >= ?
+                        """, Integer.class, customerId, today);
         return Objects.requireNonNull(count);
     }
 
@@ -326,7 +332,8 @@ public class OrderRepository {
                                     rs.getInt("total_amount"),
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
                                     lines,
-                                    rs.getString("cancel_reason"));
+                                    rs.getString("cancel_reason"),
+                                    null);
                         },
                         orderId,
                         customerId,

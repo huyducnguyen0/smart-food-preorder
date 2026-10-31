@@ -1169,6 +1169,21 @@ h1 {
   opacity: 0.6;
 }
 
+.k-wait {
+  display: block;
+  margin: 8px 0 4px;
+  color: var(--ink-3);
+  font-size: 14px;
+}
+
+.c-stale {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1.5px dashed var(--warning);
+  border-radius: var(--radius);
+  background: var(--warning-bg);
+}
+
 .manage-links {
   list-style: none;
   margin: 0;

@@ -22,6 +22,7 @@ import vn.nhom15.preorder.order.PaymentMethod;
  * @param totalAmount số tiền cần thu
  * @param lines các món và số lượng
  * @param overdue đơn sẵn sàng đã quá giờ kết thúc khung cộng thời gian chờ, được đánh dấu không đến nhận (BR-25)
+ * @param stale đơn của ngày đã qua mà chưa kết thúc: cửa hàng cần dọn (hủy hoặc đánh dấu không đến nhận)
  */
 public record CounterOrder(
         long id,
@@ -35,7 +36,8 @@ public record CounterOrder(
         PaymentMethod paymentMethod,
         int totalAmount,
         List<Line> lines,
-        boolean overdue) {
+        boolean overdue,
+        boolean stale) {
 
     /** Một món và số lượng. */
     public record Line(String name, int quantity) {}

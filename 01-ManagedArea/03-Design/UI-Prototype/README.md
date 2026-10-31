@@ -20,6 +20,13 @@ Giao diện không thêm chức năng hay quy tắc nào ngoài đặc tả. Ch�
 | 05 | Chi tiết đơn / kết quả đặt | `/orders/:id` | Khách | UC-04 bước 11, UC-05 bước 4 | [wf-05](wireframes/wf-05_chi-tiet-don.svg) |
 | 06 | Đơn của tôi | `/orders` | Khách | UC-05 bước 1–2, A1 | [wf-06](wireframes/wf-06_don-cua-toi.svg) |
 | 07 | Hàng chờ bếp | `/kitchen` | Nhân viên bếp | UC-12 | [wf-07](wireframes/wf-07_hang-cho-bep.svg) |
+| 08 | Đăng ký | `/register` | Khách vãng lai | UC-01 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
+| 09 | Quầy: thu tiền, bàn giao, walk-in, hủy, không đến nhận, đơn tồn | `/counter` | Quầy, quản lý | UC-07–UC-11 | Giao diện thật (Sprint 1–3, sửa 2026-10-31), chưa vẽ wireframe |
+| 10 | Theo dõi hôm nay | `/admin` | Quản lý | UC-16 | Giao diện thật (Sprint 3), chưa vẽ wireframe |
+| 11 | Quản lý (trang tổng) | `/admin/manage` | Quản lý | — | Danh sách liên kết tới 12–14 |
+| 12 | Món và giá | `/admin/menu` | Quản lý | UC-13 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
+| 13 | Giờ mở cửa và quota | `/admin/slots` | Quản lý | UC-14 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
+| 14 | Tài khoản nhân viên | `/admin/staff` | Quản lý | UC-15 | Giao diện thật (Sprint 3), chưa vẽ wireframe |
 | — | Không có quyền | `/forbidden` | — | UC-02 E5 | Chỉ có trong prototype |
 
 Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-02 mục phân quyền), nên chưa có màn hình riêng.
@@ -45,8 +52,15 @@ Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-0
 | Mã nhận | Thẻ "vé" nền tối, mã 6 ký tự cỡ lớn, kèm thanh tiến trình 4 bước của đơn | Mã nhận là thứ khách cần đọc tại quầy (UC-05 bước 4) |
 | Món không có ảnh | Ô màu kem với biểu tượng | Ảnh là tùy chọn (BR-01) |
 | Khách vãng lai bấm "Thêm vào giỏ" | Chuyển tới Đăng nhập, món không tự thêm | UC-03 A3 |
-| Nút thao tác chính của bếp | Đơn "Cần chuẩn bị" có nút Bắt đầu màu chính; đơn "Sắp tới" nút viền | Gợi ý thứ tự làm, nhưng vẫn cho bắt đầu sớm (BR-21) |
+| Nút thao tác chính của bếp | Đơn "Cần chuẩn bị" có nút Bắt đầu màu chính; đơn "Sắp tới" nút viền kèm "Cần chuẩn bị từ HH:mm · làm trước được" | Gợi ý thứ tự làm, vẫn cho làm trước lúc vắng (BR-21). Ngày 2026-10-31 từng đổi thành không cho làm trước; người dùng quyết định khôi phục vì giờ đông cần bếp đã làm sẵn |
+| Trang đơn tự cập nhật (PB-14) | Hỏi lại mỗi 15 giây khi đơn chưa kết thúc; đơn vừa sẵn sàng thì hiện khung xanh "Đơn của bạn đã sẵn sàng" | Không dùng email/SMS; đơn giản, đủ cho cửa hàng nhỏ (Sprint 3) |
+| Hủy đơn của khách | Nút "Hủy đơn" có bước xác nhận, kèm "Bạn có thể tự hủy tới HH:mm nếu cửa hàng chưa bắt đầu làm món"; đơn đã thanh toán không có nút, hiện "liên hệ cửa hàng" | UC-06, BR-23 sửa đổi 2026-10-31 |
+| Hủy đơn của cửa hàng | Bấm "Hủy đơn" mới hiện ô lý do; nút xác nhận chỉ bật khi đã nhập | UC-11, lý do bắt buộc (BR-24) |
+| Đơn quá hạn nhận, đơn tồn | Thẻ viền đỏ, nút "Không đến nhận"; đơn chưa kết thúc của ngày trước gom vào khung vàng "Đơn tồn từ ngày trước" ở đầu màn quầy, có ngày | UC-10; quyết định 2026-10-31 |
+| Điều hướng của quản lý | Thanh tab: Thực đơn, Theo dõi, Quầy, Quản lý (Món, Giờ và quota, Nhân viên), Đăng xuất | Giữ thanh tab đáy gọn trên điện thoại (Sprint 3) |
 | Đơn trễ | Nhãn đỏ "TRỄ" và viền trái đỏ trên thẻ | BR-26: chỉ để nhìn, không chặn thao tác |
+
+Màn 08–14 chỉ có giao diện thật, chưa vẽ wireframe đơn sắc hay đánh giá prototype riêng; dùng chung bảng màu và thành phần của màn 01–07. Navigation Flow (mục 5) đã vẽ lại cho mọi màn ngày 2026-10-31.
 
 ## 3. Wireframe đơn sắc
 Vẽ bằng PlantUML Salt, chỉ có bố cục và nội dung, không màu. Dòng chữ nghiêng ở cuối mỗi hình mô tả trạng thái khác của cùng màn (trống, lỗi).
