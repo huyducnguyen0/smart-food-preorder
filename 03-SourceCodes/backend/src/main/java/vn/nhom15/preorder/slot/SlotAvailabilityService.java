@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
@@ -29,18 +28,21 @@ public class SlotAvailabilityService {
     private final MenuService menuService;
     private final OrderingProperties properties;
     private final Clock clock;
+    private final KitchenPlanService kitchenPlanService;
 
     public SlotAvailabilityService(
             StoreSettingsRepository storeSettingsRepository,
             SlotRepository slotRepository,
             MenuService menuService,
             OrderingProperties properties,
-            Clock clock) {
+            Clock clock,
+            KitchenPlanService kitchenPlanService) {
         this.storeSettingsRepository = storeSettingsRepository;
         this.slotRepository = slotRepository;
         this.menuService = menuService;
         this.properties = properties;
         this.clock = clock;
+        this.kitchenPlanService = kitchenPlanService;
     }
 
     /**
@@ -59,20 +61,20 @@ public class SlotAvailabilityService {
         }
 
         int points = cartPoints(lines);
-        Map<LocalTime, TimeSlot> existing =
-                slotRepository.findByDate(today).stream().collect(Collectors.toMap(TimeSlot::startTime, s -> s));
+        // PB-22: khung đặt được khi quầy còn chỗ và bếp còn xếp kịp làm giỏ này trước giờ nhận (làm trước được tối đa
+        // H phút). Chỉ đọc: kết quả đúng tại thời điểm hiển thị, việc giữ chỗ thật kiểm lại trong giao dịch (BR-36).
+        KitchenPlanService.Snapshot plan = kitchenPlanService.snapshot();
 
         List<SlotView> views = new ArrayList<>();
         boolean anyBookable = false;
         boolean fitsSomeSlot = false;
         for (LocalTime start : candidates) {
-            TimeSlot slot = existing.get(start);
-            int quota = slot != null ? slot.quota(settings.defaultQuotaPoints()) : settings.defaultQuotaPoints();
-            int held = slot != null ? slot.heldPoints() : 0;
-            boolean bookable = points <= quota - held;
-            anyBookable |= bookable;
-            fitsSomeSlot |= points <= quota;
             LocalDateTime startAt = today.atTime(start);
+            KitchenPlanner.Job job = plan.preOrderJob(startAt, points);
+            boolean fitsEmpty = !plan.tooLargeEvenWhenEmpty(job);
+            boolean bookable = fitsEmpty && plan.pickupHasRoom(start) && plan.fits(job);
+            anyBookable |= bookable;
+            fitsSomeSlot |= fitsEmpty;
             views.add(new SlotView(startAt, startAt.plusMinutes(properties.slotMinutes()), bookable));
         }
 
@@ -133,20 +135,19 @@ public class SlotAvailabilityService {
         LocalDateTime now = LocalDateTime.now(clock);
         LocalDate today = now.toLocalDate();
         StoreSettings settings = storeSettingsRepository.get();
-        Map<LocalTime, TimeSlot> existing =
-                slotRepository.findByDate(today).stream().collect(Collectors.toMap(TimeSlot::startTime, s -> s));
+        KitchenPlanService.Snapshot plan = kitchenPlanService.snapshot();
+        List<LocalTime> starts = walkInStartTimes(settings, now);
         boolean fitsSomeSlot = false;
-        for (LocalTime start : walkInStartTimes(settings, now)) {
-            TimeSlot slot = existing.get(start);
-            int quota = slot != null ? slot.quota(settings.defaultQuotaPoints()) : settings.defaultQuotaPoints();
-            int held = slot != null ? slot.heldPoints() : 0;
-            fitsSomeSlot |= points <= quota;
-            if (points <= quota - held) {
-                LocalDateTime startAt = today.atTime(start);
+        for (LocalTime start : starts) {
+            LocalDateTime startAt = today.atTime(start);
+            KitchenPlanner.Job job = plan.walkInJob(startAt, points);
+            boolean fitsEmpty = !plan.tooLargeEvenWhenEmpty(job);
+            fitsSomeSlot |= fitsEmpty;
+            if (fitsEmpty && plan.pickupHasRoom(start) && plan.fits(job)) {
                 return new SlotView(startAt, startAt.plusMinutes(properties.slotMinutes()), true);
             }
         }
-        if (!fitsSomeSlot && !walkInStartTimes(settings, now).isEmpty()) {
+        if (!fitsSomeSlot && !starts.isEmpty()) {
             throw new ApiException(
                     ErrorCode.ORDER_TOO_LARGE, "Đơn quá lớn cho một khung giờ, hãy tách đơn hoặc bớt món");
         }

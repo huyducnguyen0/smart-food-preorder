@@ -21,8 +21,20 @@ public class AdminSlotController {
             @NotNull(message = "Nhập giờ mở cửa") LocalTime openTime,
             @NotNull(message = "Nhập giờ đóng cửa") LocalTime closeTime,
 
-            @NotNull(message = "Nhập quota mặc định") @Min(value = 0, message = "Quota không âm") @Max(10_000)
-            Integer defaultQuotaPoints) {}
+            @NotNull(message = "Nhập công suất bếp") @Min(value = 0, message = "Công suất không âm") @Max(10_000)
+            Integer defaultQuotaPoints,
+
+            /** Làm trước tối đa (phút); bỏ trống thì giữ nguyên. */
+            @Min(value = 1, message = "Thời gian làm trước phải dương") @Max(600)
+            Integer holdMinutes,
+
+            /** Phần trăm công suất cho đơn đặt trước; bỏ trống thì giữ nguyên. */
+            @Min(value = 0, message = "Từ 0 đến 100") @Max(value = 100, message = "Từ 0 đến 100")
+            Integer preOrderSharePercent,
+
+            /** Số đơn tối đa mỗi khung nhận; bỏ trống thì giữ nguyên. */
+            @Min(value = 1, message = "Ít nhất 1 đơn") @Max(1000)
+            Integer pickupLimitOrders) {}
 
     /** Quota riêng của khung; {@code null} để dùng lại quota mặc định. */
     public record SlotQuotaRequest(
@@ -42,7 +54,13 @@ public class AdminSlotController {
 
     @PutMapping("/settings")
     public AdminSlotService.AdminDay updateSettings(@Valid @RequestBody SettingsRequest request) {
-        return service.updateSettings(request.openTime(), request.closeTime(), request.defaultQuotaPoints());
+        return service.updateSettings(
+                request.openTime(),
+                request.closeTime(),
+                request.defaultQuotaPoints(),
+                request.holdMinutes(),
+                request.preOrderSharePercent(),
+                request.pickupLimitOrders());
     }
 
     @PutMapping("/slots/today/{start}/quota")

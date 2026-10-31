@@ -191,7 +191,7 @@ class Sprint2AdminBlackBoxTest extends BlackBoxBase {
     @DisplayName("TC-CFG-01 Quản lý xem khung hôm nay với quota, quota riêng, điểm đã giữ, số đơn")
     void cfg01() throws Exception {
         order(login("khach1@example.com"), "12:00", line("Burger bò", 2));
-        setQuotaOverride("13:00", 8);
+        setCapacity("13:00", 8);
 
         Res day = get("/api/admin/slots/today", login("quanly@example.com"));
 
@@ -274,40 +274,44 @@ class Sprint2AdminBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-CFG-06 Sửa quota riêng một khung: áp dụng ngay cho khách; trả về mặc định bằng null")
+    @DisplayName("TC-CFG-06 Sửa công suất riêng một khoảng làm: áp dụng ngay cho khách; trả về mặc định bằng null")
     void cfg06() throws Exception {
+        // Công suất riêng của khoảng làm 12:00–12:15. Với cấu hình làm trước 15 phút của bộ test này, khoảng đó làm
+        // đơn của khung nhận 12:15 (PB-22).
         MockHttpSession manager = login("quanly@example.com");
 
         Res result = put("/api/admin/slots/today/12:00/quota", manager, "{\"quota\":4}");
 
         assertThat(result.status()).isEqualTo(200);
         Res slots = get("/api/slots?lines=" + item("Burger bò").id() + ":1", login("khach1@example.com"));
-        assertThat(slots.<List<Boolean>>at("$.slots[?(@.start == '" + slot("12:00") + "')].bookable"))
+        assertThat(slots.<List<Boolean>>at("$.slots[?(@.start == '" + slot("12:15") + "')].bookable"))
                 .containsExactly(false);
+        assertThat(slots.<List<Boolean>>at("$.slots[?(@.start == '" + slot("12:00") + "')].bookable"))
+                .containsExactly(true);
 
         put("/api/admin/slots/today/12:00/quota", manager, "{\"quota\":null}");
         Res again = get("/api/slots?lines=" + item("Burger bò").id() + ":1", login("khach1@example.com"));
-        assertThat(again.<List<Boolean>>at("$.slots[?(@.start == '" + slot("12:00") + "')].bookable"))
+        assertThat(again.<List<Boolean>>at("$.slots[?(@.start == '" + slot("12:15") + "')].bookable"))
                 .containsExactly(true);
     }
 
     @Test
-    @DisplayName("TC-CFG-07 Quota riêng thấp hơn điểm đang giữ: bị từ chối; đúng bằng thì được (BR-11)")
+    @DisplayName("TC-CFG-07 Giảm công suất tới mức bếp không còn kịp đơn đã nhận: bị từ chối; vừa đủ thì được (BR-11)")
     void cfg07() throws Exception {
+        // Đơn 10 điểm nhận lúc 12:00 được làm trong khoảng 11:45–12:00 (làm trước 15 phút).
         order(login("khach1@example.com"), "12:00", line("Burger bò", 2));
         MockHttpSession manager = login("quanly@example.com");
 
-        Res low = put("/api/admin/slots/today/12:00/quota", manager, "{\"quota\":9}");
+        Res low = put("/api/admin/slots/today/11:45/quota", manager, "{\"quota\":9}");
 
         assertThat(low.status()).isEqualTo(409);
         assertThat((String) low.at("$.code")).isEqualTo("QUOTA_BELOW_HELD");
-        assertThat((Integer) low.at("$.heldPoints")).isEqualTo(10);
-        assertThat(put("/api/admin/slots/today/12:00/quota", manager, "{\"quota\":10}")
+        assertThat(put("/api/admin/slots/today/11:45/quota", manager, "{\"quota\":10}")
                         .status())
                 .isEqualTo(200);
         assertThat(order(login("0901234567"), "12:00", line("Khoai tây chiên", 1))
                         .status())
-                .as("khung đã đầy theo quota riêng")
+                .as("bếp đã kín khoảng làm cho khung 12:00")
                 .isEqualTo(409);
     }
 

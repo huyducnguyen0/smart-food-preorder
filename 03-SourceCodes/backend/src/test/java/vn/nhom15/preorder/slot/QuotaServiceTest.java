@@ -3,6 +3,7 @@ package vn.nhom15.preorder.slot;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -10,44 +11,60 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
 
-/** Logic quyết định của UC-17 (không cần database): tính điểm, đơn 0 điểm, phân biệt E1 và E2. */
+/**
+ * Các nhánh quyết định của {@link QuotaService#reserve} (PB-22): quầy đủ đơn, đơn quá lớn, bếp không còn kịp, đơn 0
+ * điểm, giữ chỗ thành công. Lịch bếp được giả lập bằng một ảnh chụp dựng tay: lúc 11:00, khung nhận 12:00, công suất
+ * 20 điểm mỗi khoảng, làm trước tối đa 45 phút, đặt trước 70%, quầy tối đa 8 đơn.
+ */
 class QuotaServiceTest {
 
-    private static final LocalDate DATE = LocalDate.of(2026, 10, 21);
+    private static final LocalDate DATE = LocalDate.of(2031, 3, 5);
     private static final LocalTime START = LocalTime.of(12, 0);
-    private static final int DEFAULT_QUOTA = 20;
+    private static final StoreSettings SETTINGS =
+            new StoreSettings(LocalTime.of(10, 0), LocalTime.of(21, 0), 20, 45, 70, 8);
 
     private SlotRepository slots;
     private QuotaService service;
+    private final List<KitchenPlanner.Job> jobs = new ArrayList<>();
+    private final Map<LocalTime, Integer> pickup = new HashMap<>();
 
     @BeforeEach
     void setUp() {
         slots = mock(SlotRepository.class);
         StoreSettingsRepository settings = mock(StoreSettingsRepository.class);
-        when(settings.get()).thenReturn(new StoreSettings(LocalTime.of(10, 0), LocalTime.of(21, 0), DEFAULT_QUOTA));
+        KitchenPlanService plan = mock(KitchenPlanService.class);
         when(slots.ensureExists(DATE, START)).thenReturn(5L);
-        service = new QuotaService(slots, settings);
+        List<KitchenPlanner.Interval> intervals = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            intervals.add(new KitchenPlanner.Interval(DATE.atTime(11, 0).plusMinutes(15L * i), 20));
+        }
+        when(plan.snapshot())
+                .thenAnswer(call -> new KitchenPlanService.Snapshot(
+                        SETTINGS, intervals, List.copyOf(jobs), Map.copyOf(pickup), DATE.atTime(11, 0), 15));
+        service = new QuotaService(slots, settings, plan);
     }
 
-    private static List<QuotaLine> lines(int... pointsAndQuantity) {
-        // Mỗi cặp (điểm, số lượng) là một dòng đơn.
-        return java.util.stream.IntStream.range(0, pointsAndQuantity.length / 2)
-                .mapToObj(i -> new QuotaLine(pointsAndQuantity[2 * i], pointsAndQuantity[2 * i + 1]))
-                .toList();
+    private QuotaReservation reserve(int points, boolean walkIn) {
+        return service.reserve(DATE, START, List.of(new QuotaLine(points, 1)), walkIn);
+    }
+
+    private static ErrorCode codeOf(Throwable e) {
+        return ((ApiException) e).code();
     }
 
     @Test
     void orderPointsIsSumOfPointsTimesQuantity() {
-        // BR-08: 3×2 + 1×4 + 0×5 = 10
-        assertThat(QuotaService.orderPoints(lines(3, 2, 1, 4, 0, 5))).isEqualTo(10);
-        assertThat(QuotaService.orderPoints(List.of())).isZero();
+        assertThat(QuotaService.orderPoints(List.of(new QuotaLine(5, 2), new QuotaLine(2, 3), new QuotaLine(0, 4))))
+                .isEqualTo(16);
     }
 
     @Test
@@ -57,87 +74,63 @@ class QuotaServiceTest {
     }
 
     @Test
-    void successReturnsTheHeldSlotAndPoints() {
-        when(slots.tryHold(DATE, START, 7, DEFAULT_QUOTA)).thenReturn(Optional.of(5L));
+    void successReturnsTheSlotAndRecordsThePoints() {
+        QuotaReservation reservation = reserve(30, false);
 
-        QuotaReservation reservation = service.reserve(DATE, START, lines(3, 2, 1, 1));
-
-        assertThat(reservation).isEqualTo(new QuotaReservation(5L, 7));
+        assertThat(reservation).isEqualTo(new QuotaReservation(5L, 30));
+        verify(slots).addHeld(5L, 30);
     }
 
     @Test
-    void zeroPointOrderDoesNotTouchQuota() {
-        // BR-13: đơn toàn đồ uống 0 điểm không chiếm quota, nhưng vẫn trả về khung để gắn vào đơn.
-        QuotaReservation reservation = service.reserve(DATE, START, lines(0, 3));
+    void pickupLimitIsCheckedFirst() {
+        pickup.put(START, 8);
 
-        assertThat(reservation).isEqualTo(new QuotaReservation(5L, 0));
-        verify(slots, never())
-                .tryHold(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), anyInt(), anyInt());
+        assertThatThrownBy(() -> reserve(0, false))
+                .satisfies(e -> assertThat(codeOf(e)).isEqualTo(ErrorCode.SLOT_FULL))
+                .satisfies(e -> assertThat(((ApiException) e).properties()).containsEntry("reason", "PICKUP_LIMIT"));
+        verify(slots, never()).addHeld(anyLong(), anyInt());
     }
 
     @Test
-    void notEnoughRemainingQuotaReportsSlotFull() {
-        // UC-17 E2: đơn 8 điểm, quota khung 20, nhưng chỉ còn lại ít hơn 8.
-        when(slots.tryHold(DATE, START, 8, DEFAULT_QUOTA)).thenReturn(Optional.empty());
-        when(slots.find(DATE, START)).thenReturn(Optional.of(new TimeSlot(5L, DATE, START, null, 15)));
-
-        assertThatThrownBy(() -> service.reserve(DATE, START, lines(8, 1)))
-                .isInstanceOfSatisfying(
-                        ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.SLOT_FULL));
+    void preOrderLargerThanItsShareOfTheWindowIsTooLarge() {
+        // Cửa sổ 11:15–12:00 có 3 khoảng × 14 điểm dành cho đặt trước = 42.
+        assertThat(reserve(42, false).points()).isEqualTo(42);
+        assertThatThrownBy(() -> reserve(43, false))
+                .satisfies(e -> assertThat(codeOf(e)).isEqualTo(ErrorCode.ORDER_TOO_LARGE));
     }
 
     @Test
-    void orderLargerThanTheWholeSlotReportsTooLarge() {
-        // UC-17 E1: đơn 21 điểm lớn hơn cả quota 20 của khung, kể cả khi khung còn trống.
-        when(slots.tryHold(DATE, START, 21, DEFAULT_QUOTA)).thenReturn(Optional.empty());
-        when(slots.find(DATE, START)).thenReturn(Optional.of(new TimeSlot(5L, DATE, START, null, 0)));
-
-        assertThatThrownBy(() -> service.reserve(DATE, START, lines(7, 3)))
-                .isInstanceOfSatisfying(
-                        ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.ORDER_TOO_LARGE));
+    void walkInMayUseTheWholeCapacityFromNow() {
+        // Walk-in lúc 11:00 nhận lúc 12:00 làm được trong 11:00–12:15: 5 khoảng × 20 = 100 điểm.
+        assertThat(reserve(100, true).points()).isEqualTo(100);
+        assertThatThrownBy(() -> reserve(101, true))
+                .satisfies(e -> assertThat(codeOf(e)).isEqualTo(ErrorCode.ORDER_TOO_LARGE));
     }
 
     @Test
-    void slotsOwnQuotaTakesPrecedenceWhenDecidingTooLarge() {
-        // Quản lý đã sửa quota riêng của khung xuống 6: đơn 8 điểm là "quá lớn" dù quota mặc định là 20.
-        when(slots.tryHold(DATE, START, 8, DEFAULT_QUOTA)).thenReturn(Optional.empty());
-        when(slots.find(DATE, START)).thenReturn(Optional.of(new TimeSlot(5L, DATE, START, 6, 0)));
+    void kitchenWithoutRoomForTheNewOrderMeansSlotFull() {
+        jobs.add(new KitchenPlanner.Job(
+                1L, KitchenPlanner.Kind.PRE_ORDER, DATE.atTime(11, 15), DATE.atTime(12, 0), 40, false));
 
-        assertThatThrownBy(() -> service.reserve(DATE, START, lines(8, 1)))
-                .isInstanceOfSatisfying(
-                        ApiException.class, e -> assertThat(e.code()).isEqualTo(ErrorCode.ORDER_TOO_LARGE));
+        assertThatThrownBy(() -> reserve(5, false))
+                .satisfies(e -> assertThat(codeOf(e)).isEqualTo(ErrorCode.SLOT_FULL))
+                .satisfies(e -> assertThat(((ApiException) e).properties()).containsEntry("reason", "KITCHEN"));
+        verify(slots, never()).addHeld(anyLong(), anyInt());
     }
 
     @Test
-    void timeSlotQuotaUsesOverrideOtherwiseDefault() {
-        assertThat(new TimeSlot(1, DATE, START, null, 0).quota(20)).isEqualTo(20);
-        assertThat(new TimeSlot(1, DATE, START, 12, 0).quota(20)).isEqualTo(12);
+    void zeroPointOrderNeedsNoKitchenButCountsAtThePickupCounter() {
+        jobs.add(new KitchenPlanner.Job(
+                1L, KitchenPlanner.Kind.PRE_ORDER, DATE.atTime(11, 15), DATE.atTime(12, 0), 42, false));
+
+        assertThat(reserve(0, false)).isEqualTo(new QuotaReservation(5L, 0));
+        verify(slots, never()).addHeld(anyLong(), anyInt());
     }
 
     @Test
-    void sumOverflowIsReportedInsteadOfWrappingAround() {
-        // Số học tràn không được âm thầm cho điểm nhỏ (sẽ lọt qua kiểm tra quota); báo lỗi ngay.
-        assertThatThrownBy(() -> QuotaService.orderPoints(List.of(new QuotaLine(Integer.MAX_VALUE, 2))))
-                .isInstanceOf(ArithmeticException.class);
-        assertThatThrownBy(() ->
-                        QuotaService.orderPoints(List.of(new QuotaLine(Integer.MAX_VALUE, 1), new QuotaLine(1, 1))))
-                .isInstanceOf(ArithmeticException.class);
-    }
+    void releaseRefusesToGoBelowZero() {
+        when(slots.release(5L, 7)).thenReturn(false);
 
-    @Test
-    void boundaryValuesOfALineAreAccepted() {
-        // Điểm 0 và số lượng 1 là giá trị nhỏ nhất hợp lệ.
-        assertThat(new QuotaLine(0, 1).workloadPoints()).isZero();
-        assertThat(QuotaService.orderPoints(List.of(new QuotaLine(0, 1)))).isZero();
-    }
-
-    @Test
-    void slotMissingRightAfterBeingCreatedIsAnInternalError() {
-        // Không thể xảy ra khi database đúng (dòng khung vừa được tạo cùng giao dịch); nếu xảy ra là lỗi hệ thống,
-        // không được báo nhầm thành "hết chỗ".
-        when(slots.tryHold(DATE, START, 8, DEFAULT_QUOTA)).thenReturn(Optional.empty());
-        when(slots.find(DATE, START)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> service.reserve(DATE, START, lines(8, 1))).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> service.release(5L, 7)).isInstanceOf(IllegalStateException.class);
     }
 }

@@ -15,8 +15,9 @@ class KitchenServiceTest {
     private static final LocalDateTime SLOT = LocalDateTime.of(2031, 3, 5, 11, 30);
     private static final int WINDOW = 15;
 
+    /** Giờ nên làm mặc định: 15 phút trước khung (lịch bếp không xếp sớm hơn). */
     private static Group group(OrderStatus status, LocalDateTime now) {
-        return KitchenService.groupOf(status, SLOT, now, WINDOW);
+        return KitchenService.groupOf(status, SLOT.minusMinutes(WINDOW), now);
     }
 
     @Test
@@ -39,11 +40,13 @@ class KitchenServiceTest {
     }
 
     @Test
-    void windowFollowsTheConfiguredNumberOfMinutes() {
-        assertThat(KitchenService.groupOf(OrderStatus.CONFIRMED, SLOT, SLOT.minusMinutes(20), 30))
-                .isEqualTo(Group.DUE_SOON);
-        assertThat(KitchenService.groupOf(OrderStatus.CONFIRMED, SLOT, SLOT.minusMinutes(20), 0))
+    void kitchenPlanCanMakeAnOrderDueEarlier() {
+        // PB-22: lịch bếp xếp đơn khung 11:30 làm từ 10:45 (bếp đang vắng) thì 10:45 đã vào nhóm cần chuẩn bị.
+        LocalDateTime planned = SLOT.minusMinutes(45);
+        assertThat(KitchenService.groupOf(OrderStatus.CONFIRMED, planned, planned.minusMinutes(1)))
                 .isEqualTo(Group.UPCOMING);
+        assertThat(KitchenService.groupOf(OrderStatus.CONFIRMED, planned, planned))
+                .isEqualTo(Group.DUE_SOON);
     }
 
     @Test
