@@ -79,7 +79,12 @@ export function OrderDetailView({
         </Alert>
       )}
       {cancelError && <Alert kind="danger">{cancelError}</Alert>}
-      {onCancel && order.status === 'CONFIRMED' && (
+      {onCancel && order.status === 'CONFIRMED' && order.paymentStatus === 'PAID' && (
+        <p className="muted">
+          Đơn đã thanh toán. Muốn hủy, vui lòng liên hệ cửa hàng để được hủy và hoàn tiền.
+        </p>
+      )}
+      {onCancel && order.status === 'CONFIRMED' && order.paymentStatus === 'UNPAID' && (
         <div className="cancel-box">
           {confirming ? (
             <>

@@ -155,6 +155,7 @@ function counterOrder(overrides: Partial<CounterOrder>): CounterOrder {
     totalAmount: 45000,
     lines: [{ name: 'Burger bò', quantity: 1 }],
     overdue: false,
+    stale: false,
     ...overrides,
   }
 }
@@ -350,6 +351,7 @@ const dashboard: Dashboard = {
     heldPoints: 12,
     quotaPoints: 880,
     quotaUsagePercent: 1,
+    staleOpen: 0,
   },
 }
 

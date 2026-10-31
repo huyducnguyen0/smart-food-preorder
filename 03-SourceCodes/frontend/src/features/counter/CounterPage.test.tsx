@@ -32,6 +32,7 @@ function order(overrides: Partial<CounterOrder>): CounterOrder {
     totalAmount: 90000,
     lines: [{ name: 'Burger bò', quantity: 2 }],
     overdue: false,
+    stale: false,
     ...overrides,
   }
 }

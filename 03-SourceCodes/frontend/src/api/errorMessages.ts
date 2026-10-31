@@ -26,6 +26,7 @@ const MESSAGES: Record<string, string> = {
   NO_SLOT_AVAILABLE: 'Hôm nay không còn khung nào đủ chỗ cho đơn này.',
   CANCEL_NOT_ALLOWED: 'Đơn này không hủy được nữa.',
   NO_SHOW_TOO_EARLY: 'Chưa quá hạn chờ khách nên chưa đánh dấu không đến nhận được.',
+  PREPARATION_TOO_EARLY: 'Chưa tới thời gian chuẩn bị của đơn này.',
   INTERNAL_ERROR: 'Có lỗi hệ thống, vui lòng thử lại.',
 }
 

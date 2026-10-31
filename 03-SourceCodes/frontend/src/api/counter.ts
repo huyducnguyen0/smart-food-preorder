@@ -21,6 +21,8 @@ export type CounterOrder = {
   lines: { name: string; quantity: number }[]
   /** Đơn READY đã quá giờ kết thúc khung + thời gian chờ: được đánh dấu không đến nhận (BR-25). */
   overdue: boolean
+  /** Đơn của ngày đã qua mà chưa kết thúc: cửa hàng cần dọn (hủy hoặc đánh dấu không đến nhận). */
+  stale: boolean
 }
 
 /** Đơn hôm nay còn đang xử lý, để quầy thu tiền và giao món. */

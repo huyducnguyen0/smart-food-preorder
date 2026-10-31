@@ -21,6 +21,7 @@ function order(overrides: Partial<KitchenOrder>): KitchenOrder {
     source: 'PRE_ORDER',
     confirmedAt: '2031-03-05T10:52:31+07:00',
     late: false,
+    prepareFrom: '2031-03-05T11:15',
     lines: [{ name: 'Burger bò', quantity: 2 }],
     ...overrides,
   }
@@ -43,7 +44,13 @@ const queue: KitchenQueue = {
   ],
   dueSoon: [order({ id: 2, pickupCode: 'D3F7KA' })],
   upcoming: [
-    order({ id: 3, pickupCode: 'M2C8QA', slotStart: '2031-03-05T12:15', source: 'WALK_IN' }),
+    order({
+      id: 3,
+      pickupCode: 'M2C8QA',
+      slotStart: '2031-03-05T12:15',
+      prepareFrom: '2031-03-05T12:00',
+      source: 'WALK_IN',
+    }),
   ],
 }
 
@@ -161,12 +168,12 @@ describe('KitchenPage (UC-12.1)', () => {
       await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
     })
 
-    it('bếp được bắt đầu cả đơn sắp tới (BR-21)', async () => {
+    it('đơn sắp tới chưa bắt đầu được: không có nút, hiện giờ được bắt đầu (BR-21 sửa đổi)', async () => {
       renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
 
-      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' }))
-
-      expect(kitchenApi.startOrder).toHaveBeenCalledWith(3)
+      const upcoming = await screen.findByRole('region', { name: 'Sắp tới' })
+      expect(within(upcoming).getByText('Bắt đầu được từ 12:00')).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).not.toBeInTheDocument()
     })
 
     it('Hoàn tất đơn đang làm (bước 6–7)', async () => {
@@ -211,11 +218,10 @@ describe('KitchenPage (UC-12.1)', () => {
 
       await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn D3F7KA' }))
 
-      expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeDisabled()
       expect(screen.getByRole('button', { name: 'Hoàn tất đơn P4W9TD' })).toBeDisabled()
       await act(async () => finish())
       await vi.waitFor(() =>
-        expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeEnabled(),
+        expect(screen.getByRole('button', { name: 'Hoàn tất đơn P4W9TD' })).toBeEnabled(),
       )
     })
   })

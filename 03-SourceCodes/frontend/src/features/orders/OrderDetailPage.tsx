@@ -17,6 +17,13 @@ type State =
   | { kind: 'ready'; order: OrderDetail }
 
 function cancelErrorMessage(error: unknown): string {
+  if (
+    error instanceof ApiError &&
+    error.code === 'CANCEL_NOT_ALLOWED' &&
+    error.extra.reason === 'PAID'
+  ) {
+    return 'Đơn đã thanh toán nên không tự hủy được, vui lòng liên hệ cửa hàng để hủy và hoàn tiền.'
+  }
   if (error instanceof ApiError && error.code === 'CANCEL_NOT_ALLOWED') {
     const deadline =
       typeof error.extra.cancelDeadline === 'string' ? error.extra.cancelDeadline : null

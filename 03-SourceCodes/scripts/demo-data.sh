@@ -100,73 +100,70 @@ place() { # place <phiên> <nhãn> <khung> <dòng...>
   LAST_CODE=$(field pickupCode "$(head -n 1 <<< "$r")")
 }
 
-# Điểm theo menu mẫu: Burger bò 5, Khoai tây chiên 2, Trà đào 0. Khung 1 dùng 5 + 7 + 4 = 16 điểm, khung 2 giữ
-# 2 điểm (đơn hủy từ "đã xác nhận" được trả điểm): đều dưới quota mặc định 20 nếu khung chưa có đơn khác.
+# Bếp chỉ bắt đầu được đơn đã vào thời gian chuẩn bị (BR-21): đơn đặt trước sớm nhất còn cách 30 phút nên lúc chạy
+# script bếp chưa làm được. Các trạng thái "đang làm, sẵn sàng, đã nhận" dùng đơn walk-in (luôn ở khung hiện tại);
+# đơn đặt trước ở trạng thái "chờ bếp" và "đã hủy". Điểm theo menu mẫu: Burger bò 5, Khoai tây chiên 2, Trà đào 0;
+# khung 1 giữ 5 + 7 = 12 điểm, khung 2 giữ 2 điểm (đơn hủy từ "đã xác nhận" được trả điểm), dưới quota mặc định 20.
 echo "Khách đặt trước:"
 if place khach "Đơn A (chờ bếp)" "$SLOT1" "$(line 1 1 "$BURGER"),$(line 6 2 "$TEA")"; then
   summary+=("$LAST_CODE|Pre-order|Đã xác nhận, chờ bếp|khach1@example.com")
 fi
 
-if place khach2 "Đơn B (đang làm)" "$SLOT1" "$(line 1 1 "$BURGER"),$(line 5 1 "$FRIES")"; then
-  step "Đơn B: bếp bắt đầu" "$(post bep "/api/kitchen/orders/$LAST_ID/start")" 200
-  summary+=("$LAST_CODE|Pre-order|Đang chuẩn bị|0901234567")
+if place khach2 "Đơn B (chờ bếp)" "$SLOT1" "$(line 1 1 "$BURGER"),$(line 5 1 "$FRIES")"; then
+  summary+=("$LAST_CODE|Pre-order|Đã xác nhận, chờ bếp|0901234567")
 fi
 
-if place khach "Đơn C (sẵn sàng, chưa trả tiền)" "$SLOT1" "$(line 5 2 "$FRIES")"; then
-  step "Đơn C: bếp bắt đầu" "$(post bep "/api/kitchen/orders/$LAST_ID/start")" 200
-  step "Đơn C: bếp hoàn tất" "$(post bep "/api/kitchen/orders/$LAST_ID/complete")" 200
-  summary+=("$LAST_CODE|Pre-order|Sẵn sàng, chưa thanh toán|khach1@example.com")
-fi
-
-if place khach "Đơn D (đã nhận)" "$SLOT1" "$(line 6 1 "$TEA")"; then
-  step "Đơn D: bếp bắt đầu" "$(post bep "/api/kitchen/orders/$LAST_ID/start")" 200
-  step "Đơn D: bếp hoàn tất" "$(post bep "/api/kitchen/orders/$LAST_ID/complete")" 200
-  step "Đơn D: quầy thu chuyển khoản" \
-    "$(post quay "/api/counter/orders/$LAST_ID/payment" '{"method":"BANK_TRANSFER"}')" 200
-  step "Đơn D: quầy bàn giao" \
-    "$(post quay "/api/counter/orders/$LAST_ID/handover" "{\"pickupCode\":\"$LAST_CODE\"}")" 200
-  summary+=("$LAST_CODE|Pre-order|Đã nhận|khach1@example.com")
-fi
-
-if place khach "Đơn E (khách tự hủy)" "$SLOT2" "$(line 1 1 "$BURGER")"; then
-  step "Đơn E: khách hủy" "$(post khach "/api/orders/$LAST_ID/cancel")" 200
+if place khach "Đơn C (khách tự hủy)" "$SLOT2" "$(line 1 1 "$BURGER")"; then
+  step "Đơn C: khách hủy" "$(post khach "/api/orders/$LAST_ID/cancel")" 200
   summary+=("$LAST_CODE|Pre-order|Đã hủy (khách)|khach1@example.com")
 fi
 
-if place khach2 "Đơn F (cửa hàng hủy)" "$SLOT2" "$(line 1 1 "$BURGER")"; then
-  step "Đơn F: quản lý hủy kèm lý do" \
+if place khach2 "Đơn D (cửa hàng hủy)" "$SLOT2" "$(line 1 1 "$BURGER")"; then
+  step "Đơn D: quản lý hủy kèm lý do" \
     "$(post ql "/api/counter/orders/$LAST_ID/cancel" '{"reason":"Hết bánh mì burger, xin lỗi quý khách"}')" 200
   summary+=("$LAST_CODE|Pre-order|Đã hủy (cửa hàng, có lý do)|0901234567")
 fi
 
-if place khach2 "Đơn G (chờ bếp, khung sau)" "$SLOT2" "$(line 5 1 "$FRIES"),$(line 6 1 "$TEA")"; then
+if place khach2 "Đơn E (chờ bếp, khung sau)" "$SLOT2" "$(line 5 1 "$FRIES"),$(line 6 1 "$TEA")"; then
   summary+=("$LAST_CODE|Pre-order|Đã xác nhận, chờ bếp|0901234567")
 fi
 
-echo "Khách mua tại quầy:"
-for label in "Walk-in H" "Walk-in I"; do
+echo "Khách mua tại quầy (khung hiện tại, đã thu tiền mặt):"
+# walk_in <nhãn> <các bước sau khi tạo: start, complete, handover>
+walk_in() {
+  local label=$1 lines est start r id code
   lines="$(line 5 1 "$FRIES"),$(line 6 1 "$TEA")"
   est=$(post quay /api/counter/walk-in/estimate "{\"lines\":[$lines]}")
   step "$label: ước tính khung" "$est" 200
   start=$(sed -nE 's/.*"start":"([^"]*)".*/\1/p' <<< "$(head -n 1 <<< "$est")")
   r=$(post quay /api/counter/walk-in \
     "{\"requestId\":\"$(uuid)\",\"slotStart\":\"$start\",\"paymentMethod\":\"CASH\",\"lines\":[$lines]}")
-  step "$label: xác nhận, đã thu tiền mặt" "$r" 201
-  [ "$(status_of "$r")" = 201 ] || continue
-  W_ID=$(field id "$(head -n 1 <<< "$r")")
-  W_CODE=$(field pickupCode "$(head -n 1 <<< "$r")")
-  if [ "$label" = "Walk-in H" ]; then
-    step "$label: bếp bắt đầu" "$(post bep "/api/kitchen/orders/$W_ID/start")" 200
-    summary+=("$W_CODE|Walk-in|Đang chuẩn bị, đã thanh toán|—")
-  else
-    summary+=("$W_CODE|Walk-in|Đã xác nhận, đã thanh toán|—")
-  fi
-done
+  step "$label: xác nhận" "$r" 201
+  [ "$(status_of "$r")" = 201 ] || return 1
+  id=$(field id "$(head -n 1 <<< "$r")")
+  code=$(field pickupCode "$(head -n 1 <<< "$r")")
+  shift
+  for action in "$@"; do
+    case $action in
+      start) step "$label: bếp bắt đầu" "$(post bep "/api/kitchen/orders/$id/start")" 200 ;;
+      complete) step "$label: bếp hoàn tất" "$(post bep "/api/kitchen/orders/$id/complete")" 200 ;;
+      handover) step "$label: quầy bàn giao" \
+        "$(post quay "/api/counter/orders/$id/handover" "{\"pickupCode\":\"$code\"}")" 200 ;;
+    esac
+  done
+  LAST_CODE=$code
+}
+if walk_in "Walk-in F"; then summary+=("$LAST_CODE|Walk-in|Đã xác nhận, chờ bếp|—"); fi
+if walk_in "Walk-in G" start; then summary+=("$LAST_CODE|Walk-in|Đang chuẩn bị|—"); fi
+if walk_in "Walk-in H" start complete; then summary+=("$LAST_CODE|Walk-in|Sẵn sàng, chờ khách lấy|—"); fi
+if walk_in "Walk-in I" start complete handover; then summary+=("$LAST_CODE|Walk-in|Đã nhận|—"); fi
 
 echo
 echo "Mã nhận | Nguồn | Trạng thái | Tài khoản khách"
 for row in "${summary[@]}"; do echo "$row" | sed 's/|/ | /g'; done
 echo
+echo "Đơn đặt trước khung $(cut -c12- <<< "$SLOT1") vào thời gian chuẩn bị 15 phút trước giờ khung; khi đó bếp bấm"
+echo "\"Bắt đầu\" được, khách sẽ thấy trang đơn tự đổi trạng thái."
 echo "Xem: khách ($BASE_URL/orders), bếp ($BASE_URL/kitchen), quầy ($BASE_URL/counter), quản lý ($BASE_URL/admin)."
 echo "Mật khẩu mọi tài khoản mẫu: $PASSWORD"
 if [ "$failures" -gt 0 ]; then
