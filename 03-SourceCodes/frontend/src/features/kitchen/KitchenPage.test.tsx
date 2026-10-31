@@ -168,12 +168,14 @@ describe('KitchenPage (UC-12.1)', () => {
       await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
     })
 
-    it('đơn sắp tới chưa bắt đầu được: không có nút, hiện giờ được bắt đầu (BR-21 sửa đổi)', async () => {
+    it('bếp được làm trước đơn sắp tới lúc vắng, có gợi ý giờ cần chuẩn bị (BR-21)', async () => {
       renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
 
       const upcoming = await screen.findByRole('region', { name: 'Sắp tới' })
-      expect(within(upcoming).getByText('Bắt đầu được từ 12:00')).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).not.toBeInTheDocument()
+      expect(within(upcoming).getByText(/Cần chuẩn bị từ 12:00/)).toBeInTheDocument()
+      await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' }))
+
+      expect(kitchenApi.startOrder).toHaveBeenCalledWith(3)
     })
 
     it('Hoàn tất đơn đang làm (bước 6–7)', async () => {

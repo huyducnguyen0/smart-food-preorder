@@ -100,10 +100,9 @@ place() { # place <phiên> <nhãn> <khung> <dòng...>
   LAST_CODE=$(field pickupCode "$(head -n 1 <<< "$r")")
 }
 
-# Bếp chỉ bắt đầu được đơn đã vào thời gian chuẩn bị (BR-21): đơn đặt trước sớm nhất còn cách 30 phút nên lúc chạy
-# script bếp chưa làm được. Các trạng thái "đang làm, sẵn sàng, đã nhận" dùng đơn walk-in (luôn ở khung hiện tại);
-# đơn đặt trước ở trạng thái "chờ bếp" và "đã hủy". Điểm theo menu mẫu: Burger bò 5, Khoai tây chiên 2, Trà đào 0;
-# khung 1 giữ 5 + 7 = 12 điểm, khung 2 giữ 2 điểm (đơn hủy từ "đã xác nhận" được trả điểm), dưới quota mặc định 20.
+# Đơn đặt trước để ở trạng thái "chờ bếp" và "đã hủy" để demo luồng khách tự hủy; các trạng thái bếp, quầy dùng đơn
+# walk-in (ở khung hiện tại). Bếp làm trước đơn đặt trước được (BR-21), bấm "Bắt đầu" trên màn bếp khi demo.
+# Điểm theo menu mẫu: Burger bò 5, Khoai tây chiên 2, Trà đào 0.
 echo "Khách đặt trước:"
 if place khach "Đơn A (chờ bếp)" "$SLOT1" "$(line 1 1 "$BURGER"),$(line 6 2 "$TEA")"; then
   summary+=("$LAST_CODE|Pre-order|Đã xác nhận, chờ bếp|khach1@example.com")
@@ -162,8 +161,7 @@ echo
 echo "Mã nhận | Nguồn | Trạng thái | Tài khoản khách"
 for row in "${summary[@]}"; do echo "$row" | sed 's/|/ | /g'; done
 echo
-echo "Đơn đặt trước khung $(cut -c12- <<< "$SLOT1") vào thời gian chuẩn bị 15 phút trước giờ khung; khi đó bếp bấm"
-echo "\"Bắt đầu\" được, khách sẽ thấy trang đơn tự đổi trạng thái."
+echo "Đơn đặt trước đang chờ bếp: bếp bấm \"Bắt đầu\" (làm trước được), khách sẽ thấy trang đơn tự đổi trạng thái."
 echo "Xem: khách ($BASE_URL/orders), bếp ($BASE_URL/kitchen), quầy ($BASE_URL/counter), quản lý ($BASE_URL/admin)."
 echo "Mật khẩu mọi tài khoản mẫu: $PASSWORD"
 if [ "$failures" -gt 0 ]; then

@@ -170,6 +170,6 @@ public class PlaceOrderService {
         return orderRepository
                 .findDetail(orderId, customerId, properties.slotMinutes())
                 .orElseThrow(() -> new IllegalStateException("Không đọc lại được đơn vừa tạo: " + orderId))
-                .inZone(clock.getZone());
+                .inZone(clock.getZone(), properties.prepWindowMinutes());
     }
 }

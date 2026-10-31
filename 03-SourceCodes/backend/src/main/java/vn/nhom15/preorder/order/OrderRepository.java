@@ -332,7 +332,8 @@ public class OrderRepository {
                                     rs.getInt("total_amount"),
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
                                     lines,
-                                    rs.getString("cancel_reason"));
+                                    rs.getString("cancel_reason"),
+                                    null);
                         },
                         orderId,
                         customerId,

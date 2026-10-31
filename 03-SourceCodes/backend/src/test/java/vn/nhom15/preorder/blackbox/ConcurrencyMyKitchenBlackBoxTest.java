@@ -628,18 +628,18 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName(
-            "TC-KIT-25 Đơn ở nhóm Sắp tới (còn hơn 15 phút): bếp không bắt đầu sớm được (BR-21 sửa đổi 2026-10-31)")
+    @DisplayName("TC-KIT-25 Đơn ở nhóm Sắp tới: bếp được làm trước; khách hết quyền tự hủy (BR-21, BR-23)")
     void kit25() throws Exception {
         long id = placeEarly(login("khach1@example.com"), "13:00", "09:00", line("Burger bò", 1));
         at("11:00");
         MockHttpSession kitchen = login("bep1@example.com");
         assertThat(ids(get("/api/kitchen/queue", kitchen), "upcoming")).containsExactly((int) id);
 
-        Res early = post("/api/kitchen/orders/" + id + "/start", kitchen, null);
-
-        assertThat(early.status()).isEqualTo(409);
-        assertThat((String) early.at("$.code")).isEqualTo("PREPARATION_TOO_EARLY");
-        assertThat(statusOf(id)).isEqualTo("CONFIRMED");
+        assertThat(post("/api/kitchen/orders/" + id + "/start", kitchen, null).status())
+                .isEqualTo(200);
+        assertThat(statusOf(id)).isEqualTo("PREPARING");
+        Res cancel = post("/api/orders/" + id + "/cancel", login("khach1@example.com"), null);
+        assertThat(cancel.status()).isEqualTo(409);
+        assertThat((String) cancel.at("$.code")).isEqualTo("INVALID_STATUS_TRANSITION");
     }
 }

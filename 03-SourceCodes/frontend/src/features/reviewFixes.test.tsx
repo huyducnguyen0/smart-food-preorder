@@ -71,6 +71,24 @@ describe('Đơn đã thanh toán (khách không tự hủy)', () => {
 
     expect(await screen.findByRole('button', { name: 'Hủy đơn' })).toBeInTheDocument()
   })
+
+  it('đơn chưa thanh toán ghi rõ hạn và điều kiện tự hủy (BR-23)', async () => {
+    vi.mocked(ordersApi.fetchOrder).mockResolvedValue({
+      ...detail,
+      paymentStatus: 'UNPAID',
+      paymentMethod: null,
+      cancelDeadline: '2031-03-05T11:45',
+    })
+    renderWithAuth(<p />, {
+      path: '/orders/41',
+      auth: { user: customer },
+      extraRoutes: <Route path="/orders/:id" element={<OrderDetailPage />} />,
+    })
+
+    expect(
+      await screen.findByText('Bạn có thể tự hủy tới 11:45 nếu cửa hàng chưa bắt đầu làm món.'),
+    ).toBeInTheDocument()
+  })
 })
 
 function counterOrder(overrides: Partial<CounterOrder>): CounterOrder {

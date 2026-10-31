@@ -186,33 +186,24 @@ class ReviewFixesBlackBoxTest extends BlackBoxBase {
         }
     }
 
-    // ---------- ⑤ Bếp bắt đầu quá sớm ----------
+    // ---------- ⑤ Đổi lại cùng ngày: bếp được làm trước, khách hủy khi bếp chưa làm ----------
 
     @Test
-    @DisplayName(
-            "TC-FIX-07 Bếp chỉ bắt đầu từ thời gian chuẩn bị (khung 12:00 → từ 11:45); trước đó khách vẫn tự hủy được")
+    @DisplayName("TC-FIX-07 Chi tiết đơn có hạn tự hủy (khung 12:00 → 11:45); bếp làm trước thì khách hết quyền hủy")
     void fix07() throws Exception {
         MockHttpSession customer = login("khach1@example.com");
         long first = place(customer, "12:00", line("Burger bò", 1));
         long second = place(customer, "12:00", line("Burger bò", 1));
-        MockHttpSession kitchen = login("bep1@example.com");
+        assertThat((String) get("/api/orders/" + first, customer).at("$.cancelDeadline"))
+                .isEqualTo(slot("11:45"));
 
-        Res early = post("/api/kitchen/orders/" + first + "/start", kitchen, null);
-        assertThat(early.status()).isEqualTo(409);
-        assertThat((String) early.at("$.code")).isEqualTo("PREPARATION_TOO_EARLY");
-        assertThat((String) early.at("$.allowedFrom")).isEqualTo(slot("11:45"));
-        assertThat(statusOf(first)).isEqualTo("CONFIRMED");
+        assertThat(post("/api/kitchen/orders/" + first + "/start", login("bep1@example.com"), null)
+                        .status())
+                .isEqualTo(200);
+
+        assertThat(post("/api/orders/" + first + "/cancel", customer, null).status())
+                .isEqualTo(409);
         assertThat(post("/api/orders/" + second + "/cancel", customer, null).status())
                 .isEqualTo(200);
-
-        at("11:44");
-        assertThat(post("/api/kitchen/orders/" + first + "/start", kitchen, null)
-                        .status())
-                .isEqualTo(409);
-        at("11:45");
-        assertThat(post("/api/kitchen/orders/" + first + "/start", kitchen, null)
-                        .status())
-                .isEqualTo(200);
-        assertThat(statusOf(first)).isEqualTo("PREPARING");
     }
 }

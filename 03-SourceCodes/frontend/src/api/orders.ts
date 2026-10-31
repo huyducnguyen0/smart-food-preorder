@@ -50,6 +50,8 @@ export type OrderDetail = {
   lines: OrderLine[]
   /** Lý do cửa hàng hủy (BR-24); null nếu chưa hủy hoặc khách tự hủy. */
   cancelReason?: string | null
+  /** Hạn khách tự hủy (BR-23); chỉ hủy được trước mốc này và khi cửa hàng chưa bắt đầu làm. */
+  cancelDeadline?: string | null
 }
 
 export type PlaceOrderRequest = {

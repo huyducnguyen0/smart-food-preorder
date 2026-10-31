@@ -19,8 +19,7 @@ type State =
   | { kind: 'error'; message: string; queue: KitchenQueue | null }
   | { kind: 'ready'; queue: KitchenQueue }
 
-/** `wait`: đơn sắp tới, chưa tới thời gian chuẩn bị nên chưa bắt đầu được (BR-21 sửa đổi 2026-10-31). */
-type Action = 'start' | 'complete' | 'wait'
+type Action = 'start' | 'complete'
 
 function OrderCard({
   order,
@@ -51,19 +50,18 @@ function OrderCard({
         ))}
       </ul>
       <span className="k-confirmed">Xác nhận {timeOf(order.confirmedAt)}</span>
-      {action === 'wait' ? (
-        <span className="k-wait">Bắt đầu được từ {timeOf(order.prepareFrom)}</span>
-      ) : (
-        <button
-          type="button"
-          className={`btn k-action${emphasis ? ' btn-primary' : ''}`}
-          disabled={busy}
-          aria-label={`${action === 'start' ? 'Bắt đầu' : 'Hoàn tất'} đơn ${order.pickupCode}`}
-          onClick={() => onAction(order, action)}
-        >
-          {action === 'start' ? 'Bắt đầu' : 'Hoàn tất'}
-        </button>
+      {!emphasis && action === 'start' && (
+        <span className="k-wait">Cần chuẩn bị từ {timeOf(order.prepareFrom)} · làm trước được</span>
       )}
+      <button
+        type="button"
+        className={`btn k-action${emphasis ? ' btn-primary' : ''}`}
+        disabled={busy}
+        aria-label={`${action === 'start' ? 'Bắt đầu' : 'Hoàn tất'} đơn ${order.pickupCode}`}
+        onClick={() => onAction(order, action)}
+      >
+        {action === 'start' ? 'Bắt đầu' : 'Hoàn tất'}
+      </button>
     </li>
   )
 }
@@ -106,7 +104,7 @@ function Column({
 
 /**
  * UC-12.1 Hàng chờ bếp: đơn hôm nay chia ba nhóm Đang làm, Cần chuẩn bị, Sắp tới; đơn trễ có nhãn đỏ. Tự tải lại mỗi 30
- * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn cần chuẩn bị (đơn sắp tới chỉ hiện giờ được bắt đầu, BR-21) và "Hoàn tất" ở đơn đang làm
+ * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn cần chuẩn bị, hoặc làm trước đơn sắp tới lúc vắng (BR-21) và "Hoàn tất" ở đơn đang làm
  * (UC-12.2). Đơn đổi trạng thái ở nơi khác thì báo và làm mới (E1).
  */
 export function KitchenPage() {
@@ -219,7 +217,7 @@ export function KitchenPage() {
           <Column
             title="Sắp tới"
             orders={queue.upcoming}
-            action="wait"
+            action="start"
             emphasis={false}
             busyId={busyId}
             onAction={handleAction}

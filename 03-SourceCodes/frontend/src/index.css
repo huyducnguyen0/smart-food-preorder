@@ -1171,7 +1171,7 @@ h1 {
 
 .k-wait {
   display: block;
-  margin-top: 8px;
+  margin: 8px 0 4px;
   color: var(--ink-3);
   font-size: 14px;
 }

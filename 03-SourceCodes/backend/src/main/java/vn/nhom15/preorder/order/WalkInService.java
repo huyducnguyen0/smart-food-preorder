@@ -144,7 +144,7 @@ public class WalkInService {
         return orderRepository
                 .findDetailById(orderId, properties.slotMinutes())
                 .orElseThrow(() -> new IllegalStateException("Không đọc lại được đơn walk-in: " + orderId))
-                .inZone(clock.getZone());
+                .inZone(clock.getZone(), properties.prepWindowMinutes());
     }
 
     /** Khung mới để báo lại khách khi khung đã báo vừa hết chỗ; rỗng nếu hôm nay không còn khung nào. */

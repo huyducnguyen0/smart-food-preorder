@@ -37,7 +37,7 @@ public class MyOrderService {
     public OrderDetail getOrder(long customerId, long orderId) {
         return orderRepository
                 .findDetail(orderId, customerId, properties.slotMinutes())
-                .map(order -> order.inZone(clock.getZone()))
+                .map(order -> order.inZone(clock.getZone(), properties.prepWindowMinutes()))
                 .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
     }
 }

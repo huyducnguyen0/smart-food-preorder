@@ -53,8 +53,6 @@ public enum ErrorCode {
     CANCEL_NOT_ALLOWED(HttpStatus.CONFLICT),
     /** Đơn sẵn sàng chưa quá hạn nên chưa đánh dấu không đến nhận được (BR-25). */
     NO_SHOW_TOO_EARLY(HttpStatus.CONFLICT),
-    /** Bếp bắt đầu đơn chưa tới thời gian chuẩn bị (BR-21 sửa đổi 2026-10-31). */
-    PREPARATION_TOO_EARLY(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 
