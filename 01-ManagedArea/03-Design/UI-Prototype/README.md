@@ -52,9 +52,9 @@ Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-0
 | Mã nhận | Thẻ "vé" nền tối, mã 6 ký tự cỡ lớn, kèm thanh tiến trình 4 bước của đơn | Mã nhận là thứ khách cần đọc tại quầy (UC-05 bước 4) |
 | Món không có ảnh | Ô màu kem với biểu tượng | Ảnh là tùy chọn (BR-01) |
 | Khách vãng lai bấm "Thêm vào giỏ" | Chuyển tới Đăng nhập, món không tự thêm | UC-03 A3 |
-| Nút thao tác chính của bếp | Đơn "Cần chuẩn bị" có nút Bắt đầu màu chính; đơn "Sắp tới" không có nút, hiện "Bắt đầu được từ HH:mm" | BR-21 sửa đổi 2026-10-31: bếp bắt đầu sớm sẽ lấy mất quyền tự hủy của khách (trước đó cho bắt đầu sớm, nút viền) |
+| Nút thao tác chính của bếp | Đơn "Cần chuẩn bị" có nút Bắt đầu màu chính; đơn "Sắp tới" nút viền kèm "Cần chuẩn bị từ HH:mm · làm trước được" | Gợi ý thứ tự làm, vẫn cho làm trước lúc vắng (BR-21). Ngày 2026-10-31 từng đổi thành không cho làm trước; người dùng quyết định khôi phục vì giờ đông cần bếp đã làm sẵn |
 | Trang đơn tự cập nhật (PB-14) | Hỏi lại mỗi 15 giây khi đơn chưa kết thúc; đơn vừa sẵn sàng thì hiện khung xanh "Đơn của bạn đã sẵn sàng" | Không dùng email/SMS; đơn giản, đủ cho cửa hàng nhỏ (Sprint 3) |
-| Hủy đơn của khách | Nút "Hủy đơn" có bước xác nhận; đơn đã thanh toán không có nút, hiện "liên hệ cửa hàng" | UC-06, BR-23 sửa đổi 2026-10-31 |
+| Hủy đơn của khách | Nút "Hủy đơn" có bước xác nhận, kèm "Bạn có thể tự hủy tới HH:mm nếu cửa hàng chưa bắt đầu làm món"; đơn đã thanh toán không có nút, hiện "liên hệ cửa hàng" | UC-06, BR-23 sửa đổi 2026-10-31 |
 | Hủy đơn của cửa hàng | Bấm "Hủy đơn" mới hiện ô lý do; nút xác nhận chỉ bật khi đã nhập | UC-11, lý do bắt buộc (BR-24) |
 | Đơn quá hạn nhận, đơn tồn | Thẻ viền đỏ, nút "Không đến nhận"; đơn chưa kết thúc của ngày trước gom vào khung vàng "Đơn tồn từ ngày trước" ở đầu màn quầy, có ngày | UC-10; quyết định 2026-10-31 |
 | Điều hướng của quản lý | Thanh tab: Thực đơn, Theo dõi, Quầy, Quản lý (Món, Giờ và quota, Nhân viên), Đăng xuất | Giữ thanh tab đáy gọn trên điện thoại (Sprint 3) |

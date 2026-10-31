@@ -171,3 +171,6 @@ Trong lúc sửa còn phát hiện chính bản sửa ③ ban đầu vi phạm q
 
 **Giới hạn:** số đo NFR-04 lần này chạy khi một backend thử khác cũng đang chạy trên máy; ngoài ra mỗi yêu cầu đã đăng nhập thêm một truy vấn kiểm tra tài khoản (sửa ③). Chưa tách được hai nguyên nhân; nên đo lại trên máy rảnh. Docker Desktop tắt trong lượt này nên chưa chạy lại bản Docker.
 
+### Bổ sung 2026-10-31: khôi phục làm trước, hạn tự hủy hiển thị cho khách
+Người dùng chỉ ra quy tắc "bếp chỉ bắt đầu từ 15 phút trước khung" (sửa ⑤ ở trên) làm dồn việc vào giờ đông, walk-in không được phục vụ. Đã khôi phục: bếp làm trước được; khách tự hủy khi cửa hàng chưa bắt đầu làm, chậm nhất 15 phút trước giờ nhận; chi tiết đơn có `cancelDeadline`, trang đơn ghi rõ điều kiện. Bỏ mã lỗi `PREPARATION_TOO_EARLY`. Phân tích sâu hơn và mô phỏng: [02-FreeZone/2026-10-31_lich-bep](../../../02-FreeZone/2026-10-31_lich-bep/README.md); thay đổi mô hình quota làm ở Sprint 4.
+

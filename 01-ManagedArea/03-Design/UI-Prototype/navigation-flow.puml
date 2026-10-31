@@ -39,7 +39,7 @@ Menu --> MyOrders : "Đơn của tôi"
 MyOrders --> Detail : chọn một đơn
 Detail --> Detail : tự làm mới 15 giây;\n"Hủy đơn" (UC-06)
 
-Kitchen --> Kitchen : Bắt đầu (từ thời gian chuẩn bị)\n/ Hoàn tất / tự làm mới 30 giây
+Kitchen --> Kitchen : Bắt đầu (làm trước được)\n/ Hoàn tất / tự làm mới 30 giây
 Counter --> Counter : tạo walk-in, thu tiền, bàn giao,\nhủy, không đến nhận, đơn tồn
 
 Menu --> Dashboard : tab "Theo dõi" (Quản lý)

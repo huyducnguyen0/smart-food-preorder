@@ -26,7 +26,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 ## Ghi chú
 - Lựa chọn chưa xác nhận: khách tự hủy không cần nhập lý do; nút hủy hiện với mọi đơn `CONFIRMED` chưa thanh toán, mốc thời gian do backend quyết (màn hình không tự tính để khỏi lệch giờ máy khách).
 - Đơn hủy không tính vào giới hạn 3 đơn chưa kết thúc (BR-37), nên khách đặt lại được ngay.
-- Bếp chỉ bắt đầu đơn từ thời gian chuẩn bị (BR-21 sửa đổi 2026-10-31), nên khách luôn có trọn thời gian tự hủy tới mốc đó.
+- Bếp được làm trước (BR-21). Khi đó đơn chuyển `PREPARING` và khách hết quyền tự hủy (E2), dù chưa tới hạn. Trang đơn ghi "Bạn có thể tự hủy tới HH:mm nếu cửa hàng chưa bắt đầu làm món" (`cancelDeadline` trong chi tiết đơn) để khách biết trước (2026-10-31).
 
 ## Output chuyển giao
 `POST /api/orders/{id}/cancel`, migration V9, nút hủy ở trang chi tiết đơn, test TC-CAN-01 → 07.

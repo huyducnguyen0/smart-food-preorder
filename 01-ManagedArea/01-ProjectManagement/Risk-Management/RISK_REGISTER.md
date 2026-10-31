@@ -73,7 +73,7 @@ Xem lại đánh giá khi scope/yêu cầu/thiết kế thay đổi, trong Sprin
 | RISK-03 | Màn theo dõi ghi rõ quota không phải năng lực bếp (NT9) | UC-16 bước 6 | Kiểm soát được |
 | RISK-04 | Đã kiểm chứng không vượt quota khi hai kênh cùng đặt và khi gửi lại | TC-CON-07, TC-CON-08, NFR-01, NFR-02 | Giảm |
 | RISK-05 | **Đã xảy ra**: review 2026-10-31 tìm thấy khách tự hủy được đơn đã trả tiền, đơn tồn từ ngày trước chặn khách đặt mới và không ai thấy để xử lý, đổi giờ cùng lúc đặt đơn lọt đơn ngoài giờ | Test Results lượt 2026-10-31; đã sửa, TC-FIX-01 → 07 | Đã xử lý các lỗi tìm thấy; vẫn theo dõi |
-| RISK-06 | Bếp chỉ bắt đầu từ thời gian chuẩn bị (BR-21 sửa đổi); đơn trễ, đơn tồn được hiển thị | UC-12, UC-16 | Giảm |
+| RISK-06 | **Đã xảy ra** (2026-10-31): AI đổi quy tắc để bếp chỉ bắt đầu từ thời gian chuẩn bị; người dùng chỉ ra làm vậy dồn việc vào giờ đông, walk-in không được phục vụ. Đã khôi phục làm trước; phân tích lịch bếp và mô phỏng cho thấy quota theo khung nhận chưa tận dụng được việc làm trước, đưa vào Sprint 4 | UC-12; 02-FreeZone/2026-10-31_lich-bep | Đang xử lý (Sprint 4) |
 | RISK-07 | Ma trận quyền 5 vai trò; đơn của người khác trả 404; **lỗ hổng** tài khoản bị khóa vẫn dùng được phiên đang mở, đã sửa 2026-10-31 | AuthorizationMatrixTest, TC-FIX-05 | Giảm |
 | RISK-08 | **Đang xảy ra**: một người làm, AI viết cả code lẫn test; các lỗi ở RISK-05, RISK-07 chỉ lộ ra khi review lại hoặc chạy tay, không do test tìm ra | Retro Sprint 2, 3 | Cao; cần người khác dùng thử, review |
 | RISK-09 | Toàn hệ thống chạy chung bằng một lệnh Docker | Test Results lượt Docker | Giảm |

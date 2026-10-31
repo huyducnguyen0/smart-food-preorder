@@ -90,7 +90,7 @@ Các lỗi tìm thấy khi review lại luồng sản phẩm và cách sửa ng�
 | TC-FIX-04 | Khách tự hủy đơn đã trả tiền (BR-23 sửa đổi) | Khách bị từ chối (`reason` = `PAID`), đơn và điểm giữ nguyên; cửa hàng hủy kèm lý do được, hoàn điểm | Passed |
 | TC-FIX-05 | Khóa tài khoản không có tác dụng với phiên đang mở (BR-32) | Bếp đang mở màn hình, quản lý khóa: yêu cầu kế tiếp 401, phiên bị hủy; người khác không ảnh hưởng; mở khóa thì đăng nhập lại được | Passed |
 | TC-FIX-06 | Đổi giờ cùng lúc đặt đơn lọt đơn ngoài giờ (BR-11) | 15 vòng: khách đặt khung 20:45 đồng thời quản lý rút giờ đóng cửa về 20:45; không vòng nào cả hai cùng thành công. **Gỡ chỗ sửa thì test thất bại ngay vòng 1** | Passed |
-| TC-FIX-07 | Bếp bắt đầu quá sớm (BR-21 sửa đổi) | Khung 12:00: lúc 11:00 và 11:44 bị từ chối (`PREPARATION_TOO_EARLY`, `allowedFrom` 11:45), khách vẫn tự hủy được; từ 11:45 bắt đầu được | Passed |
+| TC-FIX-07 | Bếp làm trước làm khách mất quyền hủy mà không biết (BR-21, BR-23) | Chi tiết đơn có `cancelDeadline` (khung 12:00 → 11:45); bếp làm trước đơn thứ nhất thì khách không hủy được đơn đó, vẫn hủy được đơn chưa làm | Passed |
 
-Ca cũ sửa theo quy tắc mới: **TC-KIT-25** đổi từ "bếp được bắt đầu đơn sắp tới" thành "bị từ chối"; **TC-PAY-11** danh sách quầy có thêm đơn tồn đứng đầu; TC-KIT-13 → 23, TC-HAND-11, TC-ORD-17 đưa đồng hồ thử tới thời gian chuẩn bị trước khi bếp bấm "Bắt đầu".
+Ca cũ sửa theo quy tắc mới: **TC-KIT-25** vẫn là "bếp được làm trước đơn sắp tới", thêm kiểm tra khách hết quyền tự hủy sau đó (giữa chừng có lúc đổi thành "bị từ chối", đã khôi phục cùng ngày); **TC-PAY-11** danh sách quầy có thêm đơn tồn đứng đầu; TC-KIT-13 → 23, TC-HAND-11, TC-ORD-17 đưa đồng hồ thử tới thời gian chuẩn bị trước khi bếp bấm "Bắt đầu".
 

@@ -111,13 +111,13 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 **Bếp và trạng thái đơn**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-21 | Đơn `CONFIRMED` thuộc nhóm "cần chuẩn bị" khi thời điểm hiện tại ≥ giờ bắt đầu khung − N phút (N = 15, cấu hình được); trước đó thuộc nhóm "sắp tới". Bếp chỉ được bắt đầu đơn đã vào nhóm "cần chuẩn bị" (thời gian chuẩn bị); bắt đầu sớm hơn sẽ lấy mất quyền tự hủy của khách (BR-23). | NT6; sửa đổi 2026-10-31: bỏ "bếp được bắt đầu đơn sắp tới" |
+| BR-21 | Đơn `CONFIRMED` thuộc nhóm "cần chuẩn bị" khi thời điểm hiện tại ≥ giờ bắt đầu khung − N phút (N = 15, cấu hình được); trước đó thuộc nhóm "sắp tới". Bếp được bắt đầu cả đơn sắp tới (làm trước lúc vắng để giảm quá tải giờ đông). | NT6; ngày 2026-10-31 có lúc đổi thành "chỉ bắt đầu từ nhóm cần chuẩn bị", người dùng quyết định khôi phục cùng ngày |
 | BR-22 | Hàng chờ bếp sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận. Cập nhật tiến độ theo cả đơn. | NT7; quyết định 2026-10-08 |
 
 **Hủy, no-show, trễ**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-23 | Khách hủy được đơn của mình khi đơn còn `CONFIRMED`, **chưa thanh toán** và chưa vào cửa sổ chuẩn bị (BR-21). Hoàn toàn bộ điểm quota. Đơn đã thanh toán thì khách liên hệ cửa hàng; cửa hàng hủy kèm lý do (BR-24) để biết mà hoàn tiền (BR-30). | Quyết định 2026-10-08; điều kiện "chưa thanh toán" thêm 2026-10-31 |
+| BR-23 | Khách hủy được đơn của mình khi đơn còn `CONFIRMED` (cửa hàng **chưa bắt đầu làm**), **chưa thanh toán** và chưa vào cửa sổ chuẩn bị (BR-21). Hoàn toàn bộ điểm quota. Trang đơn ghi rõ hạn và điều kiện này. Đơn đã thanh toán hoặc đã bắt đầu làm thì khách liên hệ cửa hàng; cửa hàng hủy kèm lý do (BR-24), hoàn tiền nếu đã thu (BR-30). | Quyết định 2026-10-08; điều kiện "chưa thanh toán", hiển thị điều kiện: 2026-10-31 |
 | BR-24 | Quản lý hủy được đơn `CONFIRMED` hoặc `PREPARING`; nhân viên quầy hủy được đơn walk-in `CONFIRMED`. Bắt buộc nhập lý do; khách pre-order thấy lý do. Hủy từ `CONFIRMED` thì hoàn toàn bộ điểm; hủy từ `PREPARING` thì không hoàn. | Quyết định 2026-10-08 |
 | BR-25 | Đơn `READY` quá giờ kết thúc khung + 30 phút (cấu hình được) thì quầy hoặc quản lý được đánh dấu `NO_SHOW` bằng tay. Không hoàn quota. | Quyết định 2026-10-08 |
 | BR-26 | Đơn trễ: đơn `CONFIRMED` hoặc `PREPARING` khi đã qua giờ bắt đầu khung nhận; riêng đơn walk-in (được xếp vào khung đang diễn ra) tính từ giờ **kết thúc** khung. Hệ thống chỉ hiển thị, không chặn thao tác. | NT9; quyết định 2026-10-08; ngoại lệ walk-in: quyết định 2026-10-28 |
