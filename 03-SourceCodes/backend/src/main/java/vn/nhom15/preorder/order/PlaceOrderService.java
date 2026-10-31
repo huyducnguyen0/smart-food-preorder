@@ -93,7 +93,7 @@ public class PlaceOrderService {
                 .map(line -> new QuotaLine(items.get(line.menuItemId()).workloadPoints(), line.quantity()))
                 .toList();
         QuotaReservation reservation = quotaService.reserve(
-                command.slotStart().toLocalDate(), command.slotStart().toLocalTime(), quotaLines);
+                command.slotStart().toLocalDate(), command.slotStart().toLocalTime(), quotaLines, false);
 
         List<NewOrder.NewOrderLine> orderLines = command.lines().stream()
                 .map(line -> {

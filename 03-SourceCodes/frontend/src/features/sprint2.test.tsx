@@ -205,6 +205,9 @@ const day: AdminDay = {
   closeTime: '21:00',
   defaultQuotaPoints: 20,
   slotMinutes: 15,
+  holdMinutes: 45,
+  preOrderSharePercent: 70,
+  pickupLimitOrders: 8,
   slots: [
     {
       start: '2031-03-05T12:00',
@@ -213,6 +216,8 @@ const day: AdminDay = {
       quotaOverride: null,
       heldPoints: 10,
       openOrders: 1,
+      plannedPoints: 10,
+      pickupOrders: 1,
     },
     {
       start: '2031-03-05T12:15',
@@ -221,6 +226,8 @@ const day: AdminDay = {
       quotaOverride: 8,
       heldPoints: 0,
       openOrders: 0,
+      plannedPoints: 0,
+      pickupOrders: 0,
     },
   ],
 }
@@ -232,31 +239,36 @@ describe('AdminSlotsPage (UC-14)', () => {
     vi.mocked(adminApi.setSlotQuota).mockReset().mockResolvedValue(day)
   })
 
-  it('hiện cấu hình và từng khung với điểm đã giữ, quota, số đơn', async () => {
+  it('hiện cấu hình và từng khung với điểm bếp làm, công suất, số đơn nhận (PB-22)', async () => {
     renderWithAuth(<AdminSlotsPage />, { auth: { user: manager } })
 
-    expect(await screen.findByText('Giữ 10/20 · 1 đơn')).toBeInTheDocument()
-    expect(screen.getByText('Giữ 0/8 (riêng) · 0 đơn')).toBeInTheDocument()
+    expect(await screen.findByText('Bếp làm 10/20 · nhận 1 đơn')).toBeInTheDocument()
+    expect(screen.getByText('Bếp làm 0/8 (riêng) · nhận 0 đơn')).toBeInTheDocument()
     expect(screen.getByLabelText('Mở cửa')).toHaveValue('10:00')
-    expect(screen.getByLabelText('Quota mặc định (điểm)')).toHaveValue('20')
+    expect(screen.getByLabelText('Công suất bếp (điểm/15 phút)')).toHaveValue('20')
   })
 
-  it('lưu cấu hình gửi giờ và quota mặc định', async () => {
+  it('lưu cấu hình gửi giờ, công suất và thông số lịch bếp', async () => {
     renderWithAuth(<AdminSlotsPage />, { auth: { user: manager } })
-    await screen.findByText('Giữ 10/20 · 1 đơn')
+    await screen.findByText('Bếp làm 10/20 · nhận 1 đơn')
 
-    await userEvent.clear(screen.getByLabelText('Quota mặc định (điểm)'))
-    await userEvent.type(screen.getByLabelText('Quota mặc định (điểm)'), '25')
+    await userEvent.clear(screen.getByLabelText('Công suất bếp (điểm/15 phút)'))
+    await userEvent.type(screen.getByLabelText('Công suất bếp (điểm/15 phút)'), '25')
+    await userEvent.clear(screen.getByLabelText('Phần cho đặt trước (%)'))
+    await userEvent.type(screen.getByLabelText('Phần cho đặt trước (%)'), '60')
     await userEvent.click(screen.getByRole('button', { name: 'Lưu cấu hình' }))
 
     expect(adminApi.updateSettings).toHaveBeenCalledWith({
       openTime: '10:00',
       closeTime: '21:00',
       defaultQuotaPoints: 25,
+      holdMinutes: 45,
+      preOrderSharePercent: 60,
+      pickupLimitOrders: 8,
     })
   })
 
-  it('quota thấp hơn điểm đã giữ: hiện câu lỗi cụ thể của backend', async () => {
+  it('giảm công suất làm bếp không kịp đơn đã nhận: hiện câu lỗi cụ thể của backend', async () => {
     vi.mocked(adminApi.setSlotQuota).mockRejectedValue(
       new ApiError(
         409,
@@ -265,11 +277,11 @@ describe('AdminSlotsPage (UC-14)', () => {
       ),
     )
     renderWithAuth(<AdminSlotsPage />, { auth: { user: manager } })
-    await screen.findByText('Giữ 10/20 · 1 đơn')
+    await screen.findByText('Bếp làm 10/20 · nhận 1 đơn')
 
-    await userEvent.clear(screen.getByLabelText('Quota khung 12:00'))
-    await userEvent.type(screen.getByLabelText('Quota khung 12:00'), '5')
-    await userEvent.click(screen.getByRole('button', { name: 'Lưu quota khung 12:00' }))
+    await userEvent.clear(screen.getByLabelText('Công suất khung 12:00'))
+    await userEvent.type(screen.getByLabelText('Công suất khung 12:00'), '5')
+    await userEvent.click(screen.getByRole('button', { name: 'Lưu công suất khung 12:00' }))
 
     expect(adminApi.setSlotQuota).toHaveBeenCalledWith('12:00', 5)
     expect(await screen.findByText(/đang giữ 10 điểm/)).toBeInTheDocument()

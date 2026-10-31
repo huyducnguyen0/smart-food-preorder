@@ -172,7 +172,7 @@ describe('KitchenPage (UC-12.1)', () => {
       renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
 
       const upcoming = await screen.findByRole('region', { name: 'Sắp tới' })
-      expect(within(upcoming).getByText(/Cần chuẩn bị từ 12:00/)).toBeInTheDocument()
+      expect(within(upcoming).getByText(/Theo lịch bếp: làm từ 12:00/)).toBeInTheDocument()
       await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' }))
 
       expect(kitchenApi.startOrder).toHaveBeenCalledWith(3)

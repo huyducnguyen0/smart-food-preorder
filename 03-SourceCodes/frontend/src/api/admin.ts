@@ -56,14 +56,23 @@ export function setItemDiscontinued(id: number, discontinued: boolean): Promise<
   )
 }
 
+/**
+ * Một khung 15 phút hôm nay (PB-22): vừa là khoảng làm của bếp (công suất, điểm dự kiến làm) vừa là khung nhận của
+ * khách (điểm, số đơn nhận trong khung).
+ */
 export type AdminSlot = {
   start: string
   end: string
-  /** Quota hiệu lực của khung (riêng nếu có, ngược lại mặc định). */
+  /** Công suất bếp của khoảng làm này (riêng nếu có, ngược lại mặc định). */
   quota: number
   quotaOverride: number | null
+  /** Tổng điểm các đơn nhận trong khung này. */
   heldPoints: number
   openOrders: number
+  /** Điểm bếp dự kiến làm trong khoảng này theo lịch bếp. */
+  plannedPoints: number
+  /** Số đơn (không tính đơn hủy) nhận trong khung, so với giới hạn quầy. */
+  pickupOrders: number
 }
 
 export type AdminDay = {
@@ -72,6 +81,12 @@ export type AdminDay = {
   closeTime: string
   defaultQuotaPoints: number
   slotMinutes: number
+  /** Làm trước tối đa bao lâu so với giờ nhận (phút). */
+  holdMinutes: number
+  /** Phần trăm công suất mỗi khoảng làm dành cho đơn đặt trước. */
+  preOrderSharePercent: number
+  /** Số đơn tối đa mỗi khung nhận. */
+  pickupLimitOrders: number
   slots: AdminSlot[]
 }
 
@@ -84,6 +99,9 @@ export function updateSettings(input: {
   openTime: string
   closeTime: string
   defaultQuotaPoints: number
+  holdMinutes?: number
+  preOrderSharePercent?: number
+  pickupLimitOrders?: number
 }): Promise<AdminDay> {
   return apiFetch<AdminDay>('/api/admin/settings', { method: 'PUT', body: input })
 }

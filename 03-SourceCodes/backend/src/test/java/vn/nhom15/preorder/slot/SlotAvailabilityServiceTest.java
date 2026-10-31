@@ -34,14 +34,36 @@ class SlotAvailabilityServiceTest {
     private SlotRepository slots;
     private MenuService menu;
     private StoreSettingsRepository settings;
+    private final List<KitchenPlanService.OpenOrder> orders = new java.util.ArrayList<>();
+
+    /**
+     * Cấu hình tương đương mô hình quota cũ: làm trước tối đa 15 phút, đặt trước dùng 100% công suất, quầy không giới
+     * hạn. Khi đó đơn nhận lúc S chỉ được làm trong 15 phút ngay trước S, nên "khung S còn bao nhiêu" giống quota cũ.
+     */
+    private static StoreSettings legacy() {
+        return new StoreSettings(LocalTime.of(10, 0), LocalTime.of(21, 0), DEFAULT_QUOTA, 15, 100, 1000);
+    }
+
+    /** Cấu hình mặc định của Sprint 4 (PB-22). */
+    private static StoreSettings sprint4() {
+        return new StoreSettings(LocalTime.of(10, 0), LocalTime.of(21, 0), DEFAULT_QUOTA, 45, 70, 8);
+    }
 
     @BeforeEach
     void setUp() {
         slots = mock(SlotRepository.class);
         menu = mock(MenuService.class);
         settings = mock(StoreSettingsRepository.class);
-        when(settings.get()).thenReturn(new StoreSettings(LocalTime.of(10, 0), LocalTime.of(21, 0), DEFAULT_QUOTA));
+        orders.clear();
+        when(settings.get()).thenReturn(legacy());
         when(slots.findByDate(TODAY)).thenReturn(List.of());
+        when(slots.findOrdersToCook(org.mockito.ArgumentMatchers.eq(TODAY), org.mockito.ArgumentMatchers.any()))
+                .thenAnswer(call -> List.copyOf(orders));
+        when(slots.countPickupOrdersByStart(TODAY)).thenAnswer(call -> {
+            Map<LocalTime, Integer> counts = new java.util.HashMap<>();
+            orders.forEach(order -> counts.merge(order.slotStart().toLocalTime(), 1, Integer::sum));
+            return counts;
+        });
         // Món 1: 5 điểm; món 2: 0 điểm (đồ uống); món 3: 25 điểm (lớn hơn quota mặc định).
         when(menu.findItems(anyCollection())).thenAnswer(call -> {
             Map<Long, MenuItem> all = Map.of(1L, item(1, 5), 2L, item(2, 0), 3L, item(3, 25));
@@ -59,7 +81,9 @@ class SlotAvailabilityServiceTest {
     private SlotAvailabilityService serviceAt(String localDateTime) {
         Clock clock =
                 Clock.fixed(LocalDateTime.parse(localDateTime).atZone(ZONE).toInstant(), ZONE);
-        return new SlotAvailabilityService(settings, slots, menu, new OrderingProperties(15, 30, 15, 3, 30), clock);
+        OrderingProperties properties = new OrderingProperties(15, 30, 15, 3, 30);
+        return new SlotAvailabilityService(
+                settings, slots, menu, properties, clock, new KitchenPlanService(settings, slots, properties, clock));
     }
 
     private static List<CartLine> cart(long itemId, int quantity) {
@@ -68,6 +92,12 @@ class SlotAvailabilityServiceTest {
 
     private static TimeSlot slot(int hour, int minute, Integer quotaOverride, int held) {
         return new TimeSlot(100 + hour * 4 + minute / 15, TODAY, LocalTime.of(hour, minute), quotaOverride, held);
+    }
+
+    /** Một đơn đặt trước đã nhận, {@code points} điểm, nhận lúc giờ:phút. */
+    private void preOrder(int hour, int minute, int points) {
+        orders.add(new KitchenPlanService.OpenOrder(
+                orders.size() + 1, false, false, points, TODAY.atTime(hour, minute), TODAY.atTime(8, 0)));
     }
 
     @Test
@@ -114,8 +144,8 @@ class SlotAvailabilityServiceTest {
 
     @Test
     void bookableFollowsRemainingQuotaWithoutRevealingNumbers() {
-        // Khung 12:00 đã giữ 15 → còn 5. Giỏ 5 điểm đặt được (biên), giỏ 6 điểm thì không (BR-36: chỉ có cờ).
-        when(slots.findByDate(TODAY)).thenReturn(List.of(slot(12, 0, null, 15)));
+        // Khung 12:00 đã có đơn 15 điểm → còn 5. Giỏ 5 điểm đặt được (biên), giỏ 10 thì không (BR-36: chỉ có cờ).
+        preOrder(12, 0, 15);
 
         SlotList five = serviceAt("2031-03-05T09:00").listSlots(cart(1, 1));
         assertThat(bookable(five, 12, 0)).isTrue();
@@ -128,7 +158,8 @@ class SlotAvailabilityServiceTest {
 
     @Test
     void quotaOverrideOfASlotIsUsedInsteadOfTheDefault() {
-        when(slots.findByDate(TODAY)).thenReturn(List.of(slot(12, 0, 30, 0), slot(12, 15, 4, 0)));
+        // Công suất riêng của khoảng làm 11:45 (cho khung nhận 12:00) là 30, của khoảng 12:00 (cho 12:15) là 4.
+        when(slots.findByDate(TODAY)).thenReturn(List.of(slot(11, 45, 30, 0), slot(12, 0, 4, 0)));
 
         SlotList list = serviceAt("2031-03-05T09:00").listSlots(cart(3, 1)); // 25 điểm
 
@@ -140,8 +171,10 @@ class SlotAvailabilityServiceTest {
 
     @Test
     void allSlotsFullWhenCartFitsAnEmptySlotButNoSlotHasRoom() {
-        // Mọi khung hôm nay đã giữ 16 → còn 4 < 5 điểm của giỏ, nhưng 5 ≤ quota 20 (E3).
-        when(slots.findByDate(TODAY)).thenReturn(allSlotsHolding(16));
+        // Mọi khung hôm nay đã có đơn 16 điểm → còn 4 < 5 điểm của giỏ, nhưng 5 ≤ công suất 20 (E3).
+        for (int i = 0; i < 44; i++) {
+            preOrder(10 + (i * 15) / 60, (i * 15) % 60, 16);
+        }
 
         SlotList list = serviceAt("2031-03-05T09:00").listSlots(cart(1, 1));
 
@@ -159,7 +192,7 @@ class SlotAvailabilityServiceTest {
 
     @Test
     void zeroPointCartFitsEvenAFullSlot() {
-        when(slots.findByDate(TODAY)).thenReturn(List.of(slot(12, 0, null, 20)));
+        preOrder(12, 0, 20);
 
         SlotList list = serviceAt("2031-03-05T09:00").listSlots(cart(2, 3));
 
@@ -190,18 +223,53 @@ class SlotAvailabilityServiceTest {
         assertSlotRejected(service, TODAY.minusDays(1).atTime(12, 0));
     }
 
+    // ---------- PB-22: lịch bếp với cấu hình mặc định (làm trước 45 phút, đặt trước 70%, quầy 8 đơn) ----------
+
+    @Test
+    void preparingAheadAcceptsMoreThanOneIntervalForASlot() {
+        when(settings.get()).thenReturn(sprint4());
+        // Khung nhận 12:00 làm được trong 11:15, 11:30, 11:45: 3 × 14 = 42 điểm cho đặt trước (mô hình cũ chỉ 20).
+        preOrder(12, 0, 35);
+
+        SlotList list = serviceAt("2031-03-05T09:00").listSlots(cart(1, 1)); // thêm 5 → 40 ≤ 42
+
+        assertThat(bookable(list, 12, 0)).isTrue();
+        SlotList more = serviceAt("2031-03-05T09:00").listSlots(cart(1, 2)); // thêm 10 → 45 > 42
+        assertThat(bookable(more, 12, 0)).isFalse();
+    }
+
+    @Test
+    void pickupLimitClosesASlotEvenIfTheKitchenHasRoom() {
+        when(settings.get()).thenReturn(sprint4());
+        for (int i = 0; i < 8; i++) {
+            preOrder(12, 0, 0); // 8 đơn chỉ có đồ uống: bếp không tốn công nhưng quầy đủ khách
+        }
+
+        SlotList list = serviceAt("2031-03-05T09:00").listSlots(cart(2, 1));
+
+        assertThat(bookable(list, 12, 0)).isFalse();
+        assertThat(bookable(list, 12, 15)).isTrue();
+    }
+
+    @Test
+    void walkInUsesTheShareReservedForWalkIns() {
+        when(settings.get()).thenReturn(sprint4());
+        // Đặt trước đã lấy hết phần 70% của 11:00–11:45; walk-in lúc 11:00 vẫn còn 6 điểm mỗi khoảng.
+        preOrder(11, 15, 14);
+        preOrder(11, 30, 14);
+        preOrder(11, 45, 14);
+        preOrder(12, 0, 14);
+        SlotAvailabilityService service = serviceAt("2031-03-05T11:00");
+
+        assertThat(service.earliestWalkInSlot(5).start()).isEqualTo(TODAY.atTime(11, 0));
+    }
+
     private static boolean bookable(SlotList list, int hour, int minute) {
         return list.slots().stream()
                 .filter(s -> s.start().equals(TODAY.atTime(hour, minute)))
                 .findFirst()
                 .orElseThrow()
                 .bookable();
-    }
-
-    private static List<TimeSlot> allSlotsHolding(int held) {
-        return java.util.stream.IntStream.range(0, 44)
-                .mapToObj(i -> slot(10 + (i * 15) / 60, (i * 15) % 60, null, held))
-                .toList();
     }
 
     private static void assertSlotRejected(SlotAvailabilityService service, LocalDateTime start) {

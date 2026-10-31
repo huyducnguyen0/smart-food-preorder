@@ -313,6 +313,8 @@ const dashboard: Dashboard = {
       quotaOverride: null,
       heldPoints: 12,
       openOrders: 2,
+      plannedPoints: 12,
+      pickupOrders: 2,
     },
     {
       start: '2031-03-05T12:15',
@@ -321,6 +323,8 @@ const dashboard: Dashboard = {
       quotaOverride: null,
       heldPoints: 0,
       openOrders: 0,
+      plannedPoints: 0,
+      pickupOrders: 0,
     },
   ],
   activeOrders: [
@@ -373,7 +377,7 @@ describe('AdminDashboardPage (PB-17)', () => {
 
     const slots = screen.getByRole('list', { name: 'Tải theo khung' })
     expect(within(slots).getAllByRole('listitem')).toHaveLength(1)
-    expect(within(slots).getByText('Giữ 12/20 · 2 đơn')).toBeInTheDocument()
+    expect(within(slots).getByText('Bếp làm 12/20 · nhận 2 đơn')).toBeInTheDocument()
     expect(screen.getByText(/không phải năng lực bếp/)).toBeInTheDocument()
   })
 

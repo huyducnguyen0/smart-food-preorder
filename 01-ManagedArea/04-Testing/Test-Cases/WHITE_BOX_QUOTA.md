@@ -1,6 +1,8 @@
 # White-box Test — Logic giữ quota (UC-17)
 Trạng thái: Thiết kế ở task T-24 (Sprint 1) ngày 2026-10-24 cho logic giữ quota (PB-05); các test đã cài đặt và đã chạy, kết quả ở [Test Results](../Test-Results/README.md). Người dùng chưa review.
 
+> **Sprint 4 (2026-10-31, PB-22):** `QuotaService.reserve` được viết lại theo lịch bếp; `SlotRepository.tryHold` và `QuotaDatabaseTest` bị bỏ. Mục 1–6 là thiết kế và bằng chứng của **bản Sprint 1–3**, giữ làm lịch sử. Thiết kế hiện hành ở **mục 8**.
+
 Theo Bước 16 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): đọc code → xây Control Flow Graph → xác định đường thi hành → chọn dữ liệu → thiết kế test → chạy → ghi kết quả. Black-box của cùng chức năng nằm ở [BLACK_BOX_TEST_CASES.md](BLACK_BOX_TEST_CASES.md) (TC-ORD, TC-CON); tài liệu này kiểm chứng **từng nhánh trong code**.
 
 ## 1. Đối tượng kiểm thử
@@ -115,6 +117,34 @@ Control Flow Graph của một lời gọi không thể hiện việc nhiều gi
 - Kết quả đo độ phủ chỉ cho logic quota. Các phần khác (`GlobalExceptionHandler`, một nhánh của `AuthController`) có nhánh chưa được phủ, ghi nhận để xử lý khi viết test cho API tương ứng.
 - Chưa có white-box cho đặt đơn (`PlaceOrderService`, T-18) và chuyển trạng thái đơn (`OrderStatusService`, T-22); thiết kế bổ sung khi code có.
 - Test đồng thời trong Sprint 1 là bản rút gọn ở tầng dịch vụ; kiểm chứng đầy đủ NFR-01 qua API (50 yêu cầu) ở Sprint 2.
+
+## 8. Sprint 4: `QuotaService.reserve` theo lịch bếp
+Mã nguồn: `QuotaService`, `KitchenPlanService`, `KitchenPlanner` ở [`slot/`](../../../03-SourceCodes/backend/src/main/java/vn/nhom15/preorder/slot/). Thứ tự bước ở [Class Design](../../03-Design/Class-Design/README.md) mục 3.
+
+**Đường độc lập của `reserve`.** 4 điểm quyết định (quầy còn chỗ, đơn quá lớn, bếp còn kịp, điểm > 0) nên V(G) = 5:
+| Đường | Điều kiện | Kết quả mong đợi | Test |
+|---|---|---|---|
+| Q1 | Quầy đủ đơn | `SLOT_FULL`, `reason` = `PICKUP_LIMIT`; không cộng điểm | `QuotaServiceTest#pickupLimitIsCheckedFirst` |
+| Q2 | Quầy còn chỗ, đơn quá lớn kể cả khi bếp trống | `ORDER_TOO_LARGE` | `#preOrderLargerThanItsShareOfTheWindowIsTooLarge`, `#walkInMayUseTheWholeCapacityFromNow` (biên 42/43 và 100/101 điểm) |
+| Q3 | Không quá lớn, bếp không còn kịp | `SLOT_FULL`, `reason` = `KITCHEN`; không cộng điểm | `#kitchenWithoutRoomForTheNewOrderMeansSlotFull` |
+| Q4 | Kịp, điểm = 0 | Trả khung, 0 điểm, không cộng | `#zeroPointOrderNeedsNoKitchenButCountsAtThePickupCounter` |
+| Q5 | Kịp, điểm > 0 | Trả khung và điểm, cộng `held_points` | `#successReturnsTheSlotAndRecordsThePoints` |
+
+**`KitchenPlanner.plan`** (`KitchenPlannerTest`, hàm thuần nên test không cần database):
+| Test | Kiểm chứng |
+|---|---|
+| `preparesEarliestFirst` | Đơn được xếp vào khoảng sớm nhất được phép (làm trước lúc vắng) |
+| `moreThanOneIntervalWorth` | Đơn lớn hơn một khoảng được chia sang nhiều khoảng |
+| `neverBeforeHoldWindow` | Không xếp sớm hơn S − H |
+| `preOrderShare` | Với X% thì phần đặt trước mỗi khoảng không vượt X% công suất |
+| `earliestDeadlineFirst` | Đơn hạn sớm được xếp trước đơn hạn muộn |
+| `neverOverCapacity` | Không khoảng nào vượt công suất; quá tải thì báo không kịp |
+| `lateJobsDoNotBlock` | Đơn đã trễ hạn vẫn được xếp nhưng không làm lịch thất bại |
+| `zeroCapacityIntervalSkipped` | Khoảng công suất 0 bị bỏ qua |
+
+**Đồng thời.** Không còn điều kiện SQL một dòng (mục 5) để kiểm bằng giá trị biên; bất biến nhiều dòng được giữ bằng khóa lịch bếp theo ngày. Kiểm qua API với PostgreSQL thật: TC-CON-08 (25 đặt trước + 25 walk-in), TC-PLAN-08 (60 đặt trước + 20 walk-in, hai khung) — xem [Sprint 4](BLACK_BOX_TEST_CASES_SPRINT_4.md).
+
+**Độ phủ thực đo** (JaCoCo, lượt `./mvnw clean verify` ngày 2026-10-31): `KitchenPlanner` 36/36 dòng, 27/28 nhánh; `KitchenPlanService` 48/48 dòng, 22/24 nhánh; `KitchenPlanService.Snapshot` 26/26 dòng, 16/16 nhánh; `QuotaService` 31/32 dòng, 15/16 nhánh. Các nhánh còn thiếu chưa phân tích từng cái; không ảnh hưởng các đường Q1–Q5.
 
 ## Công cụ
 Sơ đồ vẽ bằng PlantUML (`cfg_QuotaService_reserve.puml`); cách render như [Analysis Model](../../03-Design/Analysis-Model/README.md) mục Công cụ. Độ phủ: JaCoCo `0.8.15` cấu hình trong `backend/pom.xml`, chạy cùng `./mvnw verify`.

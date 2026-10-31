@@ -44,6 +44,7 @@ Nguồn yêu cầu là mô hình do người dùng chọn cho dự án học ph�
 | 19 | PB-20 | Quản lý tài khoản nhân viên | Medium | S | PB-01 | Sprint 3 |
 | 20 | PB-17 | Theo dõi tải, đơn trễ và thống kê | Medium | M | PB-05, PB-13 | Sprint 3 |
 | 21 | PB-18 | Đánh dấu no-show | Low | S | PB-15 | Sprint 3 |
+| 22 | PB-22 | Lịch bếp: nhận đơn theo công suất bếp, làm trước lúc vắng, dành chỗ cho walk-in | High | L | PB-05, PB-11 | Sprint 4 |
 
 Lý do sắp xếp:
 - **1–10** tạo luồng tối giản đi hết vòng đời một đơn: đặt theo khung → giữ quota → bếp → thanh toán → bàn giao (hướng Sprint 1 trong README). PB-16 đứng trước PB-15 vì bàn giao yêu cầu đơn đã `PAID` (BR-29). Tài khoản, menu và quota dùng dữ liệu mẫu nên đăng ký và các màn quản lý chưa chặn luồng này.
@@ -98,6 +99,7 @@ Lý do sắp xếp:
 | PB-21 | Là **quản lý** hoặc **nhân viên quầy**, tôi muốn hủy đơn đã xác nhận kèm lý do khi cửa hàng không phục vụ được hoặc khách walk-in đổi ý, để xử lý ngoại lệ trong hệ thống. | 1. Quyền và trạng thái được hủy theo BR-24; bắt buộc nhập lý do.<br>2. Quota hoàn đủ nếu hủy từ `CONFIRMED`, không hoàn nếu từ `PREPARING`.<br>3. Khách pre-order thấy lý do trên trang đơn. | Charter 4.4, 4.7; BR-24; WBS 4.7 |
 | PB-17 | Là **quản lý**, tôi muốn xem mức tải theo quota, đơn đang xử lý, đơn trễ và thống kê ngày, để điều hành và phát hiện nguy cơ quá tải. | 1. Theo từng khung trong ngày: quota, điểm đã giữ, số đơn.<br>2. Danh sách đơn đang xử lý và đơn trễ (BR-26).<br>3. Thống kê ngày theo FR-20.<br>4. Không trình bày số liệu như năng lực bếp thực tế (NT9). | Charter 4.4, NT9; proposal 5.1; WBS 4.12; RISK-03 |
 | PB-18 | Là **nhân viên quầy** hoặc **quản lý**, tôi muốn đánh dấu đơn không đến nhận, để danh sách đơn sẵn sàng không bị tồn đọng. | 1. Liệt kê đơn `READY` đã quá hạn theo BR-25.<br>2. Đánh dấu `NO_SHOW`; quota không hoàn.<br>3. Đơn chưa quá hạn thì không đánh dấu được. | Charter 4.7; WBS 4.7; RISK-05 |
+| PB-22 | Là **quản lý cửa hàng**, tôi muốn hệ thống nhận đơn theo khả năng làm thật của bếp, cho bếp làm trước lúc vắng và giữ chỗ cho khách tại quầy, để giờ đông bớt quá tải và khách bớt phải chờ. | 1. Đơn đặt trước nhận lúc S được làm trong [S − H, S]; đơn được nhận khi bếp còn xếp kịp, không khoảng làm nào vượt công suất (BR-09, BR-39).<br>2. Đơn đặt trước dùng tối đa X% công suất mỗi khoảng; walk-in dùng phần còn lại (BR-40).<br>3. Mỗi khung nhận tối đa N đơn (BR-41).<br>4. Màn bếp cho biết đơn nên làm lúc nào theo lịch; quản lý xem điểm bếp dự kiến làm và chỉnh công suất, H, X, N.<br>5. Không bao giờ nhận vượt công suất khi nhiều người đặt cùng lúc (NFR-01). | Người dùng 2026-10-31: "làm trước phải giúp quán giảm quá tải, giúp khách bớt chờ"; phân tích và mô phỏng ở 02-FreeZone/2026-10-31_lich-bep |
 
 ## 3. Yêu cầu phi chức năng (NFR)
 NFR áp lên các story liên quan và có công việc kiểm chứng riêng. Tiêu chí nháp ở [SRS mục D](../SRS/SRS.md).

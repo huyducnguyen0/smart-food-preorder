@@ -23,6 +23,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 3 ngày 2026-10-28 theo chế
 
 ## Ghi chú
 - Lựa chọn chưa xác nhận: thống kê tính theo **ngày của khung nhận**; "điểm đang giữ" gồm cả đơn đã nhận và no-show (điểm không hoàn), trừ đơn hủy từ `CONFIRMED`; tỉ lệ làm tròn tới phần trăm.
+- Sprint 4 (2026-10-31, PB-22): mỗi khung hiện "Bếp làm X/Y · nhận Z đơn" (điểm bếp dự kiến làm trên công suất, số đơn nhận).
 - Chưa có xem ngày khác, xuất file hay biểu đồ theo giờ.
 
 ## Output chuyển giao

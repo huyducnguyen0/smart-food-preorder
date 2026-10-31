@@ -22,14 +22,6 @@ public class SlotRepository {
             ON CONFLICT (slot_date, start_time) DO NOTHING
             """;
 
-    private static final String HOLD_SQL = """
-            UPDATE time_slots
-            SET held_points = held_points + ?
-            WHERE slot_date = ? AND start_time = ?
-              AND held_points + ? <= COALESCE(quota_override, ?)
-            RETURNING id
-            """;
-
     private static final RowMapper<TimeSlot> MAPPER = (rs, rowNum) -> new TimeSlot(
             rs.getLong("id"),
             rs.getObject("slot_date", LocalDate.class),
@@ -56,17 +48,11 @@ public class SlotRepository {
     }
 
     /**
-     * Đặt quota riêng cho khung, chỉ khi không thấp hơn điểm đang giữ (BR-11). {@code quota = null} trả khung về quota
-     * mặc định, cũng chỉ khi quota mặc định không thấp hơn điểm đang giữ. Một câu lệnh có điều kiện nên không bị chen
-     * ngang bởi lần giữ quota cùng lúc.
-     *
-     * @return true nếu đã đổi
+     * Đặt công suất bếp riêng cho một khoảng làm; {@code null} trả về công suất mặc định. Gọi sau khi đã kiểm tra lịch
+     * bếp vẫn kịp (BR-11), trong cùng giao dịch, dưới khóa lịch bếp của ngày.
      */
-    public boolean setQuotaOverride(LocalDate date, LocalTime start, Integer quota, int defaultQuota) {
-        return jdbcTemplate.update("""
-                                UPDATE time_slots SET quota_override = ?
-                                WHERE slot_date = ? AND start_time = ? AND held_points <= COALESCE(?, ?)
-                                """, quota, date, start, quota, defaultQuota) > 0;
+    public void setCapacityOverride(long slotId, Integer capacity) {
+        jdbcTemplate.update("UPDATE time_slots SET quota_override = ? WHERE id = ?", capacity, slotId);
     }
 
     /** Số đơn đang xử lý (xác nhận, đang chuẩn bị, sẵn sàng) theo giờ bắt đầu khung của một ngày. */
@@ -113,16 +99,48 @@ public class SlotRepository {
     }
 
     /**
-     * Kiểm tra và giữ quota trong <b>một câu lệnh</b> (BR-09, NFR-01): chỉ cộng điểm khi điểm đang giữ cộng điểm đơn
-     * không vượt quota hiệu lực của khung.
-     *
-     * <p>Vì sao không bị chen ngang: UPDATE khóa dòng khung. Giao dịch đến sau phải chờ, rồi PostgreSQL kiểm tra lại
-     * điều kiện WHERE trên giá trị mới nhất của dòng, nên hai đơn không thể cùng "thấy còn chỗ" dựa trên số liệu cũ.
-     *
-     * @return mã khung nếu giữ được; rỗng nếu không đủ chỗ (hoặc khung chưa có dòng)
+     * Cộng điểm của đơn vừa nhận vào khung nhận (BR-14). Từ PB-22 đây là số liệu thống kê và đối chiếu, không còn là
+     * giới hạn: việc nhận đơn đã được lịch bếp kiểm tra trong cùng giao dịch, dưới khóa lịch bếp của ngày.
      */
-    public Optional<Long> tryHold(LocalDate date, LocalTime start, int points, int defaultQuota) {
-        List<Long> held = jdbcTemplate.queryForList(HOLD_SQL, Long.class, points, date, start, points, defaultQuota);
-        return held.stream().findFirst();
+    public void addHeld(long slotId, int points) {
+        jdbcTemplate.update("UPDATE time_slots SET held_points = held_points + ? WHERE id = ?", points, slotId);
+    }
+
+    /** Đơn còn phải làm của một ngày (đã xác nhận hoặc đang làm, có điểm công việc), cho lịch bếp. */
+    public List<KitchenPlanService.OpenOrder> findOrdersToCook(LocalDate date, java.time.ZoneId zone) {
+        return jdbcTemplate.query(
+                """
+                        SELECT o.id, o.source, o.status, o.workload_points, s.start_time, o.confirmed_at
+                        FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                        WHERE s.slot_date = ? AND o.status IN ('CONFIRMED', 'PREPARING') AND o.workload_points > 0
+                        ORDER BY o.id
+                        """,
+                (rs, rowNum) -> new KitchenPlanService.OpenOrder(
+                        rs.getLong("id"),
+                        "WALK_IN".equals(rs.getString("source")),
+                        "PREPARING".equals(rs.getString("status")),
+                        rs.getInt("workload_points"),
+                        date.atTime(rs.getObject("start_time", LocalTime.class)),
+                        rs.getObject("confirmed_at", java.time.OffsetDateTime.class)
+                                .atZoneSameInstant(zone)
+                                .toLocalDateTime()),
+                date);
+    }
+
+    /** Số đơn (không tính đơn hủy) theo giờ bắt đầu khung nhận của một ngày: giới hạn quầy (PB-22). */
+    public java.util.Map<LocalTime, Integer> countPickupOrdersByStart(LocalDate date) {
+        java.util.Map<LocalTime, Integer> counts = new java.util.HashMap<>();
+        jdbcTemplate.query(
+                """
+                        SELECT s.start_time, count(o.id) AS n
+                        FROM time_slots s JOIN orders o ON o.time_slot_id = s.id
+                        WHERE s.slot_date = ? AND o.status <> 'CANCELLED'
+                        GROUP BY s.start_time
+                        """,
+                rs -> {
+                    counts.put(rs.getObject("start_time", LocalTime.class), rs.getInt("n"));
+                },
+                date);
+        return counts;
     }
 }

@@ -52,6 +52,7 @@ Cập nhật theo **cả đơn**, không theo từng món (BR-22).
 
 ## Ghi chú và giới hạn
 - Không có thao tác hoàn tác (ví dụ `PREPARING → CONFIRMED` khi bấm nhầm) vì SRS B.5 không cho phép chuyển trạng thái khác. Bấm nhầm thì xử lý ngoài hệ thống. Người dùng xác nhận chấp nhận giới hạn này ngày 2026-10-11.
+- Sprint 4 (2026-10-31, PB-22): nhóm "cần chuẩn bị" gồm đơn đã tới giờ nên làm theo lịch bếp (`prepareFrom`), không muộn hơn 15 phút trước khung; thẻ đơn sắp tới ghi "Theo lịch bếp: làm từ HH:mm · làm trước được".
 - Bếp không thấy giá và trạng thái thanh toán (không cần cho việc chế biến).
 - Đơn `READY` không còn trong hàng chờ bếp; đơn bị hủy (Sprint sau) tự rời hàng chờ.
 

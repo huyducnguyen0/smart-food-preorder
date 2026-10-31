@@ -91,7 +91,8 @@ public class WalkInService {
         QuotaReservation reservation = quotaService.reserve(
                 command.slotStart().toLocalDate(),
                 command.slotStart().toLocalTime(),
-                quotaLines(command.lines(), items));
+                quotaLines(command.lines(), items),
+                true);
 
         List<NewOrder.NewOrderLine> orderLines = command.lines().stream()
                 .map(line -> {

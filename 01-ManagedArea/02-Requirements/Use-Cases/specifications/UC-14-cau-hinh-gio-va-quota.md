@@ -22,6 +22,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 2 ngày 2026-10-28 theo chế
 
 ## Ghi chú
 - Đổi cấu hình và giữ quota được xếp hàng bằng khóa trên dòng cấu hình, nên không có lần đặt nào "lọt" giữa lúc kiểm tra và lúc lưu (BR-11). Sửa quota riêng là một câu lệnh có điều kiện `held_points <= quota mới`.
+- Sprint 4 (2026-10-31, PB-22): "quota" đổi nghĩa thành **công suất bếp mỗi khoảng làm 15 phút**. Thêm thời gian làm trước tối đa, phần cho đặt trước (%), giới hạn đơn mỗi khung nhận. Màn hình hiện điểm bếp dự kiến làm và số đơn nhận mỗi khung. Giảm công suất hay đổi cấu hình tới mức bếp không còn kịp đơn đã nhận thì bị từ chối (BR-11).
 - Lựa chọn chưa xác nhận: đơn 0 điểm cũng tính là "khung có đơn" khi thu hẹp giờ; được sửa quota cả khung đã qua trong ngày.
 
 ## Output chuyển giao

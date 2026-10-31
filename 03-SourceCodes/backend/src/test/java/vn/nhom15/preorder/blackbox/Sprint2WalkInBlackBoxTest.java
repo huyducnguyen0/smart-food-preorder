@@ -53,10 +53,12 @@ class Sprint2WalkInBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-WALK-02 Khung hiện tại không đủ chỗ thì lấy khung sớm nhất còn đủ")
+    @DisplayName("TC-WALK-02 Bếp không kịp ở khung hiện tại thì lấy khung sớm nhất còn kịp (lịch bếp, PB-22)")
     void walk02() throws Exception {
-        setHeld("11:00", 18);
-        setHeld("11:15", 16);
+        // Walk-in 5 điểm lúc 11:00: khung 11:00 cần làm trong 11:00–11:15 (còn 2), khung 11:15 thêm 11:15–11:30 (còn
+        // 2, cộng 4 < 5), khung 11:30 thêm 11:30–11:45 (đủ).
+        setCapacity("11:00", 2);
+        setCapacity("11:15", 2);
 
         Res result = estimate(login("quay1@example.com"), line("Burger bò", 1));
 
@@ -64,15 +66,23 @@ class Sprint2WalkInBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-WALK-03 Không còn khung đủ chỗ, sau giờ đóng cửa, hoặc đơn quá lớn: báo lý do")
+    @DisplayName("TC-WALK-03 Bếp đã kín lịch, đơn quá lớn so với thời gian còn lại, sau giờ đóng cửa: báo lý do")
     void walk03() throws Exception {
         MockHttpSession counter = login("quay1@example.com");
-        fillAllSlotsFrom("11:00", 20);
+        // Mọi khoảng làm từ bây giờ tới cuối ngày đã kín: không khung nào còn kịp.
+        for (LocalTime t = LocalTime.of(11, 0); t.isBefore(LocalTime.of(21, 0)); t = t.plusMinutes(15)) {
+            setCapacity(t.toString(), 0);
+        }
+        setCapacity("11:00", 20);
+        setHeld("11:15", 20);
         Res none = estimate(counter, line("Burger bò", 1));
         assertThat(none.status()).isEqualTo(409);
         assertThat((String) none.at("$.code")).isEqualTo("NO_SLOT_AVAILABLE");
 
-        Res tooLarge = estimate(counter, line("Burger phô mai đôi", 3));
+        // 20:30 chỉ còn hai khoảng làm (40 điểm) tới giờ đóng cửa: 6 × 7 = 42 điểm thì đổi khung nào cũng không kịp.
+        jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
+        at("20:30");
+        Res tooLarge = estimate(counter, line("Burger phô mai đôi", 6));
         assertThat((String) tooLarge.at("$.code")).isEqualTo("ORDER_TOO_LARGE");
 
         at("21:00");
@@ -233,9 +243,15 @@ class Sprint2WalkInBlackBoxTest extends BlackBoxBase {
     // ---------- NFR-01: hai kênh cùng đặt ----------
 
     @Test
-    @DisplayName("TC-CON-08 25 pre-order và 25 walk-in 3 điểm cùng lúc vào một khung quota 20: đúng 6 đơn, giữ 18")
+    @DisplayName("TC-CON-08 25 pre-order và 25 walk-in 3 điểm cùng lúc cho khung 12:00, bếp còn 40 điểm: không bao giờ"
+            + " vượt công suất (NFR-01, lịch bếp)")
     void con08() throws Exception {
         jdbc.update("UPDATE menu_items SET workload_points = 3 WHERE name = 'Khoai tây chiên'");
+        // Cấu hình như mô hình cũ (làm trước 15 phút): đặt trước làm trong 11:45–12:00, walk-in làm từ bây giờ tới
+        // 12:15. Bếp nghỉ 11:00–11:45, nên cả hai kênh chỉ còn 11:45 và 12:00 (40 điểm).
+        for (String t : List.of("11:00", "11:15", "11:30")) {
+            setCapacity(t, 0);
+        }
         List<MockHttpSession> customers = sessionsFor(createCustomers(25));
         MockHttpSession counter = login("quay1@example.com");
         MockHttpSession manager = login("quanly@example.com");
@@ -250,13 +266,17 @@ class Sprint2WalkInBlackBoxTest extends BlackBoxBase {
 
         List<Res> results = concurrently(tasks);
 
-        assertThat(results.stream().filter(r -> r.status() == 201)).hasSize(6);
-        assertThat(results.stream().filter(r -> r.status() != 201)).hasSize(44).allSatisfy(r -> {
+        long accepted = results.stream().filter(r -> r.status() == 201).count();
+        long preOrders =
+                results.subList(0, 25).stream().filter(r -> r.status() == 201).count();
+        assertThat(accepted * 3).as("điểm nhận").isBetween(37L, 40L);
+        assertThat(preOrders).as("đặt trước chỉ làm được trong 11:45–12:00").isLessThanOrEqualTo(6);
+        assertThat(results.stream().filter(r -> r.status() != 201)).allSatisfy(r -> {
             assertThat(r.status()).isEqualTo(409);
             assertThat((String) r.at("$.code")).isEqualTo("SLOT_FULL");
         });
-        assertThat(held("12:00")).isEqualTo(18);
-        assertThat(orderCount()).isEqualTo(6);
+        assertThat(held("12:00")).isEqualTo((int) accepted * 3);
+        assertThat(orderCount()).isEqualTo(accepted);
         assertHeldMatchesOrders();
     }
 

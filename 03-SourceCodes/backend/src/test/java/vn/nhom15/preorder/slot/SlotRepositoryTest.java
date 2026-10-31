@@ -49,47 +49,35 @@ class SlotRepositoryTest {
         return LocalDate.of(2031, 1, 1).plusDays(NEXT_DAY.incrementAndGet());
     }
 
-    /** Mỗi dòng: quota riêng (null = không có), điểm đang giữ, điểm đơn, quota mặc định, giữ được hay không. */
-    static Stream<Arguments> holdBoundaries() {
+    /** Mỗi dòng: điểm đang giữ, điểm cần hoàn, hoàn được hay không (không bao giờ xuống dưới 0). */
+    static Stream<Arguments> releaseBoundaries() {
         return Stream.of(
-                Arguments.of(null, 0, 20, 20, true), // đúng bằng quota mặc định (≤)
-                Arguments.of(null, 0, 21, 20, false), // hơn quota mặc định một điểm
-                Arguments.of(null, 10, 10, 20, true), // còn lại đúng bằng điểm đơn
-                Arguments.of(null, 10, 11, 20, false), // còn lại ít hơn điểm đơn một điểm
-                Arguments.of(null, 19, 1, 20, true), // điểm cuối cùng của khung
-                Arguments.of(5, 0, 5, 20, true), // quota riêng nhỏ hơn mặc định: đúng bằng quota riêng
-                Arguments.of(5, 0, 6, 20, false), // vượt quota riêng dù chưa vượt quota mặc định
-                Arguments.of(30, 25, 5, 20, true), // quota riêng lớn hơn mặc định: dùng quota riêng
-                Arguments.of(30, 25, 6, 20, false), // vượt quota riêng
-                Arguments.of(0, 0, 1, 20, false)); // quota riêng bằng 0: khung đóng
+                Arguments.of(10, 10, true), // hoàn đúng bằng điểm đang giữ
+                Arguments.of(10, 4, true),
+                Arguments.of(3, 4, false)); // hoàn nhiều hơn điểm đang giữ: từ chối, giữ nguyên
     }
 
-    @ParameterizedTest(name = "quota riêng {0}, đang giữ {1}, đơn {2}, mặc định {3} → giữ được = {4}")
-    @MethodSource("holdBoundaries")
-    void holdFollowsTheQuotaInequality(Integer override, int held, int points, int defaultQuota, boolean expected) {
+    @ParameterizedTest(name = "đang giữ {0}, hoàn {1} → hoàn được = {2}")
+    @MethodSource("releaseBoundaries")
+    void releaseNeverGoesBelowZero(int held, int points, boolean expected) {
         LocalDate date = newDay();
-        jdbc.update(
-                "INSERT INTO time_slots (slot_date, start_time, quota_override, held_points) VALUES (?, ?, ?, ?)",
-                date,
-                START,
-                override,
-                held);
+        long id = repository.ensureExists(date, START);
+        repository.addHeld(id, held);
 
-        boolean granted = repository.tryHold(date, START, points, defaultQuota).isPresent();
-
-        assertThat(granted).isEqualTo(expected);
-        int heldAfter = jdbc.queryForObject(
-                "SELECT held_points FROM time_slots WHERE slot_date = ? AND start_time = ?",
-                Integer.class,
-                date,
-                START);
-        assertThat(heldAfter).as("chỉ tăng đúng khi giữ được").isEqualTo(expected ? held + points : held);
+        assertThat(repository.release(id, points)).isEqualTo(expected);
+        int after = jdbc.queryForObject("SELECT held_points FROM time_slots WHERE id = ?", Integer.class, id);
+        assertThat(after).isEqualTo(expected ? held - points : held);
     }
 
     @Test
-    void holdOnASlotWithoutARowGrantsNothing() {
-        // ensureExists phải được gọi trước; không có dòng thì UPDATE không khớp dòng nào.
-        assertThat(repository.tryHold(newDay(), START, 1, 20)).isEmpty();
+    void capacityOverrideCanBeSetAndCleared() {
+        LocalDate date = newDay();
+        long id = repository.ensureExists(date, START);
+
+        repository.setCapacityOverride(id, 30);
+        assertThat(repository.find(date, START).orElseThrow().quota(20)).isEqualTo(30);
+        repository.setCapacityOverride(id, null);
+        assertThat(repository.find(date, START).orElseThrow().quota(20)).isEqualTo(20);
     }
 
     @Test

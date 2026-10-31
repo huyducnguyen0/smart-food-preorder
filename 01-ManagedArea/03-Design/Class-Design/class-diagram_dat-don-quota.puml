@@ -99,6 +99,7 @@ package "slot" {
     - menuService : MenuService
     - properties : OrderingProperties
     - clock : Clock
+    - kitchenPlanService : KitchenPlanService
     + listSlots(lines : List<CartLine>) : SlotList
     + checkBookable(slotStart : LocalDateTime) : void
     - candidateStartTimes(settings : StoreSettings, now : LocalDateTime) : List<LocalTime>
@@ -106,17 +107,40 @@ package "slot" {
   class QuotaService <<Service>> {
     - slotRepository : SlotRepository
     - storeSettingsRepository : StoreSettingsRepository
-    + reserve(date : LocalDate, start : LocalTime, lines : List<QuotaLine>) : QuotaReservation
+    - kitchenPlanService : KitchenPlanService
+    + reserve(date : LocalDate, start : LocalTime, lines : List<QuotaLine>, walkIn : boolean) : QuotaReservation
     + {static} orderPoints(lines : List<QuotaLine>) : int
   }
   class SlotRepository <<Repository>> {
     + findByDate(date : LocalDate) : List<TimeSlot>
     + ensureExists(date : LocalDate, start : LocalTime) : long
-    + tryHold(date : LocalDate, start : LocalTime, points : int, defaultQuota : int) : Optional<Long>
+    + addHeld(slotId : long, points : int) : void
     + find(date : LocalDate, start : LocalTime) : Optional<TimeSlot>
+    + findOrdersToCook(date : LocalDate, zone : ZoneId) : List<OpenOrder>
+    + countPickupOrdersByStart(date : LocalDate) : Map<LocalTime, Integer>
   }
   class StoreSettingsRepository <<Repository>> {
     + get() : StoreSettings
+    + lockShared() : void
+    + lockKitchenPlan(day : LocalDate) : void
+  }
+  class KitchenPlanService <<Service>> {
+    + snapshot() : Snapshot
+    + snapshot(settings : StoreSettings, overrides : Map<LocalTime, Integer>) : Snapshot
+  }
+  class Snapshot <<record>> {
+    intervals : List<Interval>
+    jobs : List<Job>
+    pickupOrders : Map<LocalTime, Integer>
+    + preOrderJob(slotStart : LocalDateTime, points : int) : Job
+    + walkInJob(slotStart : LocalDateTime, points : int) : Job
+    + fits(job : Job) : boolean
+    + tooLargeEvenWhenEmpty(job : Job) : boolean
+    + pickupHasRoom(slotStart : LocalTime) : boolean
+    + acceptedOrdersStillFit() : boolean
+  }
+  class KitchenPlanner <<utility>> {
+    + {static} plan(intervals : List<Interval>, intervalMinutes : int, jobs : List<Job>, sharePercent : int) : Result
   }
   class TimeSlot <<record>> {
     id : long
@@ -130,6 +154,9 @@ package "slot" {
     openTime : LocalTime
     closeTime : LocalTime
     defaultQuotaPoints : int
+    holdMinutes : int
+    preOrderSharePercent : int
+    pickupLimitOrders : int
   }
   class QuotaLine <<record>> {
     workloadPoints : int
@@ -190,6 +217,12 @@ SlotAvailabilityService --> StoreSettingsRepository
 SlotAvailabilityService --> MenuService
 QuotaService --> SlotRepository
 QuotaService --> StoreSettingsRepository
+QuotaService --> KitchenPlanService
+SlotAvailabilityService --> KitchenPlanService
+KitchenPlanService --> SlotRepository
+KitchenPlanService --> StoreSettingsRepository
+KitchenPlanService ..> Snapshot
+Snapshot ..> KitchenPlanner
 QuotaService ..> QuotaLine
 QuotaService ..> QuotaReservation
 SlotRepository ..> TimeSlot

@@ -44,14 +44,14 @@ function SlotRow({
     <li className="slot-row">
       <span className="slot-time">{slotRange(slot.start, slot.end)}</span>
       <span className="muted">
-        Giữ {slot.heldPoints}/{slot.quota}
-        {slot.quotaOverride !== null ? ' (riêng)' : ''} · {slot.openOrders} đơn
+        Bếp làm {slot.plannedPoints}/{slot.quota}
+        {slot.quotaOverride !== null ? ' (riêng)' : ''} · nhận {slot.pickupOrders} đơn
       </span>
       <span className="slot-edit">
         <input
           className="c-search"
           inputMode="numeric"
-          aria-label={`Quota khung ${label}`}
+          aria-label={`Công suất khung ${label}`}
           value={value}
           onChange={(e) => setValue(e.target.value)}
         />
@@ -59,7 +59,7 @@ function SlotRow({
           type="button"
           className="btn"
           disabled={busy || !valid || parsed === slot.quota}
-          aria-label={`Lưu quota khung ${label}`}
+          aria-label={`Lưu công suất khung ${label}`}
           onClick={() => onSave(slot, parsed)}
         >
           Lưu
@@ -87,7 +87,14 @@ function SlotRow({
 export function AdminSlotsPage() {
   const [day, setDay] = useState<AdminDay | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [settings, setSettings] = useState({ openTime: '', closeTime: '', defaultQuotaPoints: '' })
+  const [settings, setSettings] = useState({
+    openTime: '',
+    closeTime: '',
+    defaultQuotaPoints: '',
+    holdMinutes: '',
+    preOrderSharePercent: '',
+    pickupLimitOrders: '',
+  })
   const [message, setMessage] = useState<{ kind: 'success' | 'danger'; text: string } | null>(null)
   const [busy, setBusy] = useState(false)
   const [tick, setTick] = useState(0)
@@ -98,6 +105,9 @@ export function AdminSlotsPage() {
       openTime: data.openTime,
       closeTime: data.closeTime,
       defaultQuotaPoints: String(data.defaultQuotaPoints),
+      holdMinutes: String(data.holdMinutes),
+      preOrderSharePercent: String(data.preOrderSharePercent),
+      pickupLimitOrders: String(data.pickupLimitOrders),
     })
   }, [])
 
@@ -132,7 +142,25 @@ export function AdminSlotsPage() {
     event.preventDefault()
     const quota = Number(settings.defaultQuotaPoints)
     if (!Number.isInteger(quota) || quota < 0 || settings.defaultQuotaPoints === '') {
-      setMessage({ kind: 'danger', text: 'Quota mặc định phải là số nguyên không âm.' })
+      setMessage({ kind: 'danger', text: 'Công suất bếp phải là số nguyên không âm.' })
+      return
+    }
+    const hold = Number(settings.holdMinutes)
+    const share = Number(settings.preOrderSharePercent)
+    const limit = Number(settings.pickupLimitOrders)
+    if (
+      !Number.isInteger(hold) ||
+      hold < 15 ||
+      !Number.isInteger(share) ||
+      share < 0 ||
+      share > 100 ||
+      !Number.isInteger(limit) ||
+      limit < 1
+    ) {
+      setMessage({
+        kind: 'danger',
+        text: 'Làm trước tối thiểu 15 phút, phần đặt trước từ 0 đến 100%, quầy ít nhất 1 đơn.',
+      })
       return
     }
     void run(
@@ -141,14 +169,17 @@ export function AdminSlotsPage() {
           openTime: settings.openTime,
           closeTime: settings.closeTime,
           defaultQuotaPoints: quota,
+          holdMinutes: hold,
+          preOrderSharePercent: share,
+          pickupLimitOrders: limit,
         }),
-      'Đã lưu giờ mở cửa và quota mặc định.',
+      'Đã lưu giờ mở cửa và lịch bếp.',
     )
   }
 
   return (
     <div className="content">
-      <h1>Giờ mở cửa và quota</h1>
+      <h1>Giờ mở cửa và lịch bếp</h1>
       {message && <Alert kind={message.kind}>{message.text}</Alert>}
       {loadError && <Alert kind="danger">{loadError}</Alert>}
 
@@ -178,7 +209,7 @@ export function AdminSlotsPage() {
             />
           </label>
           <label className="field">
-            <span>Quota mặc định (điểm)</span>
+            <span>Công suất bếp (điểm/15 phút)</span>
             <input
               inputMode="numeric"
               value={settings.defaultQuotaPoints}
@@ -186,12 +217,39 @@ export function AdminSlotsPage() {
             />
           </label>
         </div>
+        <div className="admin-row">
+          <label className="field">
+            <span>Làm trước tối đa (phút)</span>
+            <input
+              inputMode="numeric"
+              value={settings.holdMinutes}
+              onChange={(e) => setSettings((s) => ({ ...s, holdMinutes: e.target.value }))}
+            />
+          </label>
+          <label className="field">
+            <span>Phần cho đặt trước (%)</span>
+            <input
+              inputMode="numeric"
+              value={settings.preOrderSharePercent}
+              onChange={(e) => setSettings((s) => ({ ...s, preOrderSharePercent: e.target.value }))}
+            />
+          </label>
+          <label className="field">
+            <span>Tối đa đơn mỗi khung nhận</span>
+            <input
+              inputMode="numeric"
+              value={settings.pickupLimitOrders}
+              onChange={(e) => setSettings((s) => ({ ...s, pickupLimitOrders: e.target.value }))}
+            />
+          </label>
+        </div>
         <button type="submit" className="btn btn-primary" disabled={busy}>
           Lưu cấu hình
         </button>
         <p className="muted">
-          Giờ đúng mốc 15 phút. Không thu hẹp giờ làm mất khung đang có đơn, không đặt quota thấp
-          hơn điểm đã giữ.
+          Giờ đúng mốc 15 phút. Bếp xếp lịch làm trước trong giới hạn "làm trước tối đa"; phần còn
+          lại của công suất dành cho khách tại quầy. Không thu hẹp giờ hay giảm công suất tới mức
+          bếp không còn kịp làm đơn đã nhận.
         </p>
       </form>
 
@@ -207,7 +265,7 @@ export function AdminSlotsPage() {
                 onSave={(target, quota) =>
                   void run(
                     () => setSlotQuota(timeOf(target.start), quota),
-                    `Đã cập nhật quota khung ${timeOf(target.start)}.`,
+                    `Đã cập nhật công suất khung ${timeOf(target.start)}.`,
                   )
                 }
               />

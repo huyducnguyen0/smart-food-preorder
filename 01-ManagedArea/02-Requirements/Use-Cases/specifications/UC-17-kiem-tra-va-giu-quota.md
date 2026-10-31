@@ -1,4 +1,4 @@
-# UC-17 — Kiểm tra và giữ quota
+# UC-17 — Kiểm tra và giữ chỗ (lịch bếp)
 Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; người dùng chưa review.
 
 | Mục | Nội dung |
@@ -16,27 +16,32 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 2. Đầu vào: khung giờ đã chọn; danh sách dòng đơn (món, số lượng).
 
 ## Main Flow
+Từ Sprint 4 (2026-10-31, PB-22) việc giữ chỗ dựa trên **lịch bếp** thay cho quota riêng từng khung nhận.
+
 1. Hệ thống: tính **điểm đơn** = Σ (điểm món hiện tại × số lượng) (BR-08).
-2. Hệ thống: nếu điểm đơn = 0 thì đơn không chiếm quota (BR-13); bỏ qua bước 3–5, đi tới bước 6.
-3. Hệ thống: lấy **quota của khung**: quota riêng của khung nếu quản lý đã sửa cho ngày hiện tại, ngược lại là quota mặc định (BR-07).
-4. Hệ thống: kiểm tra điểm đơn ≤ quota của khung − tổng điểm đang giữ của khung (BR-09). Pre-order và walk-in trừ vào **cùng một** quota (NT1).
-5. Hệ thống: cộng điểm đơn vào điểm đang giữ của khung. Bước 4 và 5 là **một thao tác không thể chen ngang**: giữa lúc kiểm tra và lúc giữ, không request nào khác được giữ quota của cùng khung dựa trên số liệu cũ (NFR-01).
-6. Hệ thống: trả kết quả "giữ được" cùng điểm đơn để use case gọi lưu vào đơn. Việc giữ quota và việc tạo đơn được ghi nhận **cùng nhau**: nếu bước tạo đơn của use case gọi thất bại thì phần quota vừa giữ cũng không còn (BR-10).
+2. Hệ thống: khóa lịch bếp của ngày (các lần nhận đơn của cùng ngày lần lượt chạy, NFR-01).
+3. Hệ thống: kiểm tra **khung nhận còn chỗ ở quầy**: số đơn không bị hủy của khung < N (BR-41). Áp dụng cả đơn 0 điểm.
+4. Hệ thống: nếu điểm đơn = 0 thì không tốn công bếp (BR-13); đi tới bước 7.
+5. Hệ thống: dựng lịch bếp: các khoảng làm 15 phút với công suất (BR-07); các đơn đã nhận còn phải làm, mỗi đơn có cửa sổ làm (BR-39); thêm đơn mới. Xếp theo hạn sớm làm trước, làm sớm nhất có thể.
+6. Hệ thống: nhận khi (a) mọi đơn xếp kịp trong toàn bộ công suất và (b) nếu là đơn đặt trước: riêng các đơn đặt trước xếp kịp trong phần X% dành cho đặt trước (BR-40).
+7. Hệ thống: cộng điểm đơn vào điểm của khung nhận (thống kê), trả kết quả "giữ được" để use case gọi lưu đơn. Giữ chỗ và tạo đơn được ghi nhận **cùng nhau** (BR-10).
 
 ## Alternative Flow
-- **E1 — Đơn lớn hơn quota của cả khung** (bước 4): điểm đơn > quota của khung, kể cả khi khung chưa có đơn nào. Không giữ quota; trả kết quả "đơn vượt sức chứa một khung" để use case gọi báo khách liên hệ cửa hàng (BR-12). Kết thúc không thành công.
-- **E2 — Không đủ quota còn lại** (bước 4): điểm đơn ≤ quota của khung nhưng > phần còn lại. Không giữ quota; trả kết quả "khung không đủ chỗ". Use case gọi quyết định bước tiếp: UC-04 báo khung vừa hết chỗ (Sprint 1), sau này UC-18 đề xuất khung thay thế. Kết thúc không thành công.
-- **E3 — Lỗi khi đang giữ hoặc khi use case gọi tạo đơn** (bước 5–6): lỗi hệ thống, mất kết nối database. Mọi thay đổi bị hủy: không có đơn, quota của khung trở về như trước (BR-10). Trả lỗi hệ thống. Kết thúc không thành công.
+- **E1 — Đơn quá lớn** (bước 5): bếp trống hoàn toàn cũng không làm kịp đơn này trong cửa sổ của nó. Trả "đơn quá lớn", báo khách liên hệ cửa hàng (BR-12).
+- **E2 — Không đủ chỗ** (bước 3 hoặc 6): quầy đủ đơn (`reason` = `PICKUP_LIMIT`) hoặc bếp không còn kịp (`reason` = `KITCHEN`). Trả "khung không đủ chỗ"; UC-04 đề xuất khung khác (UC-18), UC-07 báo khung mới.
+- **E3 — Lỗi khi đang giữ hoặc khi use case gọi tạo đơn**: mọi thay đổi bị hủy, không có đơn (BR-10).
 
 ## Postcondition
-- **Thành công**: điểm đang giữ của khung tăng đúng bằng điểm đơn (không đổi nếu điểm đơn = 0); điểm đơn được lưu cùng đơn; tổng điểm đang giữ của khung ≤ quota của khung.
-- **Không thành công**: điểm đang giữ của khung không đổi; không có đơn nào được tạo.
-- **Bất biến luôn đúng**, kể cả khi có nhiều request đồng thời: với mọi khung, tổng điểm các đơn đang giữ quota ≤ quota của khung (BR-09, BR-11, NFR-01).
+- **Thành công**: đơn được tạo; điểm của khung nhận tăng đúng bằng điểm đơn.
+- **Không thành công**: không có đơn nào được tạo, không gì thay đổi.
+- **Bất biến luôn đúng**, kể cả khi đồng thời: các đơn còn phải làm luôn xếp được lịch không khoảng làm nào vượt công suất; số đơn mỗi khung nhận ≤ N (NFR-01).
 
 ## Ghi chú và giới hạn
 - Hoàn quota (BR-14) không thuộc use case này: thực hiện khi hủy đơn (UC-06, UC-11, Sprint sau). Đơn `CONFIRMED`, `PREPARING`, `READY`, `PICKED_UP`, `NO_SHOW` tiếp tục giữ quota.
 - Điểm món dùng ở bước 1 là giá trị tại thời điểm xác nhận; sửa điểm món sau đó không làm đổi điểm đơn đã lưu (BR-08).
-- Cách hiện thực "không thể chen ngang" ở bước 4–5: câu cập nhật có điều kiện trên dòng khung ([Class Design](../../../03-Design/Class-Design/README.md) mục 3, T-10). T-16 phải chứng minh bằng test đồng thời theo NFR-01, không chỉ bằng lập luận.
+- Cách hiện thực "không thể chen ngang": khóa lịch bếp của ngày (`pg_advisory_xact_lock`) tới hết giao dịch đặt đơn ([Class Design](../../../03-Design/Class-Design/README.md) mục 3). Trước Sprint 4 dùng câu cập nhật có điều kiện trên dòng khung. Kiểm chứng: TC-CON-08, TC-PLAN-08.
+- Cách xếp đơn giản (hạn sớm làm trước, làm sớm nhất) không tối ưu tuyệt đối: hiếm khi từ chối một đơn mà cách xếp khéo hơn vẫn nhận được; không bao giờ nhận vượt công suất.
+- Đặt H = 15 phút, X = 100%, N rất lớn thì hành vi với đơn đặt trước giống quota theo khung nhận trước Sprint 4.
 
 ## Output chuyển giao
 Dùng cho Analysis/Sequence giữ quota (T-07), Database (T-09), service quota và unit test (T-16), white-box test (T-24).

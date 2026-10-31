@@ -87,6 +87,10 @@ class KitchenQueueApiTest {
         mutableClock = (MutableClock) clock;
         mutableClock.set(TODAY.atTime(9, 0));
         jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
+        // Cấu hình tương đương mô hình quota Sprint 1 (làm trước 15 phút, đặt trước 100%, quầy không giới hạn), xem
+        // PB-22.
+        jdbc.update("UPDATE store_settings SET hold_minutes = 15, preorder_share_percent = 100,"
+                + " pickup_limit_orders = 1000");
         customer1 =
                 jdbc.queryForObject("SELECT id FROM user_accounts WHERE login_id = 'khach1@example.com'", Long.class);
         customer2 = jdbc.queryForObject("SELECT id FROM user_accounts WHERE login_id = '0901234567'", Long.class);
