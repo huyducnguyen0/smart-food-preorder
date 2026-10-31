@@ -18,7 +18,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import vn.nhom15.preorder.auth.AccountRepository;
+import vn.nhom15.preorder.auth.AuthService;
 import vn.nhom15.preorder.common.ErrorCode;
 
 /**
@@ -35,8 +35,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AccountRepository accountRepository)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthService authService) throws Exception {
         // Cookie XSRF-TOKEN đọc được bằng JavaScript; frontend gửi lại ở header X-XSRF-TOKEN cho mọi yêu cầu ghi.
         // Dùng handler không mã hóa (đủ cho SPA gửi nguyên giá trị cookie); CsrfCookieFilter bảo đảm cookie luôn được
         // ghi.
@@ -46,7 +45,7 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(csrfHandler))
                 .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
                 // BR-32: tài khoản bị khóa mất quyền ngay, kể cả phiên đang mở.
-                .addFilterAfter(new LockedAccountFilter(accountRepository), SecurityContextHolderFilter.class)
+                .addFilterAfter(new LockedAccountFilter(authService), SecurityContextHolderFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)

@@ -9,7 +9,7 @@ import java.io.IOException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-import vn.nhom15.preorder.auth.AccountRepository;
+import vn.nhom15.preorder.auth.AuthService;
 import vn.nhom15.preorder.auth.CurrentUser;
 import vn.nhom15.preorder.common.ErrorCode;
 
@@ -20,10 +20,10 @@ import vn.nhom15.preorder.common.ErrorCode;
  */
 class LockedAccountFilter extends OncePerRequestFilter {
 
-    private final AccountRepository accountRepository;
+    private final AuthService authService;
 
-    LockedAccountFilter(AccountRepository accountRepository) {
-        this.accountRepository = accountRepository;
+    LockedAccountFilter(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -32,7 +32,7 @@ class LockedAccountFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null
                 && authentication.getPrincipal() instanceof CurrentUser user
-                && accountRepository.isBlocked(user.id())) {
+                && authService.isBlocked(user.id())) {
             HttpSession session = request.getSession(false);
             if (session != null) {
                 session.invalidate();

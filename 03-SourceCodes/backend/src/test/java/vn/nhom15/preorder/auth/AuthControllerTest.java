@@ -37,10 +37,6 @@ class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    /** Bộ lọc tài khoản bị khóa (BR-32) đọc tài khoản ở mỗi yêu cầu; mock trả false: không bị khóa. */
-    @MockitoBean
-    AccountRepository accountRepository;
-
     @MockitoBean
     private AuthService authService;
 
