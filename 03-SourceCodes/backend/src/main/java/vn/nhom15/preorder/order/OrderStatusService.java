@@ -1,41 +1,65 @@
 package vn.nhom15.preorder.order;
 
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
+import vn.nhom15.preorder.config.OrderingProperties;
 
 /**
- * Nơi duy nhất đổi trạng thái đơn của bếp (Architecture mục 2). Chỉ cài hai bước SRS B.5 mà bếp được làm:
- * {@code CONFIRMED → PREPARING} và {@code PREPARING → READY}; mọi chuyển khác bị từ chối vì không có câu lệnh nào cho
- * phép. Cập nhật theo cả đơn, không theo từng món (BR-22). Quota vẫn giữ sau khi chuyển (BR-14).
+ * Các chuyển trạng thái theo tiến độ (SRS B.5): bếp {@code CONFIRMED → PREPARING → READY}, quầy bàn giao
+ * {@code READY → PICKED_UP}. Các chuyển ngoại lệ (hủy, không đến nhận) ở {@link OrderCancellationService}; cả hai đều
+ * thuộc module order (Architecture mục 2). Cập nhật theo cả đơn, không theo từng món (BR-22). Quota vẫn giữ sau khi
+ * chuyển (BR-14).
  */
 @Service
 public class OrderStatusService {
 
     private final OrderRepository orderRepository;
+    private final OrderingProperties properties;
     private final Clock clock;
 
-    public OrderStatusService(OrderRepository orderRepository, Clock clock) {
+    public OrderStatusService(OrderRepository orderRepository, OrderingProperties properties, Clock clock) {
         this.orderRepository = orderRepository;
+        this.properties = properties;
         this.clock = clock;
     }
 
     /**
-     * Bếp bắt đầu làm đơn (UC-12 bước 4–5), kể cả đơn sắp tới (BR-21).
+     * Bếp bắt đầu làm đơn (UC-12 bước 4–5). Chỉ khi đơn đã vào thời gian chuẩn bị (BR-21 sửa đổi 2026-10-31): bắt đầu
+     * sớm hơn sẽ lấy mất quyền tự hủy của khách (BR-23). Khóa dòng đơn để không chen ngang lần hủy cùng lúc.
      *
-     * @throws ApiException {@code ORDER_NOT_FOUND} nếu không có đơn;
-     *     {@code INVALID_STATUS_TRANSITION} nếu đơn không còn
-     *     ở {@code CONFIRMED} (UC-12 E1)
+     * @throws ApiException {@code ORDER_NOT_FOUND} nếu không có đơn; {@code INVALID_STATUS_TRANSITION} nếu đơn không
+     *     còn ở {@code CONFIRMED} (UC-12 E1); {@code PREPARATION_TOO_EARLY} nếu chưa tới thời gian chuẩn bị
      */
     @Transactional
     public OrderStatus startPreparing(long orderId, long staffId) {
-        if (orderRepository.markPreparing(orderId, staffId, OffsetDateTime.now(clock))) {
-            return OrderStatus.PREPARING;
+        OrderRepository.LockedOrder order = orderRepository
+                .lockForChange(orderId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
+        if (order.status() != OrderStatus.CONFIRMED) {
+            throw new ApiException(
+                            ErrorCode.INVALID_STATUS_TRANSITION,
+                            "Đơn đang ở trạng thái " + order.status() + ", cần CONFIRMED mới chuyển được")
+                    .with("currentStatus", order.status());
         }
-        throw rejection(orderId, OrderStatus.CONFIRMED);
+        LocalDateTime allowedFrom = preparationStartsAt(order.slotStart());
+        if (LocalDateTime.now(clock).isBefore(allowedFrom)) {
+            throw new ApiException(
+                            ErrorCode.PREPARATION_TOO_EARLY,
+                            "Chưa tới thời gian chuẩn bị, bắt đầu được từ " + allowedFrom.toLocalTime())
+                    .with("allowedFrom", allowedFrom.toString());
+        }
+        orderRepository.markPreparing(orderId, staffId, OffsetDateTime.now(clock));
+        return OrderStatus.PREPARING;
+    }
+
+    /** Thời điểm đơn vào thời gian chuẩn bị: giờ bắt đầu khung trừ cửa sổ chuẩn bị (BR-21). */
+    public LocalDateTime preparationStartsAt(LocalDateTime slotStart) {
+        return slotStart.minusMinutes(properties.prepWindowMinutes());
     }
 
     /**

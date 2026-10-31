@@ -30,7 +30,7 @@ public class KitchenQueueRepository {
      * Đơn {@code CONFIRMED} và {@code PREPARING} có khung thuộc ngày {@code day}, sắp theo giờ bắt đầu khung rồi thời
      * điểm xác nhận (BR-22). Cờ {@code late} chưa được đặt: nó cần giờ hiện tại, nên do service tính.
      */
-    List<ActiveOrder> findActiveOrders(LocalDate day, int slotMinutes) {
+    List<ActiveOrder> findActiveOrders(LocalDate day, int slotMinutes, int prepWindowMinutes) {
         Map<Long, List<KitchenOrder.Line>> linesByOrder = new LinkedHashMap<>();
         jdbcTemplate.query(
                 """
@@ -68,6 +68,7 @@ public class KitchenQueueRepository {
                                     OrderSource.valueOf(rs.getString("source")),
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
                                     false,
+                                    start.minusMinutes(prepWindowMinutes),
                                     List.copyOf(linesByOrder.getOrDefault(id, List.of()))));
                 },
                 day);

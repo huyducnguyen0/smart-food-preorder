@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -48,6 +49,9 @@ import vn.nhom15.preorder.support.TestDatabase;
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+// Đồng hồ cố định 09:00 mà đơn ở khung 12:00: nới cửa sổ chuẩn bị để đơn đã "tới giờ chuẩn bị" (BR-21). Test này
+// kiểm tra chuyển trạng thái; mốc giờ bắt đầu kiểm ở ReviewFixesBlackBoxTest (TC-FIX-07) và TC-KIT-25.
+@TestPropertySource(properties = "app.ordering.prep-window-minutes=180")
 class KitchenStatusApiTest {
 
     private static final HikariDataSource DATA_SOURCE = TestDatabase.create(true);

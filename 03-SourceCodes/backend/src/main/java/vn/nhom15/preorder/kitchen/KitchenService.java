@@ -40,8 +40,8 @@ public class KitchenService {
         List<KitchenOrder> preparing = new ArrayList<>();
         List<KitchenOrder> dueSoon = new ArrayList<>();
         List<KitchenOrder> upcoming = new ArrayList<>();
-        for (KitchenQueueRepository.ActiveOrder active :
-                repository.findActiveOrders(now.toLocalDate(), properties.slotMinutes())) {
+        for (KitchenQueueRepository.ActiveOrder active : repository.findActiveOrders(
+                now.toLocalDate(), properties.slotMinutes(), properties.prepWindowMinutes())) {
             KitchenOrder found = active.order();
             KitchenOrder order = finish(
                     found, LateRule.isLate(active.status(), found.source(), found.slotStart(), found.slotEnd(), now));
@@ -75,6 +75,7 @@ public class KitchenService {
                 order.source(),
                 order.confirmedAt().atZoneSameInstant(clock.getZone()).toOffsetDateTime(),
                 late,
+                order.prepareFrom(),
                 order.lines());
     }
 }

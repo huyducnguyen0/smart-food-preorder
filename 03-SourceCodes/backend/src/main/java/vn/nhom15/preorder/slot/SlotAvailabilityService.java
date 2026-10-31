@@ -92,6 +92,9 @@ public class SlotAvailabilityService {
      * @throws ApiException {@code SLOT_NOT_BOOKABLE} nếu không hợp lệ
      */
     public void checkBookable(LocalDateTime slotStart) {
+        // Khóa chia sẻ cấu hình TRƯỚC khi đọc giờ mở cửa, giữ tới hết giao dịch đặt đơn: quản lý thu hẹp giờ cùng lúc
+        // phải chờ đơn này xong rồi mới kiểm tra "khung có đơn", nên không lọt đơn ngoài giờ mới (BR-11).
+        storeSettingsRepository.lockShared();
         LocalDateTime now = LocalDateTime.now(clock);
         boolean valid = slotStart.toLocalDate().equals(now.toLocalDate())
                 && slotStart.getSecond() == 0
@@ -156,6 +159,7 @@ public class SlotAvailabilityService {
      * @throws ApiException {@code SLOT_NOT_BOOKABLE} nếu không hợp lệ
      */
     public void checkWalkInSlot(LocalDateTime slotStart) {
+        storeSettingsRepository.lockShared(); // như checkBookable (BR-11)
         LocalDateTime now = LocalDateTime.now(clock);
         boolean valid = slotStart.toLocalDate().equals(now.toLocalDate())
                 && slotStart.getSecond() == 0

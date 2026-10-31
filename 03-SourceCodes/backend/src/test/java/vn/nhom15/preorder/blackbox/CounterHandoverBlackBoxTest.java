@@ -229,6 +229,7 @@ class CounterHandoverBlackBoxTest extends BlackBoxBase {
         MockHttpSession counter = login("quay1@example.com");
         assertThat((String) get("/api/orders/" + id, customer).at("$.status")).isEqualTo("CONFIRMED");
 
+        at("11:45"); // thời gian chuẩn bị của khung 12:00 (BR-21)
         assertThat(post("/api/kitchen/orders/" + id + "/start", kitchen, null).status())
                 .isEqualTo(200);
         assertThat(post("/api/kitchen/orders/" + id + "/complete", kitchen, null)

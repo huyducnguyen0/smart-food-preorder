@@ -46,6 +46,13 @@ public class AccountRepository {
                 .findFirst();
     }
 
+    /** Tài khoản bị khóa hoặc không còn tồn tại (BR-32); dùng để kiểm tra phiên đang mở ở mỗi yêu cầu. */
+    public boolean isBlocked(long id) {
+        List<Boolean> locked =
+                jdbcTemplate.queryForList("SELECT locked FROM user_accounts WHERE id = ?", Boolean.class, id);
+        return locked.isEmpty() || locked.getFirst();
+    }
+
     /** Có ít nhất một tài khoản với vai trò này chưa (BR-32: quản lý đầu tiên). */
     public boolean existsByRole(Role role) {
         return Boolean.TRUE.equals(jdbcTemplate.queryForObject(
