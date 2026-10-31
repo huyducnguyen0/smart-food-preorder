@@ -51,7 +51,9 @@ function OrderCard({
       </ul>
       <span className="k-confirmed">Xác nhận {timeOf(order.confirmedAt)}</span>
       {!emphasis && action === 'start' && (
-        <span className="k-wait">Cần chuẩn bị từ {timeOf(order.prepareFrom)} · làm trước được</span>
+        <span className="k-wait">
+          Theo lịch bếp: làm từ {timeOf(order.prepareFrom)} · làm trước được
+        </span>
       )}
       <button
         type="button"

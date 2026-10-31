@@ -52,7 +52,8 @@ export function AdminDashboardPage() {
   const reload = useCallback(() => setTick((value) => value + 1), [])
   usePolling(reload, DASHBOARD_REFRESH_MS)
 
-  const busySlots = data?.slots.filter((slot) => slot.heldPoints > 0 || slot.openOrders > 0) ?? []
+  const busySlots =
+    data?.slots.filter((slot) => slot.plannedPoints > 0 || slot.pickupOrders > 0) ?? []
 
   return (
     <div className="content">
@@ -128,12 +129,12 @@ export function AdminDashboardPage() {
                 <li key={slot.start} className="slot-row">
                   <span className="slot-time">{slotRange(slot.start, slot.end)}</span>
                   <span className="muted">
-                    Giữ {slot.heldPoints}/{slot.quota} · {slot.openOrders} đơn
+                    Bếp làm {slot.plannedPoints}/{slot.quota} · nhận {slot.pickupOrders} đơn
                   </span>
                   <span className="usage-bar" aria-hidden="true">
                     <span
                       style={{
-                        width: `${slot.quota === 0 ? 100 : Math.min(100, (slot.heldPoints * 100) / slot.quota)}%`,
+                        width: `${slot.quota === 0 ? 100 : Math.min(100, (slot.plannedPoints * 100) / slot.quota)}%`,
                       }}
                     />
                   </span>
