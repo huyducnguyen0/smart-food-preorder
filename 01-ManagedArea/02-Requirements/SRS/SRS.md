@@ -82,14 +82,14 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | ID | Quy tắc | Nguồn |
 |---|---|---|
 | BR-06 | Khung giờ dài 15 phút, bắt đầu tại các mốc :00, :15, :30, :45, nằm trong giờ mở cửa do quản lý cấu hình. Độ dài khung là cấu hình hệ thống, không đổi trong vận hành. | Quyết định 2026-10-08 |
-| BR-07 | Quota tính bằng điểm công việc. Quản lý đặt quota mặc định cho mọi khung và có thể sửa riêng từng khung của ngày hiện tại. | NT1; quyết định 2026-10-08 |
+| BR-07 | Công suất bếp tính bằng điểm công việc cho mỗi **khoảng làm 15 phút**. Quản lý đặt công suất mặc định và sửa riêng từng khoảng của ngày hiện tại (trước Sprint 4 gọi là "quota của khung"). | NT1; quyết định 2026-10-08; PB-22, quyết định 2026-10-31 |
 | BR-08 | Điểm của đơn = Σ (điểm món × số lượng), lưu lại tại thời điểm xác nhận; sửa điểm món sau đó không làm đổi điểm đơn đã xác nhận. | NT2 |
-| BR-09 | Đơn chỉ được xác nhận khi điểm đơn ≤ quota còn lại của khung (quota − tổng điểm các đơn đang giữ). Áp dụng như nhau cho pre-order và walk-in. | NT1, NT2 |
+| BR-09 | Đơn chỉ được xác nhận khi bếp còn **xếp được lịch làm**: mọi đơn đã nhận cùng đơn mới được chia vào các khoảng làm trong cửa sổ của từng đơn mà không khoảng nào vượt công suất (BR-39), và khung nhận còn chỗ ở quầy (BR-41). Áp dụng như nhau cho pre-order và walk-in, dùng chung một bếp. | NT1, NT2; PB-22, quyết định 2026-10-31 |
 | BR-10 | Tạo đơn và giữ quota thành công cùng nhau, hoặc không có gì thay đổi. Chỉ báo thành công khi cả hai thành công. | NT5 |
-| BR-11 | Không được đặt quota một khung thấp hơn tổng điểm đang giữ. Giờ mở cửa không được thu hẹp làm mất khung đang có đơn giữ quota. | NT2 |
-| BR-12 | Một đơn phải nằm gọn trong một khung. Điểm đơn lớn hơn quota của khung thì từ chối và báo khách liên hệ cửa hàng. | Quyết định 2026-10-08 |
-| BR-13 | Đơn có tổng điểm 0 (ví dụ chỉ đồ uống điểm 0) không chiếm quota. Quản lý muốn giới hạn loại đơn này thì đặt điểm > 0 cho món. | Hệ quả của BR-08 |
-| BR-14 | Đơn ở trạng thái `CONFIRMED`, `PREPARING`, `READY`, `PICKED_UP`, `NO_SHOW` vẫn giữ quota. Chỉ hủy theo BR-23, BR-24 mới hoàn quota. | Quyết định 2026-10-08 |
+| BR-11 | Không được giảm công suất hay đổi cấu hình tới mức bếp không còn xếp kịp các đơn đã nhận. Giờ mở cửa không được thu hẹp làm mất khung nhận đang có đơn. | NT2; PB-22, quyết định 2026-10-31 |
+| BR-12 | Một đơn nhận trong một khung. Đơn mà bếp trống hoàn toàn cũng không làm kịp trong cửa sổ của nó (đơn quá lớn) thì từ chối và báo khách liên hệ cửa hàng. | Quyết định 2026-10-08; PB-22, quyết định 2026-10-31 |
+| BR-13 | Đơn có tổng điểm 0 (ví dụ chỉ đồ uống điểm 0) không tốn công bếp, nhưng vẫn tính vào số đơn của khung nhận (BR-41). Quản lý muốn giới hạn loại đơn này thì đặt điểm > 0 cho món. | Hệ quả của BR-08 |
+| BR-14 | Đơn ở trạng thái `CONFIRMED`, `PREPARING`, `READY`, `PICKED_UP`, `NO_SHOW` vẫn được tính là đã nhận trong khung nhận. Lịch bếp chỉ xếp việc của đơn còn phải làm (`CONFIRMED`, `PREPARING`). Chỉ hủy theo BR-23, BR-24 mới trả lại chỗ. | Quyết định 2026-10-08; PB-22, quyết định 2026-10-31 |
 
 **Pre-order**
 | ID | Quy tắc | Nguồn |
@@ -104,7 +104,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 **Walk-in**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-18 | Thời gian dự kiến của walk-in là khung sớm nhất, tính từ khung hiện tại, còn đủ quota trong ngày. Không áp dụng mốc 30 phút của BR-15. | NT3; quyết định 2026-10-08 |
+| BR-18 | Thời gian dự kiến của walk-in là khung nhận sớm nhất, tính từ khung hiện tại, mà bếp còn xếp kịp (làm từ bây giờ) và quầy còn chỗ. Không áp dụng mốc 30 phút của BR-15. | NT3; quyết định 2026-10-08; PB-22, quyết định 2026-10-31 |
 | BR-19 | Thời gian dự kiến chỉ để báo khách, chưa giữ quota. Khi nhân viên xác nhận, hệ thống kiểm tra lại theo BR-09; nếu khung đã hết thì hiển thị khung mới để báo lại khách. | NT3, NT5 |
 | BR-20 | Walk-in không cần thông tin khách. Thanh toán ghi nhận tại thời điểm xác nhận. | Quyết định 2026-10-08 |
 
@@ -128,6 +128,9 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-27 | Thanh toán tại quầy: pre-order trả khi nhận, walk-in trả khi đặt. Trạng thái `UNPAID` / `PAID`, kèm phương thức (tiền mặt hoặc chuyển khoản tại quầy). Hệ thống chỉ ghi nhận, không xử lý tiền. | NT8; quyết định 2026-10-08 |
 | BR-28 | Đơn đã xác nhận không mặc định là đã thanh toán; pre-order bắt đầu ở `UNPAID`. | NT8 |
 | BR-29 | Chỉ bàn giao đơn `READY`, mã nhận đúng và `PAID`. Đơn đã bàn giao không bàn giao lại được. | Quyết định 2026-10-08 |
+| BR-39 | **Cửa sổ làm**: đơn đặt trước nhận lúc S được bếp làm trong [S − H, S], H là thời gian làm trước tối đa để món còn ngon (mặc định 45 phút, quản lý đổi được, tối thiểu 15 phút). Đơn walk-in làm từ lúc tạo tới hết khung nhận. Bếp xếp lịch theo nguyên tắc hạn sớm làm trước, làm sớm nhất có thể (làm trước lúc vắng). | PB-22, quyết định 2026-10-31 |
+| BR-40 | **Dành chỗ cho walk-in**: tổng đơn đặt trước trong mỗi khoảng làm không vượt X% công suất (mặc định 70%, quản lý đổi được); phần còn lại cho khách tại quầy. Quản lý giảm X% thì chỉ chặn đơn đặt trước mới. | PB-22, quyết định 2026-10-31 |
+| BR-41 | **Giới hạn quầy**: mỗi khung nhận tối đa N đơn (mặc định 8, quản lý đổi được), tính mọi đơn không bị hủy, kể cả đơn 0 điểm. | PB-22, quyết định 2026-10-31 |
 | BR-38 | Mã nhận gồm 6 ký tự lấy ngẫu nhiên từ chữ in hoa và chữ số, bỏ các ký tự dễ nhầm `0`, `O`, `1`, `I`, `L`; không trùng với mã của đơn khác trong cùng ngày. Áp dụng cho cả pre-order và walk-in. | Quyết định 2026-10-10 |
 | BR-30 | Hoàn tiền cho đơn đã `PAID` bị hủy thực hiện ngoài hệ thống; lý do hủy ghi nhận việc này. | Giới hạn phạm vi (không phải POS) |
 
@@ -187,8 +190,8 @@ Mỗi chức năng liên kết story trong Product Backlog. Luồng chính/thay 
 | FR-03 | Quản lý tài khoản nhân viên | Quản lý | Tạo, khóa, mở khóa tài khoản quầy/bếp | BR-32 | PB-20 |
 | FR-04 | Quản lý món | Quản lý | Tạo, sửa món; đặt còn bán/tạm hết; ngừng bán | BR-01–BR-03, BR-05 | PB-03 |
 | FR-05 | Xem menu | Khách vãng lai, khách, quầy | Hiển thị món đang bán theo nhóm và tình trạng | BR-04, BR-34 | PB-02 |
-| FR-06 | Cấu hình giờ mở cửa và quota | Quản lý | Đặt giờ mở cửa, quota mặc định, quota từng khung ngày hiện tại; xem điểm đã giữ | BR-06, BR-07, BR-11 | PB-04 |
-| FR-07 | Kiểm tra và giữ quota | Hệ thống | Tính điểm đơn, kiểm tra quota còn lại, giữ quota cùng lúc tạo đơn | BR-08–BR-14 | PB-05 |
+| FR-06 | Cấu hình giờ mở cửa và lịch bếp | Quản lý | Đặt giờ mở cửa, công suất bếp mặc định, công suất từng khoảng làm ngày hiện tại, thời gian làm trước tối đa, phần cho đặt trước, giới hạn quầy; xem điểm bếp dự kiến làm và số đơn mỗi khung | BR-06, BR-07, BR-11, BR-39–BR-41 | PB-04, PB-22 |
+| FR-07 | Kiểm tra và giữ chỗ (lịch bếp) | Hệ thống | Tính điểm đơn; kiểm tra bếp còn xếp kịp và quầy còn chỗ; ghi nhận cùng lúc tạo đơn | BR-08–BR-14, BR-39–BR-41 | PB-05, PB-22 |
 | FR-08 | Giỏ hàng | Khách | Thêm, đổi số lượng, bỏ món; hiển thị tổng tiền | BR-04 | PB-06 |
 | FR-09 | Đặt pre-order | Khách | Liệt kê khung hợp lệ kèm tình trạng còn chỗ; tạo đơn theo FR-07; cấp mã nhận; chống trùng | BR-12, BR-15, BR-17, BR-35–BR-38 | PB-07 |
 | FR-10 | Đề xuất khung thay thế | Hệ thống | Khi khung chọn không đủ quota, trả về tối đa 3 khung | BR-16 | PB-09 |
@@ -208,7 +211,7 @@ Ngưỡng dưới đây là **nháp**, sẽ chốt cùng cấu hình môi trư�
 
 | ID | Yêu cầu | Tiêu chí kiểm chứng (nháp) | Story |
 |---|---|---|---|
-| NFR-01 | Nhất quán quota khi đồng thời | 50 request đặt đồng thời vào một khung chỉ còn đủ quota cho vài đơn: tổng điểm đơn xác nhận ≤ quota, số đơn xác nhận đúng bằng số đơn vừa đủ, các request còn lại bị từ chối hoặc nhận đề xuất | PB-05, PB-07, PB-11 |
+| NFR-01 | Nhất quán lịch bếp khi đồng thời | Nhiều request đặt đồng thời (pre-order và walk-in): với các đơn được xác nhận, bếp luôn xếp được lịch không khoảng làm nào vượt công suất; tổng đơn đặt trước mỗi khoảng không vượt phần dành cho đặt trước khi nhận; số đơn mỗi khung nhận không vượt giới hạn quầy; mọi request bị từ chối nhận lỗi hết chỗ. Kiểm bằng test đồng thời (TC-CON-08, TC-PLAN-08) | PB-05, PB-11, PB-22 |
 | NFR-02 | Không trùng đơn khi gửi lại | Cùng một yêu cầu đặt gửi 5 lần (tuần tự và đồng thời): đúng 1 đơn, quota giữ một lần, các lần sau trả về cùng đơn | PB-07, PB-11 |
 | NFR-03 | Phân quyền | Với mỗi vai trò, gọi trực tiếp thao tác của vai trò khác và đơn của khách khác đều bị từ chối | Tất cả |
 | NFR-04 | Hiệu năng | Với 50 người dùng đồng thời trên môi trường được công bố: p95 thời gian phản hồi ≤ 1 giây cho xem menu, đặt đơn, xem hàng chờ bếp, bàn giao | PB-07, PB-12, PB-15 |

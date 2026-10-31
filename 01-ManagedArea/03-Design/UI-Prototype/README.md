@@ -25,7 +25,7 @@ Giao diện không thêm chức năng hay quy tắc nào ngoài đặc tả. Ch�
 | 10 | Theo dõi hôm nay | `/admin` | Quản lý | UC-16 | Giao diện thật (Sprint 3), chưa vẽ wireframe |
 | 11 | Quản lý (trang tổng) | `/admin/manage` | Quản lý | — | Danh sách liên kết tới 12–14 |
 | 12 | Món và giá | `/admin/menu` | Quản lý | UC-13 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
-| 13 | Giờ mở cửa và quota | `/admin/slots` | Quản lý | UC-14 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
+| 13 | Giờ mở cửa và lịch bếp (trước Sprint 4: quota) | `/admin/slots` | Quản lý | UC-14 | Giao diện thật (Sprint 2), chưa vẽ wireframe |
 | 14 | Tài khoản nhân viên | `/admin/staff` | Quản lý | UC-15 | Giao diện thật (Sprint 3), chưa vẽ wireframe |
 | — | Không có quyền | `/forbidden` | — | UC-02 E5 | Chỉ có trong prototype |
 
@@ -58,6 +58,7 @@ Nhân viên quầy và quản lý trong Sprint 1 chỉ dùng được Menu (UC-0
 | Hủy đơn của cửa hàng | Bấm "Hủy đơn" mới hiện ô lý do; nút xác nhận chỉ bật khi đã nhập | UC-11, lý do bắt buộc (BR-24) |
 | Đơn quá hạn nhận, đơn tồn | Thẻ viền đỏ, nút "Không đến nhận"; đơn chưa kết thúc của ngày trước gom vào khung vàng "Đơn tồn từ ngày trước" ở đầu màn quầy, có ngày | UC-10; quyết định 2026-10-31 |
 | Điều hướng của quản lý | Thanh tab: Thực đơn, Theo dõi, Quầy, Quản lý (Món, Giờ và quota, Nhân viên), Đăng xuất | Giữ thanh tab đáy gọn trên điện thoại (Sprint 3) |
+| Màn "Giờ mở cửa và lịch bếp" (Sprint 4, PB-22) | Thêm ô "Làm trước tối đa (phút)", "Phần cho đặt trước (%)", "Tối đa đơn mỗi khung nhận"; ô quota đổi tên "Công suất bếp (điểm/15 phút)"; mỗi khung hiện "Bếp làm X/Y · nhận N đơn". Màn theo dõi dùng cùng nhãn. Thẻ đơn sắp tới ở màn bếp ghi "Theo lịch bếp: làm từ HH:mm · làm trước được" | Quản lý thấy bếp sẽ bận lúc nào chứ không chỉ khung nào đã nhận bao nhiêu; giao diện thật, chưa vẽ wireframe |
 | Đơn trễ | Nhãn đỏ "TRỄ" và viền trái đỏ trên thẻ | BR-26: chỉ để nhìn, không chặn thao tác |
 
 Màn 08–14 chỉ có giao diện thật, chưa vẽ wireframe đơn sắc hay đánh giá prototype riêng; dùng chung bảng màu và thành phần của màn 01–07. Navigation Flow (mục 5) đã vẽ lại cho mọi màn ngày 2026-10-31.

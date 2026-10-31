@@ -108,6 +108,8 @@ Hai sơ đồ cho UC-04.2, phần có nhiều quy tắc và rủi ro nhất củ
 - **Hủy từ "đang chuẩn bị" không hoàn điểm** vì bếp đã tốn công trong khung đó (BR-24).
 
 ## 5. Chuyển sang thiết kế
+
+> Sprint 4 (2026-10-31, PB-22): trách nhiệm "kiểm tra và giữ quota của khung" của `QuotaControl` đổi thành "kiểm tra bếp còn xếp kịp và quầy còn chỗ" theo lịch bếp; thêm lớp thiết kế `KitchenPlanner`, `KitchenPlanService` (Class Design mục 3). Sơ đồ phân tích giữ nguyên vì luồng UC-04 (kiểm khung → giữ chỗ → tạo đơn) không đổi.
 Các câu hỏi mô hình phân tích đặt ra, trả lời ở bước sau:
 | Câu hỏi | Trả lời ở |
 |---|---|

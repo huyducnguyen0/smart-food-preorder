@@ -50,3 +50,6 @@ Giới hạn: số giả định, công suất cố định, không tính hủy,
 1. Làm ngay: bếp được làm trước; khách tự hủy khi bếp chưa làm, chậm nhất 15 phút trước giờ nhận; trang đơn ghi rõ.
 2. Làm lịch bếp + dành chỗ cho walk-in thành Sprint 4, dùng số mặc định: H = 45 phút, đơn đặt trước tối đa 70% công suất, quầy tối đa 8 đơn mỗi khung nhận.
 3. Lưu phân tích này làm tư liệu.
+
+## Đã hiện thực
+Quyết định 2 làm ở Sprint 4 (PB-22), nhánh `feature/sprint-4`: [Sprint 4 Backlog](../../01-ManagedArea/01-ProjectManagement/SPRINT_4_BACKLOG.md). Quy tắc chính thức nằm ở SRS (BR-09, BR-39–BR-41) và UC-17; tư liệu này chỉ giữ lý do và mô phỏng.

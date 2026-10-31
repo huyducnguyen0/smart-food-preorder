@@ -174,3 +174,18 @@ Trong lúc sửa còn phát hiện chính bản sửa ③ ban đầu vi phạm q
 ### Bổ sung 2026-10-31: khôi phục làm trước, hạn tự hủy hiển thị cho khách
 Người dùng chỉ ra quy tắc "bếp chỉ bắt đầu từ 15 phút trước khung" (sửa ⑤ ở trên) làm dồn việc vào giờ đông, walk-in không được phục vụ. Đã khôi phục: bếp làm trước được; khách tự hủy khi cửa hàng chưa bắt đầu làm, chậm nhất 15 phút trước giờ nhận; chi tiết đơn có `cancelDeadline`, trang đơn ghi rõ điều kiện. Bỏ mã lỗi `PREPARATION_TOO_EARLY`. Phân tích sâu hơn và mô phỏng: [02-FreeZone/2026-10-31_lich-bep](../../../02-FreeZone/2026-10-31_lich-bep/README.md); thay đổi mô hình quota làm ở Sprint 4.
 
+## Lượt 2026-10-31: Sprint 4 — lịch bếp (PB-22)
+Nhánh `feature/sprint-4` (dựa trên `fix/review-findings`). Môi trường: Windows 11, Java 25, PostgreSQL 18.6 nhúng trong test; Node cho frontend. Docker Desktop tắt nên chưa chạy bản Docker.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `./mvnw clean verify`: **442 test, Passed 442**, Failed 0; Spotless và Checkstyle sạch (0 vi phạm). Bỏ `QuotaDatabaseTest` (kiểm câu SQL giữ quota cũ, không còn); thêm `KitchenPlannerTest` 8, `Sprint4KitchenPlanBlackBoxTest` 8; viết lại `QuotaServiceTest` (9) |
+| Frontend | `npm test`: **150 test, Passed 150**; `npm run build` thành công |
+| Ca mới | TC-PLAN-01 → 08 Passed ([Sprint 4](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_4.md)); 5 ca cũ đổi nội dung theo quy tắc mới, Passed |
+| Độ phủ lịch bếp | `KitchenPlanner` 36/36 dòng, 27/28 nhánh; `KitchenPlanService` 48/48 dòng, 22/24 nhánh; `QuotaService` 31/32 dòng, 15/16 nhánh ([white-box](../Test-Cases/WHITE_BOX_QUOTA.md) mục 8) |
+| NFR-04 (50 người dùng đồng thời) | p95: xem menu 123 ms, đặt đơn 583 ms, hàng chờ bếp 263 ms, bàn giao 45 ms; dưới 1 giây |
+
+**Nhận xét NFR-04:** đặt đơn chậm hơn lượt trước (448 ms) vì các lần nhận đơn trong cùng ngày nay xếp hàng qua khóa lịch bếp và mỗi lần dựng lại lịch. Vẫn đạt yêu cầu dưới 1 giây; chưa đo trên máy rảnh nên số này chỉ để so sánh tương đối.
+
+**Chưa chạy:** thử tay trên trình duyệt với Docker; `scripts/demo-data.sh` dưới cấu hình mặc định mới (quầy 8 đơn, đặt trước 70%) chưa chạy lại.
+

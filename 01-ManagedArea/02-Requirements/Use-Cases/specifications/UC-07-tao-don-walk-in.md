@@ -28,6 +28,7 @@ Trạng thái: Đặc tả ngắn lập ở Sprint 2 ngày 2026-10-28 theo chế
 
 ## Ghi chú
 - Kiểm chứng NFR-01 với hai kênh: 25 pre-order và 25 walk-in cùng lúc vào một khung quota 20, mỗi đơn 3 điểm: đúng 6 đơn được nhận (TC-CON-08).
+- Sprint 4 (2026-10-31, PB-22): khung dự kiến là khung nhận sớm nhất mà bếp còn xếp kịp làm từ bây giờ và quầy còn chỗ (BR-18 sửa đổi). Walk-in dùng được cả phần công suất dành riêng cho walk-in (BR-40).
 - Lựa chọn chưa xác nhận: phải trả tiền trước khi xác nhận (không có walk-in "chưa thanh toán"); tối đa 99 phần một món trên màn hình.
 
 ## Output chuyển giao

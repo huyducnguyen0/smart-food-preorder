@@ -61,30 +61,34 @@ Ký hiệu: `+` public, `-` private, `~` dùng trong package (để test), gạc
 | 8 | Chèn đơn và dòng đơn | `INSERT INTO orders … RETURNING id`; `INSERT INTO order_lines …` (batch) | — | Bước 10, BR-28, BR-35, BR-08 |
 | 9 | Trả kết quả | Đọc lại `OrderDetail`, `created = true` → controller trả 201 | — | Bước 11 |
 
-**`QuotaService.reserve(date, start, lines)`** (UC-17):
+**`QuotaService.reserve(date, start, lines, walkIn)`** (UC-17, từ Sprint 4 — 2026-10-31, PB-22):
 1. `points = orderPoints(lines)` = Σ điểm × số lượng (BR-08).
-2. Bảo đảm khung có dòng: `INSERT INTO time_slots (slot_date, start_time) VALUES (?, ?) ON CONFLICT (slot_date, start_time) DO NOTHING`.
-3. Nếu `points = 0`: lấy `id` của khung, trả `QuotaReservation(id, 0)` (BR-13).
-4. Ngược lại, kiểm tra và giữ trong **một câu lệnh**:
-   ```sql
-   UPDATE time_slots
-   SET held_points = held_points + :points
-   WHERE slot_date = :date AND start_time = :start
-     AND held_points + :points <= COALESCE(quota_override, :defaultQuota)
-   RETURNING id
-   ```
-5. Không có dòng trả về: đọc quota của khung; `points > quota` → `ORDER_TOO_LARGE` (UC-17 E1), ngược lại `SLOT_FULL` (UC-17 E2).
+2. `storeSettingsRepository.lockShared()` (`SELECT … FROM store_settings FOR SHARE`): xếp hàng với quản lý đổi cấu hình (BR-11).
+3. `storeSettingsRepository.lockKitchenPlan(date)`: `SELECT pg_advisory_xact_lock(1501, <số ngày kể từ 1970-01-01>)`. Mọi lần nhận đơn của cùng ngày chạy **lần lượt** từ đây tới hết giao dịch; khóa tự nhả khi giao dịch kết thúc.
+4. `slotRepository.ensureExists(date, start)`: bảo đảm khung có dòng.
+5. `kitchenPlanService.snapshot()`: đọc cấu hình, công suất riêng, các đơn `CONFIRMED`/`PREPARING` và số đơn mỗi khung nhận **sau khi đã có khóa**, nên thấy mọi đơn vừa được nhận trước đó.
+6. `pickupHasRoom(start)` sai → `SLOT_FULL`, `reason` = `PICKUP_LIMIT` (BR-41).
+7. Dựng việc của đơn: đặt trước làm trong [S − H, S] (`preOrderJob`); walk-in làm từ khoảng hiện tại tới S + 15 (`walkInJob`) (BR-39).
+8. `tooLargeEvenWhenEmpty(job)` → `ORDER_TOO_LARGE` (BR-12).
+9. `fits(job)` sai → `SLOT_FULL`, `reason` = `KITCHEN`. `fits` chạy `KitchenPlanner.plan` hai lần: mọi đơn với 100% công suất; nếu là đặt trước thì thêm lần riêng các đơn đặt trước với X% (BR-40).
+10. `points > 0` thì `addHeld(slotId, points)` (thống kê), trả `QuotaReservation(slotId, points)`.
 
-**Vì sao câu lệnh ở bước 4 không bị chen ngang (NFR-01).** `UPDATE` khóa dòng khung trước khi ghi. Giao dịch thứ hai cập nhật cùng khung phải chờ giao dịch đầu kết thúc; khi được chạy tiếp, PostgreSQL **kiểm tra lại điều kiện `WHERE` trên giá trị mới nhất** của dòng. Ví dụ: khung quota 10, hai khách cùng đặt 8 điểm. Người đầu cộng lên 8 và giữ khóa; người sau chờ, rồi thấy `8 + 8 > 10`, không cập nhật dòng nào và nhận `SLOT_FULL`. Không cần đọc trước rồi mới ghi, nên không có khoảng hở giữa "kiểm tra" và "giữ".
+**`KitchenPlanner.plan(intervals, intervalMinutes, jobs, sharePercent)`.** Sắp việc: đơn trễ (hạn đã qua) trước, rồi theo hạn, rồi theo lúc được bắt đầu. Với từng việc, đổ điểm vào các khoảng còn trống từ khoảng sớm nhất được phép tới trước hạn. Còn thừa điểm thì lịch không kịp (`feasible = false`), trừ đơn trễ: đơn trễ được xếp vào chỗ trống sớm nhất còn lại nhưng không làm lịch thất bại (bếp vẫn phải làm cho xong). Khoảng hiện tại chỉ còn phần công suất tương ứng thời gian còn lại. Cách xếp này đơn giản, không tối ưu tuyệt đối; nó không bao giờ xếp vượt công suất.
+
+**Vì sao khóa lịch bếp theo ngày (NFR-01).** Lịch bếp là điều kiện trên **nhiều dòng** (một đơn mới có thể đẩy đơn khác sang khoảng khác), nên câu `UPDATE` có điều kiện trên một dòng khung như trước Sprint 4 không đủ. Khóa theo ngày làm các lần nhận đơn trong ngày xếp hàng; mỗi lần chỉ mất vài mili giây vì lịch một ngày có vài chục khoảng và vài trăm đơn. Cái giá: hai khách đặt cùng lúc phải chờ nhau một chút; chấp nhận được với một cửa hàng (đo ở NFR-04). Hủy đơn, bếp bắt đầu, bàn giao không lấy khóa này: chúng chỉ làm lịch nhẹ đi.
+
+**Quản lý đổi cấu hình** (`AdminSlotService`): `lockForUpdate()` dòng `store_settings` và `lockKitchenPlan(today)`, dựng `snapshot(cấu hình mới, công suất riêng mới)`; `acceptedOrdersStillFit()` sai thì `QUOTA_BELOW_HELD` (BR-11).
+
+**Trước Sprint 4** (Sprint 1–3), `reserve` giữ quota của từng khung nhận bằng một câu `UPDATE time_slots SET held_points = held_points + :points WHERE … AND held_points + :points <= COALESCE(quota_override, :defaultQuota)`; PostgreSQL kiểm lại `WHERE` trên giá trị mới nhất sau khi chờ khóa dòng nên không bị chen ngang. Cách này được thay vì không cho bếp làm trước (xem [tư liệu phân tích](../../../02-FreeZone/2026-10-31_lich-bep/README.md)).
 
 **Vì sao khóa tài khoản ở bước 1.** Hai lần gửi đồng thời của **cùng một khách** đều có thể đi qua bước 2 và 3 trước khi lần nào kịp chèn đơn: cả hai thấy "chưa có đơn" (vi phạm BR-17) hoặc "mới 2 đơn" (vi phạm BR-37). Khóa dòng tài khoản buộc lần thứ hai chờ lần thứ nhất xong rồi mới đọc, nên lần thứ hai thấy đơn vừa tạo. Ràng buộc `uq_orders_customer_id_request_id` vẫn giữ lại như lớp phòng vệ cuối. Khóa chỉ chặn các lần đặt của cùng khách, khách khác không bị ảnh hưởng.
 
-**Không có deadlock.** Mọi giao dịch đặt đơn khóa theo cùng thứ tự: dòng tài khoản rồi dòng khung. Bếp chỉ khóa dòng đơn. Walk-in (Sprint sau) chỉ khóa dòng khung.
+**Không có deadlock.** Mọi giao dịch đặt đơn khóa theo cùng thứ tự: dòng tài khoản → chia sẻ `store_settings` → lịch bếp của ngày → dòng khung. Walk-in bỏ bước đầu, quản lý đổi cấu hình lấy `store_settings` (ghi) rồi lịch bếp, cùng thứ tự. Bếp và hủy đơn chỉ khóa dòng đơn rồi dòng khung.
 
 **Mã nhận trùng khi đồng thời.** Hai giao dịch có thể cùng sinh một mã chưa tồn tại, giao dịch sau vi phạm `UNIQUE` và bị hủy (lỗi 500). Xác suất cực nhỏ (31⁶ mã); khách gửi lại an toàn nhờ A1 vì giao dịch lỗi không để lại đơn nào. Chấp nhận, không thêm cơ chế thử lại.
 
 **Kiểm chứng bắt buộc** (T-16, T-18): test chạy với PostgreSQL thật, không dùng mock cho repository:
-- nhiều luồng cùng giữ quota một khung → tổng `held_points` ≤ quota, số đơn thành công đúng bằng số đơn vừa đủ (NFR-01, bản rút gọn; bản 50 request đầy đủ ở Sprint 2);
+- nhiều luồng cùng giữ chỗ → bếp vẫn xếp được lịch không vượt công suất, quầy không quá giới hạn (NFR-01; TC-CON-08, TC-PLAN-08 từ Sprint 4);
 - cùng mã yêu cầu gửi đồng thời → đúng một đơn (NFR-02);
 - `held_points` bằng tổng điểm các đơn của khung sau mỗi test (Database Design mục 3).
 
