@@ -23,7 +23,7 @@ Từ Sprint 4 (2026-10-31, PB-22) việc giữ chỗ dựa trên **lịch bếp*
 3. Hệ thống: kiểm tra **khung nhận còn chỗ ở quầy**: số đơn không bị hủy của khung < N (BR-41). Áp dụng cả đơn 0 điểm.
 4. Hệ thống: nếu điểm đơn = 0 thì không tốn công bếp (BR-13); đi tới bước 7.
 5. Hệ thống: dựng lịch bếp: các khoảng làm 15 phút với công suất (BR-07); các đơn đã nhận còn phải làm, mỗi đơn có cửa sổ làm (BR-39); thêm đơn mới. Xếp theo hạn sớm làm trước, làm sớm nhất có thể.
-6. Hệ thống: nhận khi (a) mọi đơn xếp kịp trong toàn bộ công suất và (b) nếu là đơn đặt trước: riêng các đơn đặt trước xếp kịp trong phần X% dành cho đặt trước (BR-40).
+6. Hệ thống: thử một lịch chung cho cả hai kênh, với tổng điểm trong mỗi khoảng không vượt công suất và điểm đặt trước không vượt phần X% (BR-40). Nếu lịch của đơn đã nhận cần phần công suất lớn hơn X% (ví dụ sau khi giảm X), vẫn giữ các đơn cũ và chỉ nhận thêm walk-in trong phần công suất tổng còn lại.
 7. Hệ thống: cộng điểm đơn vào điểm của khung nhận (thống kê), trả kết quả "giữ được" để use case gọi lưu đơn. Giữ chỗ và tạo đơn được ghi nhận **cùng nhau** (BR-10).
 
 ## Alternative Flow

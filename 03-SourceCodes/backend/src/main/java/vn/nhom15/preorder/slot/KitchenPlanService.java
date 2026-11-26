@@ -49,7 +49,9 @@ public class KitchenPlanService {
 
         /** Lịch hiện tại của các đơn đã nhận. */
         public KitchenPlanner.Result current() {
-            return KitchenPlanner.plan(intervals, slotMinutes, jobs, 100);
+            KitchenPlanner.Result shared =
+                    KitchenPlanner.plan(intervals, slotMinutes, jobs, settings.preOrderSharePercent());
+            return shared.feasible() ? shared : KitchenPlanner.plan(intervals, slotMinutes, jobs, 100);
         }
 
         /** Việc của một đơn đặt trước mới nhận lúc {@code slotStart}: làm trong [giờ nhận − H, giờ nhận]. */
@@ -57,7 +59,7 @@ public class KitchenPlanService {
             return new KitchenPlanner.Job(
                     null,
                     KitchenPlanner.Kind.PRE_ORDER,
-                    slotStart.minusMinutes(settings.holdMinutes()),
+                    settings.earliestPreOrderStart(slotStart),
                     slotStart,
                     points,
                     false);
@@ -75,15 +77,9 @@ public class KitchenPlanService {
         }
 
         /**
-         * Nhận thêm việc này được không. Hai điều kiện độc lập:
-         *
-         * <ol>
-         *   <li>Công suất bếp: mọi đơn đã nhận cùng đơn mới xếp kịp với toàn bộ công suất. Đây là bảo đảm bếp không
-         *       bao giờ bị giao quá sức (NFR-01).
-         *   <li>Phần dành cho walk-in, chỉ với đơn đặt trước mới: riêng các đơn đặt trước (kể cả đơn mới) xếp kịp trong
-         *       phần công suất dành cho đặt trước. Quản lý giảm tỉ lệ này thì chỉ chặn đơn đặt trước mới, walk-in vẫn
-         *       nhận theo công suất còn lại.
-         * </ol>
+         * Xếp cả hai kênh trong cùng một lịch, áp dụng đồng thời công suất tổng và phần dành cho đặt trước.
+         * Nếu đơn đã nhận không còn xếp được trong phần đặt trước (ví dụ quản lý vừa giảm tỉ lệ), giữ cam kết cũ
+         * và chỉ cho walk-in dùng phần công suất tổng còn lại.
          */
         public boolean fits(KitchenPlanner.Job extra) {
             if (extra.work() == 0) {
@@ -91,17 +87,13 @@ public class KitchenPlanService {
             }
             List<KitchenPlanner.Job> all = new ArrayList<>(jobs);
             all.add(extra);
-            if (!KitchenPlanner.plan(intervals, slotMinutes, all, 100).feasible()) {
-                return false;
-            }
-            if (extra.kind() != KitchenPlanner.Kind.PRE_ORDER) {
+            int share = settings.preOrderSharePercent();
+            if (KitchenPlanner.plan(intervals, slotMinutes, all, share).feasible()) {
                 return true;
             }
-            List<KitchenPlanner.Job> preOrders = all.stream()
-                    .filter(job -> job.kind() == KitchenPlanner.Kind.PRE_ORDER)
-                    .toList();
-            return KitchenPlanner.plan(intervals, slotMinutes, preOrders, settings.preOrderSharePercent())
-                    .feasible();
+            return extra.kind() == KitchenPlanner.Kind.WALK_IN
+                    && !KitchenPlanner.plan(intervals, slotMinutes, jobs, share).feasible()
+                    && KitchenPlanner.plan(intervals, slotMinutes, all, 100).feasible();
         }
 
         /** Các đơn đã nhận còn xếp kịp với toàn bộ công suất (dùng khi quản lý giảm công suất hay đổi cấu hình). */
@@ -201,11 +193,11 @@ public class KitchenPlanService {
             deadline = order.slotStart().plusMinutes(slot);
         } else {
             kind = KitchenPlanner.Kind.PRE_ORDER;
-            release = order.slotStart().minusMinutes(settings.holdMinutes());
+            release = settings.earliestPreOrderStart(order.slotStart());
             deadline = order.slotStart();
         }
         if (order.preparing()) {
-            // Bếp đang làm (có thể đã làm trước cả cửa sổ): coi như làm được ngay từ bây giờ.
+            // Bếp đang làm: coi như làm được ngay từ bây giờ.
             release = floor(now, slot);
         }
         boolean late = !deadline.isAfter(now);

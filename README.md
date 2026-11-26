@@ -7,7 +7,17 @@ Hệ thống đặt món trước và điều phối nhận món theo năng lự
 
 Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo AGENTS.md, đọc trạng thái trong README và hướng dẫn tao làm bước tiếp theo.”
 
-## Nguồn và trạng thái
+## Bản demo v1.0.0
+
+Ngày 2026-11-26 hoàn thiện PB-22 để kiểm tra cả hai nguồn đơn trên cùng một lịch bếp, áp dụng cửa sổ bắt đầu theo BR-39 và sửa cách tính tải bếp còn lại. Docker demo đã qua bốn vai trò, kiểm tra tranh công suất và bàn giao. Bộ kiểm tra gồm 443 test backend và 151 test frontend.
+
+- [Chạy bản demo](03-SourceCodes/README.md).
+- [Kết quả kiểm thử](01-ManagedArea/04-Testing/Test-Results/README.md).
+- [Sprint Review và Release v1.0.0](01-ManagedArea/05-Releases/README.md).
+
+## Nguồn và các mốc thực hiện
+
+Các dòng dưới ghi trạng thái tại thời điểm từng mốc.
 - [Quy trình project IT3180](00-References/IT3180_PROJECT_PROCESS.md): nguồn dùng để tổ chức và thực hiện dự án.
 - [Proposal Nhóm 15](00-References/Proposal_Nhom15.pdf): nội dung đề xuất ban đầu; chưa có bằng chứng phê duyệt trong repository.
 - Đã cập nhật [Project Charter](01-ManagedArea/01-ProjectManagement/Project-Charter/PROJECT_CHARTER.md) theo nội dung người dùng duyệt ngày 2026-09-29: một cửa hàng fast-food, pre-order và walk-in tối giản dùng chung quota, bảo vệ mọi đơn đã xác nhận/giữ quota; walk-in đồng ý thời gian dự kiến trước khi xác nhận. Ghi nhận thanh toán trong phạm vi, gateway production ngoài phạm vi.
@@ -45,7 +55,7 @@ Khi mở chat mới trong dự án, có thể yêu cầu: “Tiếp tục theo A
 - Chuẩn bị phát hành ngày 2026-10-28, nhánh `release/v1-prep` (dựa trên nhánh Sprint 3): Dockerfile cho backend và frontend (nginx), `compose.yaml` thêm profile `app` chạy toàn hệ thống bằng một lệnh (`docker compose --profile app up -d --build --wait`, mở http://localhost:8000). Đã chạy thật: vòng đời đơn 14 bước qua nginx đúng, dữ liệu giữ sau khởi động lại ([Test Results](01-ManagedArea/04-Testing/Test-Results/README.md)). Rà soát database cùng ngày: Database Design cập nhật khớp schema thật (V10); sửa chế độ triển khai không có dữ liệu mẫu (cấu hình cửa hàng ở V10, quản lý đầu tiên từ biến môi trường `INITIAL_MANAGER_*`); thêm `scripts/demo-data.sh`. Theo quyết định của người dùng: nhóm "Món khác" luôn có (V11); walk-in chỉ tính trễ từ giờ kết thúc khung (BR-26 sửa đổi). **Chưa phát hành**: theo Bước 17, Release cần increment được chấp nhận (Review Sprint 1–3 còn là nháp). Chờ người dùng duyệt PR.
 - Review lại luồng sản phẩm ngày 2026-10-31 theo yêu cầu người dùng, nhánh `fix/review-findings`: tìm và sửa 4 lỗi (đơn tồn từ ngày trước chặn khách, khách tự hủy đơn đã trả tiền, khóa tài khoản không có tác dụng với phiên đang mở, đổi giờ cùng lúc đặt đơn lọt đơn ngoài giờ). Điểm thứ năm (bếp bắt đầu sớm làm khách mất quyền hủy) người dùng quyết định giữ việc làm trước vì giờ đông cần bếp làm sẵn; thay vào đó trang đơn ghi rõ hạn và điều kiện tự hủy. Phân tích làm trước và mô phỏng lịch bếp lưu ở [02-FreeZone](02-FreeZone/2026-10-31_lich-bep/README.md), đưa vào Sprint 4. Sửa BR-23, BR-32, BR-37 theo quyết định của người dùng; cập nhật Architecture, Class Design, Database, UI Prototype, Analysis Model, Risk Register, WBS cho khớp code. Backend 444, frontend 149 test pass ([Test Results](01-ManagedArea/04-Testing/Test-Results/README.md)).
 - Sprint 4 thực hiện ngày 2026-10-31, nhánh `feature/sprint-4` (dựa trên nhánh sửa sau review): [Sprint 4 Backlog](01-ManagedArea/01-ProjectManagement/SPRINT_4_BACKLOG.md). PB-22 **lịch bếp**: đơn nhận theo công suất bếp mỗi 15 phút, bếp làm trước tối đa 45 phút trước giờ nhận, đơn đặt trước dùng tối đa 70% công suất (phần còn lại cho walk-in), quầy tối đa 8 đơn mỗi khung; quản lý đổi được cả bốn (migration V12). Backend 442, frontend 150 test pass; 8 ca TC-PLAN Passed. Review và Retro là nháp. Chờ người dùng duyệt PR.
-- Tiếp theo: người dùng merge lần lượt #22, #23, #25 rồi PR Sprint 3, PR chuẩn bị phát hành, PR sửa sau review, PR Sprint 4; tự dùng thử theo vai trò (hành động cải tiến Sprint 3); duyệt Review (Accepted hoặc Change/Fix Required); nếu Accepted thì ghi nhận Release trên `main` (gắn tag phiên bản). Product Backlog không còn story ở trạng thái Backlog.
+- Tích hợp v1.0.0 dùng một PR squash vào `main` từ đầu chuỗi Sprint 4 đã sửa. Các PR #22, #23 và #25–#29 giữ lịch sử thay đổi theo từng phần. Sau v1.0.0, dự án chuyển sang bảo trì và xử lý phản hồi theo Bước 19.
 
 ## Cấu trúc
 Cấu trúc chính bám mục 8 của nguồn. `00-References` giữ nguyên tài liệu đầu vào; các file cấu hình Git/editor phục vụ làm việc, không phải tài liệu bàn giao môn học.

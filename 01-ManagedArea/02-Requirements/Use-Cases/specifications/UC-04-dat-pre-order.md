@@ -28,7 +28,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 **UC-04.2 — Chọn khung giờ và gửi đơn**
 
 5. Khách: chọn "Chọn giờ nhận".
-6. Hệ thống: liệt kê các khung 15 phút trong ngày hiện tại, trong giờ mở cửa, có giờ bắt đầu cách thời điểm hiện tại ít nhất 30 phút (BR-06, BR-15). Mỗi khung hiển thị "Đặt được" hoặc "Không đủ chỗ" theo điểm của giỏ so với quota còn lại, không hiển thị con số quota (BR-36). Khung không đủ chỗ không chọn được.
+6. Hệ thống: liệt kê các khung 15 phút trong ngày hiện tại, trong giờ mở cửa, có giờ bắt đầu cách thời điểm hiện tại ít nhất 30 phút (BR-06, BR-15). Mỗi khung hiển thị "Đặt được" hoặc "Không đủ chỗ" theo lịch bếp và giới hạn quầy (BR-36). Khung không đủ chỗ không chọn được.
 7. Khách: chọn một khung "Đặt được", xem lại tóm tắt (món, số lượng, tổng tiền, khung nhận, thanh toán tại quầy khi nhận) và chọn "Xác nhận đặt".
 8. Hệ thống: kiểm tra lại tại thời điểm nhận yêu cầu:
    - a. Khách chưa có đủ N đơn chưa kết thúc (BR-37).
@@ -48,7 +48,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 - **E1 — Món không còn bán khi thêm vào giỏ** (bước 1–2): trang menu đã cũ, món vừa chuyển tạm hết hoặc ngừng bán. Hệ thống không thêm món, báo món không còn bán, làm mới menu (BR-04).
 - **E2 — Không còn khung hợp lệ trong ngày** (bước 6): đã quá giờ hoặc khung cuối cách hiện tại dưới 30 phút. Hệ thống báo "Hôm nay không còn khung nhận"; giỏ được giữ. Kết thúc.
 - **E3 — Mọi khung hợp lệ đều không đủ chỗ** (bước 6): hệ thống báo hết chỗ trong ngày; giỏ được giữ để khách có thể bớt món. Quay lại bước 3 hoặc kết thúc.
-- **E4 — Giỏ lớn hơn quota của mọi khung** (bước 6): điểm giỏ vượt quota của từng khung, kể cả khung chưa có đơn. Hệ thống báo đơn quá lớn cho một khung và đề nghị liên hệ cửa hàng (BR-12). Quay lại bước 3 hoặc kết thúc.
+- **E4 — Giỏ quá lớn** (bước 6): bếp trống vẫn không xếp kịp đơn ở bất kỳ khung hợp lệ nào. Hệ thống báo đơn quá lớn và đề nghị liên hệ cửa hàng (BR-12). Quay lại bước 3 hoặc kết thúc.
 - **E5 — Đã đủ N đơn chưa kết thúc** (bước 8a): hệ thống từ chối, báo số đơn đang chờ và hướng dẫn xem ở "Đơn của tôi" (UC-05); giỏ được giữ (BR-37). Chỉ đếm đơn có khung từ hôm nay (2026-10-31). Kết thúc.
 - **E6 — Khung không còn hợp lệ** (bước 8b): khách để quá lâu, khung đã cách hiện tại dưới 30 phút. Hệ thống từ chối, báo khung không còn đặt được, quay lại bước 6 với danh sách mới.
 - **E7 — Món thay đổi so với giỏ** (bước 8c): có món đổi giá, tạm hết hoặc ngừng bán. Hệ thống không tạo đơn, báo từng món đã thay đổi, cập nhật giỏ (giá mới, bỏ món không còn bán) và quay lại bước 4 để khách xem lại rồi gửi lại (BR-35). Khách không bao giờ bị tính giá chưa thấy.
@@ -58,7 +58,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 - **E11 — Phiên đăng nhập hết hạn** (bất kỳ bước nào): chuyển tới đăng nhập (UC-02 E4); giỏ vẫn còn trên trình duyệt.
 
 ## Postcondition
-- **Thành công**: có đúng một đơn mới của khách: `CONFIRMED`, `UNPAID`, nguồn pre-order, gắn khung đã chọn, có mã nhận không trùng trong ngày, giá từng dòng và điểm đơn đã lưu; quota khung tăng đúng bằng điểm đơn. Đơn xuất hiện ở "Đơn của tôi" (UC-05) và hàng chờ bếp (UC-12). Giỏ trống.
+- **Thành công**: có đúng một đơn mới của khách: `CONFIRMED`, `UNPAID`, nguồn pre-order, gắn khung đã chọn, có mã nhận không trùng trong ngày, giá từng dòng và điểm đơn đã lưu. Tổng điểm đã giữ của khung nhận tăng đúng bằng điểm đơn. Đơn xuất hiện ở "Đơn của tôi" (UC-05) và hàng chờ bếp (UC-12). Giỏ trống.
 - **Không thành công**: không có đơn mới; quota không đổi; giỏ giữ nguyên (hoặc đã được cập nhật theo E7).
 
 ## Ghi chú và giới hạn

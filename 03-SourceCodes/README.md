@@ -5,7 +5,7 @@ Quy trình: task → tạo/checkout branch, pull mới nhất → implement → 
 
 Output: source code, commit history, Pull Request và reviewed/merged code.
 
-Trạng thái: khung dự án dựng ở task T-03 (Sprint 1); chức năng nghiệp vụ làm qua Sprint 1–3. Từ bước chuẩn bị phát hành (2026-10-28) chạy được toàn bộ hệ thống trong container bằng một lệnh (mục Chạy toàn bộ hệ thống bằng Docker). Coding convention và formatter/linter chốt ở T-02: [CODING_CONVENTION.md](CODING_CONVENTION.md). Kiến trúc package chốt ở T-08; schema database thiết kế ở T-09.
+Trạng thái: bản demo v1.0.0 gồm Sprint 1–4, dùng Flyway V12. Cách chạy bằng Docker ở dưới. Xem [Coding Convention](CODING_CONVENTION.md) và [hồ sơ phát hành](../01-ManagedArea/05-Releases/README.md).
 
 ## Cấu trúc
 ```text
@@ -94,7 +94,7 @@ PowerShell: `.\mvnw.cmd spring-boot:run`. Lần đầu sẽ tải Maven và thư
 
 Kiểm tra: mở http://localhost:8080/api/health, kết quả dạng:
 ```json
-{"status":"UP","database":"UP","schemaVersion":"2","serverTime":"2026-10-09T20:15:59+07:00"}
+{"status":"UP","database":"UP","schemaVersion":"12","serverTime":"2026-11-26T18:00:00+07:00"}
 ```
 
 **4. Chạy frontend** (terminal mới, trong `03-SourceCodes/frontend/`)
@@ -102,7 +102,7 @@ Kiểm tra: mở http://localhost:8080/api/health, kết quả dạng:
 npm install
 npm run dev
 ```
-Mở http://localhost:5173. Trang hiển thị Trạng thái chung `UP`, Database `UP`, phiên bản schema và giờ máy chủ (+07:00).
+Mở http://localhost:5173 để xem thực đơn. Trạng thái hệ thống và phiên bản schema nằm tại `/api/health`.
 
 **Dừng**: `Ctrl+C` ở terminal backend và frontend; `docker compose stop` để dừng database (giữ dữ liệu).
 
@@ -131,7 +131,7 @@ Hệ thống đang chạy **có dữ liệu mẫu** thì chạy, trong `03-Sourc
 ```bash
 bash scripts/demo-data.sh
 ```
-Script đăng nhập bằng các tài khoản mẫu và gọi API thật như người dùng: tạo 9 đơn của hôm nay ở đủ trạng thái (chờ bếp, đang làm, sẵn sàng chưa trả tiền, đã nhận, khách hủy, cửa hàng hủy kèm lý do, hai đơn walk-in) rồi in bảng mã nhận. Chạy ngay trước buổi demo, trong giờ mở cửa và còn ít nhất khoảng 45 phút trước giờ đóng cửa (đơn đặt trước phải cách ít nhất 30 phút). Với cách chạy dev: `BASE_URL=http://localhost:5173 bash scripts/demo-data.sh`. Mỗi khách mẫu chỉ có tối đa 3 đơn chưa kết thúc nên chạy lại trong cùng ngày có thể bị từ chối; làm lại từ đầu bằng `docker compose --profile app down -v` (mất dữ liệu local) rồi `up` lại.
+Script đăng nhập bằng tài khoản mẫu và tạo 9 đơn hôm nay, gồm đặt trước chờ bếp, khách hủy, cửa hàng hủy và walk-in ở các trạng thái từ chờ bếp đến đã nhận. Chạy trong giờ mở cửa, khi còn khoảng một giờ trước giờ đóng cửa để đủ hai khung đặt trước. Với cách chạy dev: `BASE_URL=http://localhost:5173 bash scripts/demo-data.sh`. Mỗi khách mẫu có tối đa 3 đơn chưa kết thúc. Nếu cần demo lại trong ngày, dùng Docker Compose project riêng với volume mới và cổng khác.
 
 ## Chạy nhanh không cần Docker (dùng để phát triển và thử tay)
 Nếu Docker Desktop chưa chạy được, backend vẫn chạy được trên một PostgreSQL 18 thật khởi động ngay trong tiến trình (cùng thư viện với test). Mỗi lần chạy tạo database mới có sẵn dữ liệu mẫu; tắt là mất dữ liệu.

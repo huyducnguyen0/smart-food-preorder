@@ -167,6 +167,8 @@ describe('Màn theo dõi: cảnh báo đơn tồn', () => {
         heldPoints: 0,
         quotaPoints: 880,
         quotaUsagePercent: 0,
+        plannedPoints: 0,
+        remainingCapacityPoints: 880,
         staleOpen: 3,
       },
     }

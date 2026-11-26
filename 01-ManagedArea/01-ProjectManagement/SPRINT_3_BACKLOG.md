@@ -10,14 +10,14 @@ Một người dùng kiêm mọi vai trò; AI soạn đặc tả, thiết kế, 
 ## Story và task
 | Story | Use case | Task | Trạng thái |
 |---|---|---|---|
-| PB-10 Khách hủy đơn | [UC-06](../02-Requirements/Use-Cases/specifications/UC-06-khach-huy-don.md) | Đặc tả, migration V9, `QuotaService.release`, `POST /api/orders/{id}/cancel`, nút hủy ở trang đơn, test TC-CAN | Review |
-| PB-21 Cửa hàng hủy đơn | [UC-11](../02-Requirements/Use-Cases/specifications/UC-11-cua-hang-huy-don.md) | Đặc tả, API hủy kèm lý do theo quyền, ô lý do ở màn Quầy, lý do ở trang đơn khách, test TC-STC | Review |
-| PB-18 No-show | [UC-10](../02-Requirements/Use-Cases/specifications/UC-10-danh-dau-no-show.md) | Đặc tả, cấu hình thời gian chờ, cờ `overdue`, API no-show, nút ở màn Quầy, test TC-NOS | Review |
-| PB-14 Tự cập nhật trang đơn | [UC-05](../02-Requirements/Use-Cases/specifications/UC-05-xem-don-cua-toi.md) (Ghi chú) | Gọi lại mỗi 15 giây khi còn đơn chưa kết thúc, thông báo khi `READY`, test frontend | Review |
-| PB-20 Tài khoản nhân viên | [UC-15](../02-Requirements/Use-Cases/specifications/UC-15-quan-ly-tai-khoan-nhan-vien.md) | Đặc tả, API `/api/admin/staff`, màn `/admin/staff`, test TC-STF | Review |
-| PB-17 Theo dõi vận hành | [UC-16](../02-Requirements/Use-Cases/specifications/UC-16-theo-doi-van-hanh.md) | Đặc tả, module `report`, `GET /api/admin/dashboard`, màn `/admin`, gom tab quản lý, test TC-DSH | Review |
-| NFR-04 | UC-03, UC-04, UC-12, UC-09 | Test đo 50 người dùng đồng thời qua HTTP thật (TC-PERF-01) | Review |
-| — | — | Chạy toàn bộ test, Test Results, nháp Review và Retro, trang "để hiểu" | Review |
+| PB-10 Khách hủy đơn | [UC-06](../02-Requirements/Use-Cases/specifications/UC-06-khach-huy-don.md) | Đặc tả, migration V9, `QuotaService.release`, `POST /api/orders/{id}/cancel`, nút hủy ở trang đơn, test TC-CAN | Done |
+| PB-21 Cửa hàng hủy đơn | [UC-11](../02-Requirements/Use-Cases/specifications/UC-11-cua-hang-huy-don.md) | Đặc tả, API hủy kèm lý do theo quyền, ô lý do ở màn Quầy, lý do ở trang đơn khách, test TC-STC | Done |
+| PB-18 No-show | [UC-10](../02-Requirements/Use-Cases/specifications/UC-10-danh-dau-no-show.md) | Đặc tả, cấu hình thời gian chờ, cờ `overdue`, API no-show, nút ở màn Quầy, test TC-NOS | Done |
+| PB-14 Tự cập nhật trang đơn | [UC-05](../02-Requirements/Use-Cases/specifications/UC-05-xem-don-cua-toi.md) (Ghi chú) | Gọi lại mỗi 15 giây khi còn đơn chưa kết thúc, thông báo khi `READY`, test frontend | Done |
+| PB-20 Tài khoản nhân viên | [UC-15](../02-Requirements/Use-Cases/specifications/UC-15-quan-ly-tai-khoan-nhan-vien.md) | Đặc tả, API `/api/admin/staff`, màn `/admin/staff`, test TC-STF | Done |
+| PB-17 Theo dõi vận hành | [UC-16](../02-Requirements/Use-Cases/specifications/UC-16-theo-doi-van-hanh.md) | Đặc tả, module `report`, `GET /api/admin/dashboard`, màn `/admin`, gom tab quản lý, test TC-DSH | Done |
+| NFR-04 | UC-03, UC-04, UC-12, UC-09 | Test đo 50 người dùng đồng thời qua HTTP thật (TC-PERF-01) | Done |
+| — | — | Chạy toàn bộ test, Test Results, nháp Review và Retro, trang "để hiểu" | Done |
 
 ## Daily Scrum
 Không tổ chức. Sprint làm trong một buổi (2026-10-28) bằng một lần giao việc cho AI.

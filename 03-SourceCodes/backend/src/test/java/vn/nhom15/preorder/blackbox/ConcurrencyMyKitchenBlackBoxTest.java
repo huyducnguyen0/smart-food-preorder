@@ -628,13 +628,15 @@ class ConcurrencyMyKitchenBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-KIT-25 Đơn ở nhóm Sắp tới: bếp được làm trước; khách hết quyền tự hủy (BR-21, BR-23)")
+    @DisplayName("TC-KIT-25 Bếp làm trước trong cửa sổ làm; khách hết quyền tự hủy (BR-21, BR-23, BR-39)")
     void kit25() throws Exception {
+        useSprint4Settings();
         long id = placeEarly(login("khach1@example.com"), "13:00", "09:00", line("Burger bò", 1));
         at("11:00");
         MockHttpSession kitchen = login("bep1@example.com");
         assertThat(ids(get("/api/kitchen/queue", kitchen), "upcoming")).containsExactly((int) id);
 
+        at("12:15");
         assertThat(post("/api/kitchen/orders/" + id + "/start", kitchen, null).status())
                 .isEqualTo(200);
         assertThat(statusOf(id)).isEqualTo("PREPARING");

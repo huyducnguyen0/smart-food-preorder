@@ -195,7 +195,7 @@ class Sprint3StaffDashboardBlackBoxTest extends BlackBoxBase {
     }
 
     @Test
-    @DisplayName("TC-DSH-03 Đếm no-show; tỷ lệ dùng quota = điểm giữ / tổng quota các khung trong ngày")
+    @DisplayName("TC-DSH-03 Đếm no-show và tách điểm đã giữ khỏi tải bếp còn lại")
     void dsh03() throws Exception {
         long id = ((Number) order(login("khach1@example.com"), "12:00", line("Burger bò", 1))
                         .json("$.id"))
@@ -209,9 +209,11 @@ class Sprint3StaffDashboardBlackBoxTest extends BlackBoxBase {
         Res result = get("/api/admin/dashboard", login("quanly@example.com"));
 
         assertThat((Integer) result.at("$.stats.noShow")).isEqualTo(1);
-        // 10:00–21:00 là 44 khung × 20 điểm = 880 điểm; giữ 5 điểm → 1 % (làm tròn).
+        assertThat((Integer) result.at("$.stats.heldPoints")).isEqualTo(5);
         assertThat((Integer) result.at("$.stats.quotaPoints")).isEqualTo(880);
-        assertThat((Integer) result.at("$.stats.quotaUsagePercent")).isEqualTo(1);
+        assertThat((Integer) result.at("$.stats.plannedPoints")).isZero();
+        assertThat((Integer) result.at("$.stats.remainingCapacityPoints")).isEqualTo(640);
+        assertThat((Integer) result.at("$.stats.quotaUsagePercent")).isZero();
     }
 
     @Test

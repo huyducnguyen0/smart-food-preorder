@@ -41,6 +41,8 @@ public class DashboardService {
             int lateNow,
             int heldPoints,
             int quotaPoints,
+            int plannedPoints,
+            int remainingCapacityPoints,
             int quotaUsagePercent,
             int staleOpen) {}
 
@@ -95,6 +97,7 @@ public class DashboardService {
                 .sum();
         int quota =
                 day.slots().stream().mapToInt(AdminSlotService.AdminSlot::quota).sum();
+        int remainingCapacity = day.remainingCapacityPoints();
         DayStats stats = new DayStats(
                 preOrders,
                 walkIns,
@@ -104,7 +107,9 @@ public class DashboardService {
                 (int) active.stream().filter(DashboardOrder::late).count(),
                 held,
                 quota,
-                quota == 0 ? 0 : Math.round(held * 100f / quota),
+                day.plannedPoints(),
+                remainingCapacity,
+                remainingCapacity == 0 ? 0 : Math.round(day.plannedPoints() * 100f / remainingCapacity),
                 repository.countStaleOpenOrders(today));
         return new Dashboard(today, day.slots(), active, stats);
     }

@@ -1,5 +1,6 @@
 package vn.nhom15.preorder.slot;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 /**
@@ -18,4 +19,8 @@ public record StoreSettings(
         int defaultQuotaPoints,
         int holdMinutes,
         int preOrderSharePercent,
-        int pickupLimitOrders) {}
+        int pickupLimitOrders) {
+    public LocalDateTime earliestPreOrderStart(LocalDateTime pickupStart) {
+        return pickupStart.minusMinutes(holdMinutes);
+    }
+}

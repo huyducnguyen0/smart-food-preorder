@@ -11,11 +11,12 @@ Như Sprint 2–3: mỗi ca **là** một test tự động gọi API HTTP thậ
 | TC-PLAN-01 | Làm trước: khung 12:00 nhận 4 đơn × 10 điểm = 40 điểm đặt trước (mô hình cũ chỉ 20); đơn thứ 5 (tổng 50 > 3 khoảng × 14 = 42) bị `SLOT_FULL`, `reason` = `KITCHEN` | Passed |
 | TC-PLAN-02 | Dành chỗ cho walk-in: đặt trước đã dùng hết phần 70% của khung 12:00, khách tại quầy vẫn được nhận khung 12:00 (15 điểm) | Passed |
 | TC-PLAN-03 | Quầy tối đa 8 đơn: đơn thứ 9 (chỉ đồ uống, 0 điểm) bị `SLOT_FULL`, `reason` = `PICKUP_LIMIT`; khung 12:15 vẫn nhận; danh sách khung báo 12:00 không đặt được | Passed |
-| TC-PLAN-04 | Hàng chờ bếp theo lịch: đơn khung 12:00 có `prepareFrom` = 11:15; tới 11:15 đơn vào nhóm cần chuẩn bị | Passed |
-| TC-PLAN-05 | Màn quản lý: trả `holdMinutes`, `preOrderSharePercent`, `pickupLimitOrders`; đơn 30 điểm khung 12:00 xếp 20 điểm ở 11:15 và 10 ở 11:30 (`plannedPoints`); `pickupOrders` = 1 | Passed |
+| TC-PLAN-04 | Hàng chờ bếp: đơn khung 12:00 có `prepareFrom` và `startAllowedFrom` = 11:15. Bắt đầu lúc 11:14 trả 409 `PREPARATION_TOO_EARLY`; bắt đầu lúc 11:15 thành công | Passed |
+| TC-PLAN-05 | Màn quản lý: đơn đặt trước 30 điểm khung 12:00 xếp 14, 14, 2 điểm lần lượt vào 11:15, 11:30, 11:45; `pickupOrders` = 1 | Passed |
 | TC-PLAN-06 | Đổi thông số (làm trước 30 phút, 60%, 5 đơn) được lưu; bỏ công suất 11:45 vẫn kịp; giảm 11:30 xuống 10 thì bếp không còn kịp → `QUOTA_BELOW_HELD` | Passed |
 | TC-PLAN-07 | Hủy đơn trả lại chỗ trong lịch: khung vừa hết chỗ lại nhận được đơn | Passed |
 | TC-PLAN-08 | 60 khách đặt trước và 20 walk-in cùng lúc vào 12:00–12:15: mọi phản hồi là 201 hoặc 409 hết chỗ/quá lớn; mỗi khung ≤ 8 đơn; điểm giữ khớp tổng điểm đơn (NFR-01) | Passed |
+| TC-PLAN-09 | Lúc 11:30, walk-in 18 điểm nhận 11:30–11:45, pre-order 22 điểm nhận 12:00 bị `SLOT_FULL/KITCHEN` và không giữ điểm. Pre-order 16 điểm cùng khung thì thành công | Passed |
 
 ## Ca cũ đổi theo mô hình mới
 Các ca Sprint 1–3 về "khung còn bao nhiêu" chạy với cấu hình tương đương mô hình cũ (làm trước 15 phút, đặt trước 100%, quầy 1000 đơn), nên giữ nguyên ý nghĩa và kết quả. Riêng các ca dưới đây đổi nội dung vì quy tắc đổi:

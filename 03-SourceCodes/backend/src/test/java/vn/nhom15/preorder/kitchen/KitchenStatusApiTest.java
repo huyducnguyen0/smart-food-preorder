@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.servlet.http.Cookie;
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -40,6 +39,7 @@ import vn.nhom15.preorder.order.OrderStatusService;
 import vn.nhom15.preorder.order.PlaceOrderCommand;
 import vn.nhom15.preorder.order.PlaceOrderService;
 import vn.nhom15.preorder.order.RequestedLine;
+import vn.nhom15.preorder.support.MutableClock;
 import vn.nhom15.preorder.support.TestDatabase;
 
 /**
@@ -56,11 +56,11 @@ class KitchenStatusApiTest {
     private static final String SEED_PASSWORD = "Demo@2026";
 
     @TestConfiguration
-    static class FixedClockConfig {
+    static class TestClockConfig {
         @Bean
         @Primary
-        Clock fixedClock() {
-            return Clock.fixed(TODAY.atTime(9, 0).atZone(ZONE).toInstant(), ZONE);
+        MutableClock testClock() {
+            return new MutableClock(ZONE, TODAY.atTime(9, 0));
         }
     }
 
@@ -83,11 +83,15 @@ class KitchenStatusApiTest {
     @Autowired
     private OrderStatusService orderStatusService;
 
+    @Autowired
+    private MutableClock clock;
+
     private long customer;
     private long kitchenStaff;
 
     @BeforeEach
     void setUp() {
+        clock.set(TODAY.atTime(9, 0));
         jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
         customer =
                 jdbc.queryForObject("SELECT id FROM user_accounts WHERE login_id = 'khach1@example.com'", Long.class);
@@ -143,7 +147,7 @@ class KitchenStatusApiTest {
         long id = newOrder();
         MockHttpSession kitchen = login("bep1@example.com");
 
-        // BR-21: bếp được bắt đầu cả đơn sắp tới (đơn 12:00 khi bây giờ mới 09:00).
+        clock.set(TODAY.atTime(11, 45));
         mockMvc.perform(withCsrf(post("/api/kitchen/orders/" + id + "/start")).session(kitchen))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id))
@@ -173,6 +177,7 @@ class KitchenStatusApiTest {
     @Test
     void customerSeesTheNewStatusInMyOrders() throws Exception {
         long id = newOrder();
+        clock.set(TODAY.atTime(11, 45));
         MockHttpSession kitchen = login("bep1@example.com");
         act("start", id, kitchen);
         act("complete", id, kitchen);
@@ -277,6 +282,7 @@ class KitchenStatusApiTest {
     @Test
     void twoKitchenStaffPressingStartTogetherOnlyOneSucceeds() throws Exception {
         long id = newOrder();
+        clock.set(TODAY.atTime(11, 45));
         int threads = 8;
         ExecutorService pool = Executors.newFixedThreadPool(threads);
         try {

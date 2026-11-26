@@ -144,7 +144,9 @@ Mã nguồn: `QuotaService`, `KitchenPlanService`, `KitchenPlanner` ở [`slot/`
 
 **Đồng thời.** Không còn điều kiện SQL một dòng (mục 5) để kiểm bằng giá trị biên; bất biến nhiều dòng được giữ bằng khóa lịch bếp theo ngày. Kiểm qua API với PostgreSQL thật: TC-CON-08 (25 đặt trước + 25 walk-in), TC-PLAN-08 (60 đặt trước + 20 walk-in, hai khung) — xem [Sprint 4](BLACK_BOX_TEST_CASES_SPRINT_4.md).
 
-**Độ phủ thực đo** (JaCoCo, lượt `./mvnw clean verify` ngày 2026-10-31): `KitchenPlanner` 36/36 dòng, 27/28 nhánh; `KitchenPlanService` 48/48 dòng, 22/24 nhánh; `KitchenPlanService.Snapshot` 26/26 dòng, 16/16 nhánh; `QuotaService` 31/32 dòng, 15/16 nhánh. Các nhánh còn thiếu chưa phân tích từng cái; không ảnh hưởng các đường Q1–Q5.
+**Lượt v1.** TC-PLAN-09 đi qua Q3 và Q5 với hai kênh chung lịch: từ chối 22 điểm và nhận đúng 16 điểm còn khả dụng. TC-PLAN-06 kiểm tra việc giữ cam kết cũ khi thay đổi công suất.
+
+**Độ phủ lịch sử** (JaCoCo, bản 2026-10-31 trước lượt sửa v1): `KitchenPlanner` 36/36 dòng, 27/28 nhánh; `KitchenPlanService` 48/48 dòng, 22/24 nhánh; `KitchenPlanService.Snapshot` 26/26 dòng, 16/16 nhánh; `QuotaService` 31/32 dòng, 15/16 nhánh.
 
 ## Công cụ
 Sơ đồ vẽ bằng PlantUML (`cfg_QuotaService_reserve.puml`); cách render như [Analysis Model](../../03-Design/Analysis-Model/README.md) mục Công cụ. Độ phủ: JaCoCo `0.8.15` cấu hình trong `backend/pom.xml`, chạy cùng `./mvnw verify`.

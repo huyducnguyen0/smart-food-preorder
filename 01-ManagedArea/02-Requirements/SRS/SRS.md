@@ -98,7 +98,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-16 | Khung khách chọn không đủ quota thì đề xuất tối đa 3 khung hợp lệ (theo BR-15) còn đủ quota, gần khung đã chọn nhất, cả trước và sau. Cùng khoảng cách thì khung sau đứng trước. Không có khung nào thì báo hết chỗ trong ngày. | Proposal mục 7; quyết định 2026-10-08 |
 | BR-17 | Gửi lại cùng một yêu cầu đặt (do retry, bấm lặp) chỉ tạo tối đa một đơn và trả lại kết quả của đơn đó. | Proposal mục 8 |
 | BR-35 | Khi gửi đơn, hệ thống kiểm tra lại giá và tình trạng từng món. Nếu khác nội dung khách đang xem (giá đổi, món tạm hết hoặc ngừng bán) thì không tạo đơn, báo các món thay đổi để khách xem lại rồi gửi lại. Đơn lưu giá từng món tại thời điểm xác nhận; đổi giá sau đó không ảnh hưởng đơn đã xác nhận. | Quyết định 2026-10-10 |
-| BR-36 | Danh sách khung cho khách chỉ hiển thị "đặt được" hoặc "không đủ chỗ", tính theo điểm của giỏ hiện tại so với quota còn lại; không hiển thị con số quota hay điểm đã giữ. Khung không đủ chỗ vẫn hiện nhưng không chọn được. Kết quả hiển thị chỉ mang tính tham khảo; việc xác nhận cuối cùng theo BR-09 lúc gửi đơn. | Quyết định 2026-10-10 |
+| BR-36 | Danh sách khung chỉ hiển thị "đặt được" hoặc "không đủ chỗ" theo khả năng xếp lịch bếp và chỗ ở quầy, không hiển thị điểm công suất. Khung không đủ chỗ vẫn hiện nhưng không chọn được. Kết quả tham khảo, xác nhận theo BR-09 lúc gửi đơn. | Quyết định 2026-10-10; PB-22 |
 | BR-37 | Mỗi tài khoản khách có tối đa N đơn chưa kết thúc (`CONFIRMED`, `PREPARING`, `READY`) **có khung từ hôm nay trở đi** cùng lúc; mặc định N = 3, cấu hình được. Đặt thêm khi đã đủ N thì bị từ chối. Đơn walk-in không thuộc tài khoản khách nên không tính. Đơn chưa kết thúc của ngày đã qua (đơn tồn) không chặn khách; cửa hàng dọn ở màn quầy. | Quyết định 2026-10-10; N = 3 xác nhận 2026-10-11; chỉ tính từ hôm nay: 2026-10-31 |
 
 **Walk-in**
@@ -111,7 +111,7 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 **Bếp và trạng thái đơn**
 | ID | Quy tắc | Nguồn |
 |---|---|---|
-| BR-21 | Đơn `CONFIRMED` thuộc nhóm "cần chuẩn bị" khi thời điểm hiện tại ≥ giờ bắt đầu khung − N phút (N = 15, cấu hình được); trước đó thuộc nhóm "sắp tới". Bếp được bắt đầu cả đơn sắp tới (làm trước lúc vắng để giảm quá tải giờ đông). | NT6; ngày 2026-10-31 có lúc đổi thành "chỉ bắt đầu từ nhóm cần chuẩn bị", người dùng quyết định khôi phục cùng ngày |
+| BR-21 | Đơn `CONFIRMED` vào nhóm "cần chuẩn bị" khi tới giờ gợi ý, lấy mốc sớm hơn giữa giờ theo lịch bếp và giờ nhận trừ N phút (N = 15, cấu hình được), trong giới hạn BR-39. Bếp được bắt đầu trước giờ gợi ý khi đơn đã vào cửa sổ làm. | NT6; quyết định cho làm trước ngày 2026-10-31; PB-22 |
 | BR-22 | Hàng chờ bếp sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận. Cập nhật tiến độ theo cả đơn. | NT7; quyết định 2026-10-08 |
 
 **Hủy, no-show, trễ**
@@ -128,8 +128,8 @@ Hệ thống là ứng dụng web dùng trong một cửa hàng. Khách pre-orde
 | BR-27 | Thanh toán tại quầy: pre-order trả khi nhận, walk-in trả khi đặt. Trạng thái `UNPAID` / `PAID`, kèm phương thức (tiền mặt hoặc chuyển khoản tại quầy). Hệ thống chỉ ghi nhận, không xử lý tiền. | NT8; quyết định 2026-10-08 |
 | BR-28 | Đơn đã xác nhận không mặc định là đã thanh toán; pre-order bắt đầu ở `UNPAID`. | NT8 |
 | BR-29 | Chỉ bàn giao đơn `READY`, mã nhận đúng và `PAID`. Đơn đã bàn giao không bàn giao lại được. | Quyết định 2026-10-08 |
-| BR-39 | **Cửa sổ làm**: đơn đặt trước nhận lúc S được bếp làm trong [S − H, S], H là thời gian làm trước tối đa để món còn ngon (mặc định 45 phút, quản lý đổi được, tối thiểu 15 phút). Đơn walk-in làm từ lúc tạo tới hết khung nhận. Bếp xếp lịch theo nguyên tắc hạn sớm làm trước, làm sớm nhất có thể (làm trước lúc vắng). | PB-22, quyết định 2026-10-31 |
-| BR-40 | **Dành chỗ cho walk-in**: tổng đơn đặt trước trong mỗi khoảng làm không vượt X% công suất (mặc định 70%, quản lý đổi được); phần còn lại cho khách tại quầy. Quản lý giảm X% thì chỉ chặn đơn đặt trước mới. | PB-22, quyết định 2026-10-31 |
+| BR-39 | **Cửa sổ làm**: đơn đặt trước nhận lúc S được xếp trong [S − H, S], H là thời gian làm trước tối đa (mặc định 45 phút, quản lý đổi được, tối thiểu 15 phút). Bếp chỉ được bấm bắt đầu từ S − H trở đi và vẫn có thể xử lý đơn đã trễ. Đơn walk-in được xếp từ lúc tạo tới hết khung nhận. Lịch ưu tiên đơn hạn sớm và khoảng làm sớm nhất có thể. | PB-22, quyết định 2026-10-31; áp dụng cùng giới hạn trên UI và API từ lượt hoàn thiện v1 |
+| BR-40 | **Dành chỗ cho walk-in**: lịch chung của hai kênh áp dụng đồng thời công suất tổng và trần X% điểm đặt trước trên từng khoảng làm (mặc định 70%, quản lý đổi được). Nếu đơn đã nhận cần vượt X%, giữ cam kết cũ trong công suất tổng và chặn đơn đặt trước mới cần công suất bếp cho tới khi xếp được trong phần X%. | PB-22, quyết định 2026-10-31 |
 | BR-41 | **Giới hạn quầy**: mỗi khung nhận tối đa N đơn (mặc định 8, quản lý đổi được), tính mọi đơn không bị hủy, kể cả đơn 0 điểm. | PB-22, quyết định 2026-10-31 |
 | BR-38 | Mã nhận gồm 6 ký tự lấy ngẫu nhiên từ chữ in hoa và chữ số, bỏ các ký tự dễ nhầm `0`, `O`, `1`, `I`, `L`; không trùng với mã của đơn khác trong cùng ngày. Áp dụng cho cả pre-order và walk-in. | Quyết định 2026-10-10 |
 | BR-30 | Hoàn tiền cho đơn đã `PAID` bị hủy thực hiện ngoài hệ thống; lý do hủy ghi nhận việc này. | Giới hạn phạm vi (không phải POS) |
@@ -204,7 +204,7 @@ Mỗi chức năng liên kết story trong Product Backlog. Luồng chính/thay 
 | FR-17 | Bàn giao | Quầy | Xem đơn READY; kiểm tra mã; xác nhận bàn giao | BR-29 | PB-15 |
 | FR-18 | Cửa hàng hủy đơn | Quản lý, quầy | Hủy kèm lý do theo quyền; xử lý quota | BR-24, BR-30 | PB-21 |
 | FR-19 | Đánh dấu no-show | Quầy, quản lý | Liệt kê đơn READY quá hạn; đánh dấu NO_SHOW | BR-25 | PB-18 |
-| FR-20 | Theo dõi vận hành | Quản lý | Theo khung trong ngày: quota, điểm đã giữ, số đơn; danh sách đơn đang xử lý và đơn trễ; thống kê ngày: số đơn theo nguồn, tỉ lệ dùng quota, số đơn trễ, hủy, no-show | BR-26 | PB-17 |
+| FR-20 | Theo dõi vận hành | Quản lý | Điểm bếp dự kiến làm trên công suất mỗi khoảng, số đơn mỗi khung nhận; danh sách đơn đang xử lý và đơn trễ; thống kê ngày theo nguồn và trạng thái, tỉ lệ tải bếp còn lại | BR-26, BR-39–BR-41 | PB-17, PB-22 |
 
 ## D. Non-functional Requirements / Constraints
 Ngưỡng dưới đây là **nháp**, sẽ chốt cùng cấu hình môi trường khi lập kế hoạch kiểm thử. Kết quả chỉ có giá trị cho đúng workload và môi trường đã công bố; không suy rộng thành năng lực production.

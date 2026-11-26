@@ -13,8 +13,10 @@ export type KitchenOrder = {
   confirmedAt: string
   /** Đã qua giờ bắt đầu khung mà chưa xong (BR-26); chỉ để hiển thị. */
   late: boolean
-  /** Thời điểm bếp được bắt đầu đơn: giờ bắt đầu khung trừ cửa sổ chuẩn bị (BR-21). */
+  /** Giờ gợi ý bắt đầu theo lịch bếp (BR-21). */
   prepareFrom: string
+  /** Mốc sớm nhất được bắt đầu đơn đặt trước, giờ địa phương của cửa hàng (BR-39). */
+  startAllowedFrom: string | null
   lines: { name: string; quantity: number }[]
 }
 

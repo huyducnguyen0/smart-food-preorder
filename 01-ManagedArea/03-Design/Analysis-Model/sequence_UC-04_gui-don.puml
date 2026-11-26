@@ -45,19 +45,23 @@ else chưa có
     PO -> QC : giữ quota(khung, dòng đơn)
     activate QC
     QC -> QC : điểm đơn = Σ điểm món × số lượng (BR-08)
-    alt điểm đơn = 0 (BR-13)
-      QC --> PO : giữ được, điểm 0 (không chiếm quota)
+    QC -> SS : khóa cấu hình và lịch bếp của ngày; đọc cấu hình
+    QC -> TS : công suất riêng theo khoảng làm
+    QC -> O : đơn còn phải làm và số đơn theo khung nhận
+    alt quầy hết chỗ (UC-17 E2)
+      QC --> PO : hết chỗ nhận
+      PO --> UI : E8: khung vừa hết chỗ (UC-18)
+    else điểm đơn = 0 (BR-13)
+      QC --> PO : giữ được chỗ nhận, điểm 0
     else điểm đơn > 0
-      QC -> SS : quota mặc định
-      QC -> TS : quota riêng của khung (nếu có), điểm đang giữ
-      alt điểm đơn > quota của khung (UC-17 E1)
-        QC --> PO : vượt sức chứa một khung
+      alt bếp trống vẫn không xếp kịp (UC-17 E1)
+        QC --> PO : không xếp kịp trong cửa sổ làm
         PO --> UI : E9: đơn quá lớn, liên hệ cửa hàng (BR-12)
-      else điểm đơn > quota − điểm đang giữ (UC-17 E2)
+      else lịch chung không xếp kịp (UC-17 E2)
         QC --> PO : khung không đủ chỗ
-        PO --> UI : E8: khung vừa hết chỗ\n(điểm mở rộng UC-18, Sprint sau)
+        PO --> UI : E8: khung vừa hết chỗ (UC-18)
       else đủ chỗ
-        QC -> TS : điểm đang giữ += điểm đơn
+        QC -> TS : cộng điểm vào thống kê của khung nhận
         note right of TS
           Kiểm tra và cộng là
           **một thao tác không chen ngang**

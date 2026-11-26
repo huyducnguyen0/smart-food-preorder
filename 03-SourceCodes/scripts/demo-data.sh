@@ -64,7 +64,9 @@ step() {
 now_min=$((10#$(date -u -d '+7 hours' +%H) * 60 + 10#$(date -u -d '+7 hours' +%M)))
 today=$(date -u -d '+7 hours' +%Y-%m-%d)
 # Khung đặt trước sớm nhất: bắt đầu sau ít nhất 30 phút (BR-15), làm tròn lên mốc 15 phút.
-first=$(((now_min + 30 + 14) / 15 * 15))
+# Tính cả giây và chừa 30 giây cho các lệnh đăng nhập trước khi đặt đơn.
+now_second=$((10#$(date -u -d '+7 hours' +%S)))
+first=$((((now_min * 60 + now_second + 30 * 60 + 30 + 899) / 900) * 15))
 slot() { printf '%sT%02d:%02d' "$today" $(($1 / 60)) $(($1 % 60)); }
 SLOT1=$(slot "$first")
 SLOT2=$(slot $((first + 15)))
@@ -101,7 +103,7 @@ place() { # place <phiên> <nhãn> <khung> <dòng...>
 }
 
 # Đơn đặt trước để ở trạng thái "chờ bếp" và "đã hủy" để demo luồng khách tự hủy; các trạng thái bếp, quầy dùng đơn
-# walk-in (ở khung hiện tại). Bếp làm trước đơn đặt trước được (BR-21), bấm "Bắt đầu" trên màn bếp khi demo.
+# walk-in. Bếp bắt đầu đơn đặt trước trong cửa sổ làm (BR-21, BR-39).
 # Điểm theo menu mẫu: Burger bò 5, Khoai tây chiên 2, Trà đào 0.
 echo "Khách đặt trước:"
 if place khach "Đơn A (chờ bếp)" "$SLOT1" "$(line 1 1 "$BURGER"),$(line 6 2 "$TEA")"; then
@@ -161,7 +163,7 @@ echo
 echo "Mã nhận | Nguồn | Trạng thái | Tài khoản khách"
 for row in "${summary[@]}"; do echo "$row" | sed 's/|/ | /g'; done
 echo
-echo "Đơn đặt trước đang chờ bếp: bếp bấm \"Bắt đầu\" (làm trước được), khách sẽ thấy trang đơn tự đổi trạng thái."
+echo "Đơn đặt trước đang chờ bếp: bấm \"Bắt đầu\" khi đến mốc hiển thị trên đơn."
 echo "Xem: khách ($BASE_URL/orders), bếp ($BASE_URL/kitchen), quầy ($BASE_URL/counter), quản lý ($BASE_URL/admin)."
 echo "Mật khẩu mọi tài khoản mẫu: $PASSWORD"
 if [ "$failures" -gt 0 ]; then

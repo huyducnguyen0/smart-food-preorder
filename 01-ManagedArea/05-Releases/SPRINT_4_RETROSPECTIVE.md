@@ -17,3 +17,7 @@ Hành động cải tiến của Sprint 3: người dùng merge lần lượt c�
 
 ## Hành động cải tiến
 Trước khi sửa một quy tắc ảnh hưởng vận hành, AI hỏi người dùng một câu về tình huống thực tế (giờ đông, ai làm gì lúc đó). Nhận biết hiệu quả: các thay đổi quy tắc ở Sprint sau có ghi câu hỏi và câu trả lời của người dùng trong đặc tả hoặc tư liệu.
+
+## Áp dụng khi hoàn thiện v1.0.0
+
+Ngày 2026-11-26, trước khi chốt release, kiểm tra lại quy tắc trong một tình huống tranh công suất có số cụ thể và diễn lại cả hai kênh trên Docker. Việc này bắt được lỗi PB-22 mà suite cũ chưa phủ. Với thay đổi lịch bếp sau này, giữ ca đối chứng cùng các kiểm tra đồng thời và chạy lại một vòng đời đơn qua giao diện.

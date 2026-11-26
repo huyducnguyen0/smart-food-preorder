@@ -189,3 +189,21 @@ Nhánh `feature/sprint-4` (dựa trên `fix/review-findings`). Môi trường: W
 
 **Chưa chạy:** thử tay trên trình duyệt với Docker; `scripts/demo-data.sh` dưới cấu hình mặc định mới (quầy 8 đơn, đặt trước 70%) chưa chạy lại.
 
+## Lượt 2026-11-26 — v1.0.0
+
+Kiểm thử trên Windows 11 với Java 25, PostgreSQL 18 nhúng cho backend và Node.js 25 cho frontend. Demo tích hợp chạy qua nginx, Spring Boot và PostgreSQL 18 trong Docker Compose project riêng. Trình duyệt Chromium được điều khiển qua Playwright với bốn phiên đăng nhập độc lập.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `mvnw.cmd -o verify`: **443 test Passed**, 0 lỗi, Spotless và Checkstyle đạt |
+| Frontend | **151 test Passed**, format, lint, kiểm kiểu và build đạt |
+| Lịch bếp | TC-PLAN-01 đến 09 Passed. Ca mới: walk-in 18 điểm + pre-order 22 điểm, từ chối đơn 22 điểm và nhận đơn 16 điểm. Bếp bị chặn lúc 11:14 khi mốc cho phép là 11:15 |
+| Tranh công suất qua Docker | Với một khoảng làm có 10 điểm, gửi cùng lúc pre-order 5 điểm và walk-in 8 điểm. Một lệnh 201, lệnh kia 409 `SLOT_FULL` |
+| Trình duyệt | Khách đặt trước qua giỏ và trang chọn giờ. Quầy báo giờ, thu tiền và xác nhận walk-in. Bếp bắt đầu và hoàn tất hai đơn. Trang đơn của khách tự hiện `READY`. Quản lý thấy lịch bếp và số đơn đã bàn giao |
+| Bàn giao | API từ chối đúng mã khi chưa trả tiền. Trình duyệt ghi nhận tiền mặt, từ chối mã sai, chấp nhận đúng mã và chuyển sang `PICKED_UP` |
+| Dữ liệu demo | `scripts/demo-data.sh` tạo 9 đơn và thực hiện thành công 21 bước trên cấu hình mặc định |
+| Khởi động lại | Dừng rồi khởi động lại ba container, giữ volume. API health trả UP, schema V12, số đơn trước và sau đều là 12 |
+| NFR-04 | Lượt nhánh tích hợp với 50 người dùng đồng thời: p95 menu 231 ms, đặt 590 ms, bếp 110 ms, bàn giao 63 ms |
+
+Các phép đo dùng môi trường thử nghiệm của dự án. Mốc 45 phút, 70%, 20 điểm và 8 đơn là cấu hình của mô hình học phần, chưa đo tại cửa hàng.
+

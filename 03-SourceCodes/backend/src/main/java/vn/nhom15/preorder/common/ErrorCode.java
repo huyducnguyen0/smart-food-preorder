@@ -33,6 +33,8 @@ public enum ErrorCode {
     SLOT_FULL(HttpStatus.CONFLICT),
     /** Đơn không ở trạng thái cho phép chuyển (UC-12 E1, SRS B.5). */
     INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT),
+    /** Đơn đặt trước chưa vào cửa sổ làm của bếp (UC-12 E5, BR-39). */
+    PREPARATION_TOO_EARLY(HttpStatus.CONFLICT),
     /** Đơn đã được ghi nhận thanh toán rồi (UC-08 E1, BR-27). */
     ALREADY_PAID(HttpStatus.CONFLICT),
     /** Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được (UC-08 E2). */

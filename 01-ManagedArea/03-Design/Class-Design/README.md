@@ -70,7 +70,7 @@ Ký hiệu: `+` public, `-` private, `~` dùng trong package (để test), gạc
 6. `pickupHasRoom(start)` sai → `SLOT_FULL`, `reason` = `PICKUP_LIMIT` (BR-41).
 7. Dựng việc của đơn: đặt trước làm trong [S − H, S] (`preOrderJob`); walk-in làm từ khoảng hiện tại tới S + 15 (`walkInJob`) (BR-39).
 8. `tooLargeEvenWhenEmpty(job)` → `ORDER_TOO_LARGE` (BR-12).
-9. `fits(job)` sai → `SLOT_FULL`, `reason` = `KITCHEN`. `fits` chạy `KitchenPlanner.plan` hai lần: mọi đơn với 100% công suất; nếu là đặt trước thì thêm lần riêng các đơn đặt trước với X% (BR-40).
+9. `fits(job)` sai → `SLOT_FULL`, `reason` = `KITCHEN`. `fits` xếp hai kênh cùng lịch, vừa áp dụng công suất tổng vừa giới hạn phần đặt trước. Nếu các đơn đã nhận cần vượt X%, chỉ xét walk-in bằng phần công suất tổng còn lại (BR-40).
 10. `points > 0` thì `addHeld(slotId, points)` (thống kê), trả `QuotaReservation(slotId, points)`.
 
 **`KitchenPlanner.plan(intervals, intervalMinutes, jobs, sharePercent)`.** Sắp việc: đơn trễ (hạn đã qua) trước, rồi theo hạn, rồi theo lúc được bắt đầu. Với từng việc, đổ điểm vào các khoảng còn trống từ khoảng sớm nhất được phép tới trước hạn. Còn thừa điểm thì lịch không kịp (`feasible = false`), trừ đơn trễ: đơn trễ được xếp vào chỗ trống sớm nhất còn lại nhưng không làm lịch thất bại (bếp vẫn phải làm cho xong). Khoảng hiện tại chỉ còn phần công suất tương ứng thời gian còn lại. Cách xếp này đơn giản, không tối ưu tuyệt đối; nó không bao giờ xếp vượt công suất.

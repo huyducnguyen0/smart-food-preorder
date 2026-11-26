@@ -103,10 +103,18 @@ class Sprint4KitchenPlanBlackBoxTest extends BlackBoxBase {
         Res early = get("/api/kitchen/queue", kitchen);
         assertThat(early.<List<Integer>>at("$.upcoming[*].id")).containsExactly((int) id);
         assertThat(early.<List<String>>at("$.upcoming[*].prepareFrom")).containsExactly(slot("11:15"));
+        assertThat(early.<List<String>>at("$.upcoming[*].startAllowedFrom")).containsExactly(slot("11:15"));
+
+        at("11:14");
+        Res blocked = post("/api/kitchen/orders/" + id + "/start", kitchen, null);
+        assertThat(blocked.status()).isEqualTo(409);
+        assertThat((String) blocked.at("$.code")).isEqualTo("PREPARATION_TOO_EARLY");
 
         at("11:15");
         assertThat(get("/api/kitchen/queue", kitchen).<List<Integer>>at("$.dueSoon[*].id"))
                 .containsExactly((int) id);
+        assertThat(post("/api/kitchen/orders/" + id + "/start", kitchen, null).status())
+                .isEqualTo(200);
     }
 
     @Test
@@ -120,11 +128,33 @@ class Sprint4KitchenPlanBlackBoxTest extends BlackBoxBase {
         assertThat((Integer) day.at("$.preOrderSharePercent")).isEqualTo(70);
         assertThat((Integer) day.at("$.pickupLimitOrders")).isEqualTo(8);
         assertThat(day.<List<Integer>>at("$.slots[?(@.start == '" + slot("11:15") + "')].plannedPoints"))
-                .containsExactly(20);
+                .containsExactly(14);
         assertThat(day.<List<Integer>>at("$.slots[?(@.start == '" + slot("11:30") + "')].plannedPoints"))
-                .containsExactly(10);
+                .containsExactly(14);
+        assertThat(day.<List<Integer>>at("$.slots[?(@.start == '" + slot("11:45") + "')].plannedPoints"))
+                .containsExactly(2);
         assertThat(day.<List<Integer>>at("$.slots[?(@.start == '" + slot("12:00") + "')].pickupOrders"))
                 .containsExactly(1);
+    }
+
+    @Test
+    @DisplayName("TC-PLAN-09 18 điểm walk-in và 22 điểm đặt trước không xếp được trong cùng lịch")
+    void plan09() throws Exception {
+        at("11:30");
+        MockHttpSession counter = login("quay1@example.com");
+        MockHttpSession customer = login("khach1@example.com");
+        assertThat(walkIn(counter, "11:30", line("Khoai tây chiên", 9)).status())
+                .isEqualTo(201);
+
+        Res rejected = order(customer, "12:00", line("Burger bò", 4), line("Khoai tây chiên", 1));
+        assertThat(rejected.status()).isEqualTo(409);
+        assertThat((String) rejected.at("$.code")).isEqualTo("SLOT_FULL");
+        assertThat((String) rejected.at("$.reason")).isEqualTo("KITCHEN");
+        assertThat(held("12:00")).isZero();
+
+        assertThat(order(customer, "12:00", line("Khoai tây chiên", 8)).status())
+                .isEqualTo(201);
+        assertHeldMatchesOrders();
     }
 
     @Test

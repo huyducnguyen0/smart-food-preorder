@@ -10,13 +10,13 @@ Một người dùng kiêm mọi vai trò; AI soạn đặc tả, thiết kế, 
 ## Story và task
 | Story | Use case | Task | Trạng thái |
 |---|---|---|---|
-| PB-03 Quản lý món | [UC-13](../02-Requirements/Use-Cases/specifications/UC-13-quan-ly-mon.md) | Đặc tả, API `/api/admin/menu/**`, màn `/admin/menu`, test TC-MNG | Review |
-| PB-04 Cấu hình giờ và quota | [UC-14](../02-Requirements/Use-Cases/specifications/UC-14-cau-hinh-gio-va-quota.md) | Đặc tả, API cấu hình, khóa chống chen ngang (BR-11), màn `/admin/slots`, test TC-CFG | Review |
-| PB-19 Đăng ký | [UC-01](../02-Requirements/Use-Cases/specifications/UC-01-dang-ky-tai-khoan.md) | Đặc tả, `POST /api/auth/register`, màn `/register`, test TC-REG | Review |
-| PB-11 Walk-in | [UC-07](../02-Requirements/Use-Cases/specifications/UC-07-tao-don-walk-in.md) | Đặc tả, migration V8, API ước tính và xác nhận, khung tạo đơn ở màn Quầy, test TC-WALK | Review |
-| NFR-01 | UC-07, UC-17 | 25 pre-order + 25 walk-in cùng lúc vào một khung (TC-CON-08) | Review |
-| PB-09 Khung thay thế | [UC-18](../02-Requirements/Use-Cases/specifications/UC-18-de-xuat-khung-thay-the.md) | Đặc tả, `alternatives` trong lỗi `SLOT_FULL`, khung gợi ý ở màn chọn giờ, test TC-ALT | Review |
-| — | — | Chạy toàn bộ test, Test Results, nháp Review và Retro, trang "để hiểu" | Review |
+| PB-03 Quản lý món | [UC-13](../02-Requirements/Use-Cases/specifications/UC-13-quan-ly-mon.md) | Đặc tả, API `/api/admin/menu/**`, màn `/admin/menu`, test TC-MNG | Done |
+| PB-04 Cấu hình giờ và quota | [UC-14](../02-Requirements/Use-Cases/specifications/UC-14-cau-hinh-gio-va-quota.md) | Đặc tả, API cấu hình, khóa chống chen ngang (BR-11), màn `/admin/slots`, test TC-CFG | Done |
+| PB-19 Đăng ký | [UC-01](../02-Requirements/Use-Cases/specifications/UC-01-dang-ky-tai-khoan.md) | Đặc tả, `POST /api/auth/register`, màn `/register`, test TC-REG | Done |
+| PB-11 Walk-in | [UC-07](../02-Requirements/Use-Cases/specifications/UC-07-tao-don-walk-in.md) | Đặc tả, migration V8, API ước tính và xác nhận, khung tạo đơn ở màn Quầy, test TC-WALK | Done |
+| NFR-01 | UC-07, UC-17 | 25 pre-order + 25 walk-in cùng lúc vào một khung (TC-CON-08) | Done |
+| PB-09 Khung thay thế | [UC-18](../02-Requirements/Use-Cases/specifications/UC-18-de-xuat-khung-thay-the.md) | Đặc tả, `alternatives` trong lỗi `SLOT_FULL`, khung gợi ý ở màn chọn giờ, test TC-ALT | Done |
+| — | — | Chạy toàn bộ test, Test Results, nháp Review và Retro, trang "để hiểu" | Done |
 
 ## Daily Scrum
 Không tổ chức. Sprint làm trong một buổi (2026-10-28) bằng một lần giao việc cho AI.

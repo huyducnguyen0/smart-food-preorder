@@ -91,8 +91,8 @@ export function AdminDashboardPage() {
             <Stat label="Đã hủy" value={data.stats.cancelled} />
             <Stat label="Không đến nhận" value={data.stats.noShow} />
             <Stat
-              label="Dùng quota"
-              value={`${data.stats.quotaUsagePercent}% (${data.stats.heldPoints}/${data.stats.quotaPoints})`}
+              label="Tải bếp còn lại"
+              value={`${data.stats.quotaUsagePercent}% (${data.stats.plannedPoints}/${data.stats.remainingCapacityPoints} điểm)`}
             />
           </section>
           <p className="muted">

@@ -69,6 +69,7 @@ public class KitchenQueueRepository {
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
                                     false,
                                     start.minusMinutes(prepWindowMinutes),
+                                    null,
                                     List.copyOf(linesByOrder.getOrDefault(id, List.of()))));
                 },
                 day);

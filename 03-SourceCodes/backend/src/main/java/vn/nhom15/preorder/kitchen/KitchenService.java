@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nhom15.preorder.config.OrderingProperties;
 import vn.nhom15.preorder.order.LateRule;
+import vn.nhom15.preorder.order.OrderSource;
 import vn.nhom15.preorder.order.OrderStatus;
 import vn.nhom15.preorder.slot.KitchenPlanService;
 
@@ -49,18 +50,25 @@ public class KitchenService {
         List<KitchenOrder> dueSoon = new ArrayList<>();
         List<KitchenOrder> upcoming = new ArrayList<>();
         // PB-22: lịch bếp cho biết nên làm đơn nào lúc nào (làm sớm nhất có thể, trong giới hạn món còn ngon).
-        Map<Long, LocalDateTime> plannedStart =
-                kitchenPlanService.snapshot().current().firstIntervalByKey();
+        KitchenPlanService.Snapshot snapshot = kitchenPlanService.snapshot();
+        Map<Long, LocalDateTime> plannedStart = snapshot.current().firstIntervalByKey();
         for (KitchenQueueRepository.ActiveOrder active : repository.findActiveOrders(
                 now.toLocalDate(), properties.slotMinutes(), properties.prepWindowMinutes())) {
             KitchenOrder found = active.order();
             LocalDateTime planned = plannedStart.get(found.id());
             LocalDateTime prepareFrom =
                     planned != null && planned.isBefore(found.prepareFrom()) ? planned : found.prepareFrom();
+            LocalDateTime startAllowedFrom = found.source() == OrderSource.PRE_ORDER
+                    ? snapshot.settings().earliestPreOrderStart(found.slotStart())
+                    : null;
+            if (startAllowedFrom != null && prepareFrom.isBefore(startAllowedFrom)) {
+                prepareFrom = startAllowedFrom;
+            }
             KitchenOrder order = finish(
                     found,
                     LateRule.isLate(active.status(), found.source(), found.slotStart(), found.slotEnd(), now),
-                    prepareFrom);
+                    prepareFrom,
+                    startAllowedFrom);
             switch (groupOf(active.status(), prepareFrom, now)) {
                 case PREPARING -> preparing.add(order);
                 case DUE_SOON -> dueSoon.add(order);
@@ -83,7 +91,8 @@ public class KitchenService {
     }
 
     /** Đặt cờ trễ và viết thời điểm xác nhận theo múi giờ cửa hàng (database trả theo múi giờ của kết nối). */
-    private KitchenOrder finish(KitchenOrder order, boolean late, LocalDateTime prepareFrom) {
+    private KitchenOrder finish(
+            KitchenOrder order, boolean late, LocalDateTime prepareFrom, LocalDateTime startAllowedFrom) {
         return new KitchenOrder(
                 order.id(),
                 order.pickupCode(),
@@ -93,6 +102,7 @@ public class KitchenService {
                 order.confirmedAt().atZoneSameInstant(clock.getZone()).toOffsetDateTime(),
                 late,
                 prepareFrom,
+                startAllowedFrom,
                 order.lines());
     }
 }

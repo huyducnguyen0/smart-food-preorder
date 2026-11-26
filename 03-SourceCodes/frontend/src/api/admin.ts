@@ -170,6 +170,8 @@ export type DayStats = {
   lateNow: number
   heldPoints: number
   quotaPoints: number
+  plannedPoints: number
+  remainingCapacityPoints: number
   quotaUsagePercent: number
   /** Số đơn chưa kết thúc của các ngày trước, cần dọn ở màn Quầy. */
   staleOpen: number

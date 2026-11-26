@@ -191,12 +191,14 @@ class ReviewFixesBlackBoxTest extends BlackBoxBase {
     @Test
     @DisplayName("TC-FIX-07 Chi tiết đơn có hạn tự hủy (khung 12:00 → 11:45); bếp làm trước thì khách hết quyền hủy")
     void fix07() throws Exception {
+        useSprint4Settings();
         MockHttpSession customer = login("khach1@example.com");
         long first = place(customer, "12:00", line("Burger bò", 1));
         long second = place(customer, "12:00", line("Burger bò", 1));
         assertThat((String) get("/api/orders/" + first, customer).at("$.cancelDeadline"))
                 .isEqualTo(slot("11:45"));
 
+        at("11:15");
         assertThat(post("/api/kitchen/orders/" + first + "/start", login("bep1@example.com"), null)
                         .status())
                 .isEqualTo(200);

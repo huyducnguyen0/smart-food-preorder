@@ -1,11 +1,13 @@
 package vn.nhom15.preorder.order;
 
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
+import vn.nhom15.preorder.slot.StoreSettingsRepository;
 
 /**
  * Các chuyển trạng thái theo tiến độ (SRS B.5): bếp {@code CONFIRMED → PREPARING → READY}, quầy bàn giao
@@ -18,22 +20,25 @@ public class OrderStatusService {
 
     private final OrderRepository orderRepository;
     private final Clock clock;
+    private final StoreSettingsRepository settingsRepository;
 
-    public OrderStatusService(OrderRepository orderRepository, Clock clock) {
+    public OrderStatusService(
+            OrderRepository orderRepository, Clock clock, StoreSettingsRepository settingsRepository) {
         this.orderRepository = orderRepository;
         this.clock = clock;
+        this.settingsRepository = settingsRepository;
     }
 
     /**
-     * Bếp bắt đầu làm đơn (UC-12 bước 4–5), kể cả đơn chưa tới thời gian chuẩn bị: quán tranh thủ làm trước lúc vắng để
-     * giảm quá tải giờ đông (BR-21, người dùng quyết định 2026-10-31). Đơn đã bắt đầu thì khách không tự hủy được nữa
-     * (BR-23); trang đơn ghi rõ điều kiện này. Khóa dòng đơn để không chen ngang lần hủy cùng lúc.
+     * Bếp được làm trước giờ gợi ý nếu đơn đã vào cửa sổ làm (BR-21, BR-39). Đơn đã bắt đầu thì khách không tự
+     * hủy được nữa (BR-23). Khóa dòng đơn để không chen ngang lần hủy cùng lúc.
      *
      * @throws ApiException {@code ORDER_NOT_FOUND} nếu không có đơn; {@code INVALID_STATUS_TRANSITION} nếu đơn không
-     *     còn ở {@code CONFIRMED} (UC-12 E1)
+     *     còn ở {@code CONFIRMED} (UC-12 E1); {@code PREPARATION_TOO_EARLY} nếu chưa vào cửa sổ làm
      */
     @Transactional
     public OrderStatus startPreparing(long orderId, long staffId) {
+        settingsRepository.lockShared();
         OrderRepository.LockedOrder order = orderRepository
                 .lockForChange(orderId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ORDER_NOT_FOUND, "Không tìm thấy đơn"));
@@ -43,7 +48,15 @@ public class OrderStatusService {
                             "Đơn đang ở trạng thái " + order.status() + ", cần CONFIRMED mới chuyển được")
                     .with("currentStatus", order.status());
         }
-        orderRepository.markPreparing(orderId, staffId, OffsetDateTime.now(clock));
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        if (order.source() == OrderSource.PRE_ORDER) {
+            LocalDateTime startAllowedFrom = settingsRepository.get().earliestPreOrderStart(order.slotStart());
+            if (now.toLocalDateTime().isBefore(startAllowedFrom)) {
+                throw new ApiException(ErrorCode.PREPARATION_TOO_EARLY, "Đơn chưa vào cửa sổ làm của bếp")
+                        .with("startAllowedFrom", startAllowedFrom);
+            }
+        }
+        orderRepository.markPreparing(orderId, staffId, now);
         return OrderStatus.PREPARING;
     }
 

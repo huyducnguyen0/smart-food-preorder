@@ -78,29 +78,34 @@ else (chưa)
 
   partition "UC-17 Kiểm tra và giữ quota (bước 9)" {
     :Tính điểm đơn = Σ điểm món × số lượng (BR-08);
-    if (Điểm đơn = 0? (BR-13)) then (không)
-      if (Điểm đơn ≤ quota của khung? (BR-12)) then (không)
-        :E9: báo đơn quá lớn cho một khung,
-        đề nghị liên hệ cửa hàng;
+    if (Khung nhận còn chỗ ở quầy? (BR-41)) then (không)
+      :E8: báo khung đã đủ khách nhận;
+      (K)
+      detach
+    else (có)
+    endif
+    if (Đơn cần công suất bếp? (BR-13)) then (có)
+      if (Bếp trống xếp kịp đơn? (BR-12)) then (không)
+        :E9: báo đơn quá lớn, đề nghị liên hệ cửa hàng;
         (G)
         detach
       else (có)
       endif
-      if (Điểm đơn ≤ quota − điểm đang giữ? (BR-09)) then (không)
-        :E8: báo khung vừa hết chỗ;
+      if (Xếp kịp đơn mới chung với đơn đã nhận?\nCông suất tổng và phần đặt trước (BR-09, BR-40)) then (không)
+        :E8: báo bếp hết chỗ;
         note right
           Điểm mở rộng:
           UC-18 Đề xuất khung
-          thay thế (Sprint sau)
+          thay thế
         end note
         (K)
         detach
       else (có)
       endif
-      :Giữ quota cho khung
-      (kiểm tra và giữ không bị chen ngang, NFR-01);
-    else (có)
+    else (không)
     endif
+    :Giữ chỗ và ghi điểm theo khung nhận
+    (cùng giao dịch với tạo đơn, NFR-01);
   }
 
   :Tạo đơn CONFIRMED, UNPAID, nguồn pre-order,

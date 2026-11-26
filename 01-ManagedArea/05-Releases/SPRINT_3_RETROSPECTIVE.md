@@ -17,3 +17,5 @@ Hành động cải tiến của Sprint 2: trước khi merge, người dùng đ
 
 ## Hành động cải tiến
 Một việc trước khi làm phát hành: người dùng merge lần lượt các PR đang chờ, sau đó **tự đóng vai khách, quầy, quản lý trên trình duyệt** theo một kịch bản ngắn (đặt, hủy, bếp làm, quầy thu tiền và bàn giao, xem màn theo dõi) và ghi lại điều gì khó hiểu hoặc sai. Nhận biết hiệu quả: có một danh sách phản hồi của chính người dùng (kể cả "không có vấn đề") trước khi bắt đầu phát hành.
+
+**Khi hoàn thiện v1.0.0:** AI diễn lại luồng ngày 2026-11-26 trong bốn phiên trình duyệt và lưu kết quả ở [Test Results](../04-Testing/Test-Results/README.md). Hồ sơ ghi nhận lượt tự kiểm kỹ thuật. Phản hồi trực tiếp từ người dùng vẫn là việc theo dõi sau bàn giao.

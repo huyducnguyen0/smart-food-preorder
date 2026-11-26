@@ -55,6 +55,8 @@ public class AdminSlotService {
             int holdMinutes,
             int preOrderSharePercent,
             int pickupLimitOrders,
+            int plannedPoints,
+            int remainingCapacityPoints,
             List<AdminSlot> slots) {}
 
     private final StoreSettingsRepository settingsRepository;
@@ -110,6 +112,10 @@ public class AdminSlotService {
                 settings.holdMinutes(),
                 settings.preOrderSharePercent(),
                 settings.pickupLimitOrders(),
+                planned.values().stream().mapToInt(Integer::intValue).sum(),
+                plan.intervals().stream()
+                        .mapToInt(KitchenPlanner.Interval::capacity)
+                        .sum(),
                 slots);
     }
 

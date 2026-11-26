@@ -14,8 +14,8 @@ Một người dùng kiêm mọi vai trò; AI soạn phân tích, đặc tả, t
 ## Story và task
 | Story | Use case | Task | Trạng thái |
 |---|---|---|---|
-| PB-22 Lịch bếp | [UC-17](../02-Requirements/Use-Cases/specifications/UC-17-kiem-tra-va-giu-quota.md), UC-04, UC-07, UC-12, UC-14, UC-16 | BR-09/11/12/14/18 sửa, BR-39–41 mới; migration V12; `KitchenPlanner`, `KitchenPlanService`; viết lại `QuotaService.reserve`, khung hợp lệ, walk-in, cấu hình của quản lý, hàng chờ bếp; màn quản lý và bếp; test TC-PLAN, sửa ca cũ | Review |
-| — | — | Architecture, Database, Class Design, white-box, Test Results, nháp Review và Retro, trang "để hiểu" | Review |
+| PB-22 Lịch bếp | [UC-17](../02-Requirements/Use-Cases/specifications/UC-17-kiem-tra-va-giu-quota.md), UC-04, UC-07, UC-12, UC-14, UC-16 | BR-09/11/12/14/18 sửa, BR-39–41 mới; migration V12; `KitchenPlanner`, `KitchenPlanService`; viết lại `QuotaService.reserve`, khung hợp lệ, walk-in, cấu hình của quản lý, hàng chờ bếp; màn quản lý và bếp; test TC-PLAN, sửa ca cũ | Done |
+| — | — | Architecture, Database, Class Design, white-box, Test Results, nháp Review và Retro, trang "để hiểu" | Done |
 
 ## Daily Scrum
 Không tổ chức. Sprint làm trong một buổi (2026-10-31) bằng một lần giao việc cho AI.

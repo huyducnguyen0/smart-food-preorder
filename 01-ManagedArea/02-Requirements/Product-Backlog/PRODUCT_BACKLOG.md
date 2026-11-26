@@ -1,5 +1,5 @@
 # Product Backlog
-Trạng thái: Bản nháp ngày 2026-10-08, đã rà soát và cập nhật theo quyết định nghiệp vụ cùng ngày (ghi trong [SRS](../SRS/SRS.md) mục B.4–B.5). Người dùng chưa duyệt thứ tự ưu tiên; chưa xác nhận với stakeholder bên ngoài. Backlog được cập nhật liên tục.
+Trạng thái: phạm vi của bản demo v1.0.0. Quy tắc theo [SRS](../SRS/SRS.md), bằng chứng theo [Test Results](../../04-Testing/Test-Results/README.md) và [Release](../../05-Releases/README.md).
 
 ## Input và cơ sở
 - [Quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md), Bước 5: story → estimate → NFR → ưu tiên → acceptance criteria → cập nhật và xác nhận lại.
@@ -21,30 +21,30 @@ Nguồn yêu cầu là mô hình do người dùng chọn cho dự án học ph�
 
 ## 1. Danh sách theo thứ tự ưu tiên
 
-| Thứ tự | ID | Tóm tắt | Priority | Estimate | Phụ thuộc | Status |
-|---|---|---|---|---|---|---|
-| 1 | PB-01 | Đăng nhập và phân quyền theo vai trò | High | M | — | Sprint 1 |
-| 2 | PB-02 | Xem menu | High | S | Dữ liệu món (PB-03 hoặc dữ liệu mẫu) | Sprint 1 |
-| 3 | PB-05 | Kiểm tra và giữ quota dùng chung | High | M | Điểm món, quota (PB-03, PB-04 hoặc dữ liệu mẫu) | Sprint 1 |
-| 4 | PB-06 | Giỏ hàng | High | S | PB-02 | Sprint 1 |
-| 5 | PB-07 | Đặt pre-order theo khung giờ, xác nhận tự động | High | M | PB-05, PB-06 | Sprint 1 |
-| 6 | PB-08 | Khách xem đơn, trạng thái và mã nhận | High | S | PB-07 | Sprint 1 |
-| 7 | PB-12 | Hàng chờ bếp | High | M | PB-07 | Sprint 1 |
-| 8 | PB-13 | Bếp cập nhật tiến độ theo đơn | High | S | PB-12 | Sprint 1 |
-| 9 | PB-16 | Ghi nhận thanh toán tại quầy | High | S | PB-07 | Sprint 1 (làm thêm) |
-| 10 | PB-15 | Quầy xác minh mã và bàn giao | High | M | PB-08, PB-13, PB-16 | Sprint 1 (làm thêm) |
-| 11 | PB-03 | Quản lý menu và tình trạng bán | High | M | PB-01 | Sprint 2 |
-| 12 | PB-04 | Cấu hình giờ mở cửa và quota theo khung | High | M | PB-01 | Sprint 2 |
-| 13 | PB-19 | Khách tự đăng ký tài khoản | High | S | PB-01 | Sprint 2 |
-| 14 | PB-11 | Tạo đơn walk-in sau khi khách đồng ý thời gian | High | M | PB-05, PB-16 | Sprint 2 |
-| 15 | PB-09 | Đề xuất khung giờ thay thế | High | M | PB-07 | Sprint 2 |
-| 16 | PB-10 | Khách hủy đơn | Medium | S | PB-07 | Sprint 3 |
-| 17 | PB-21 | Cửa hàng hủy đơn kèm lý do | Medium | M | PB-07, PB-11 | Sprint 3 |
-| 18 | PB-14 | Trang đơn tự cập nhật khi READY | Medium | S | PB-08, PB-13 | Sprint 3 |
-| 19 | PB-20 | Quản lý tài khoản nhân viên | Medium | S | PB-01 | Sprint 3 |
-| 20 | PB-17 | Theo dõi tải, đơn trễ và thống kê | Medium | M | PB-05, PB-13 | Sprint 3 |
-| 21 | PB-18 | Đánh dấu no-show | Low | S | PB-15 | Sprint 3 |
-| 22 | PB-22 | Lịch bếp: nhận đơn theo công suất bếp, làm trước lúc vắng, dành chỗ cho walk-in | High | L | PB-05, PB-11 | Sprint 4 |
+| Thứ tự | ID | Tóm tắt | Priority | Estimate | Phụ thuộc | Sprint | Status |
+|---|---|---|---|---|---|---|---|
+| 1 | PB-01 | Đăng nhập và phân quyền theo vai trò | High | M | — | Sprint 1 | Done |
+| 2 | PB-02 | Xem menu | High | S | Dữ liệu món (PB-03 hoặc dữ liệu mẫu) | Sprint 1 | Done |
+| 3 | PB-05 | Kiểm tra và giữ quota dùng chung | High | M | Điểm món, quota (PB-03, PB-04 hoặc dữ liệu mẫu) | Sprint 1 | Done |
+| 4 | PB-06 | Giỏ hàng | High | S | PB-02 | Sprint 1 | Done |
+| 5 | PB-07 | Đặt pre-order theo khung giờ, xác nhận tự động | High | M | PB-05, PB-06 | Sprint 1 | Done |
+| 6 | PB-08 | Khách xem đơn, trạng thái và mã nhận | High | S | PB-07 | Sprint 1 | Done |
+| 7 | PB-12 | Hàng chờ bếp | High | M | PB-07 | Sprint 1 | Done |
+| 8 | PB-13 | Bếp cập nhật tiến độ theo đơn | High | S | PB-12 | Sprint 1 | Done |
+| 9 | PB-16 | Ghi nhận thanh toán tại quầy | High | S | PB-07 | Sprint 1 (làm thêm) | Done |
+| 10 | PB-15 | Quầy xác minh mã và bàn giao | High | M | PB-08, PB-13, PB-16 | Sprint 1 (làm thêm) | Done |
+| 11 | PB-03 | Quản lý menu và tình trạng bán | High | M | PB-01 | Sprint 2 | Done |
+| 12 | PB-04 | Cấu hình giờ mở cửa và quota theo khung | High | M | PB-01 | Sprint 2 | Done |
+| 13 | PB-19 | Khách tự đăng ký tài khoản | High | S | PB-01 | Sprint 2 | Done |
+| 14 | PB-11 | Tạo đơn walk-in sau khi khách đồng ý thời gian | High | M | PB-05, PB-16 | Sprint 2 | Done |
+| 15 | PB-09 | Đề xuất khung giờ thay thế | High | M | PB-07 | Sprint 2 | Done |
+| 16 | PB-10 | Khách hủy đơn | Medium | S | PB-07 | Sprint 3 | Done |
+| 17 | PB-21 | Cửa hàng hủy đơn kèm lý do | Medium | M | PB-07, PB-11 | Sprint 3 | Done |
+| 18 | PB-14 | Trang đơn tự cập nhật khi READY | Medium | S | PB-08, PB-13 | Sprint 3 | Done |
+| 19 | PB-20 | Quản lý tài khoản nhân viên | Medium | S | PB-01 | Sprint 3 | Done |
+| 20 | PB-17 | Theo dõi tải, đơn trễ và thống kê | Medium | M | PB-05, PB-13 | Sprint 3 | Done |
+| 21 | PB-18 | Đánh dấu no-show | Low | S | PB-15 | Sprint 3 | Done |
+| 22 | PB-22 | Lịch bếp: nhận đơn theo công suất bếp, làm trước lúc vắng, dành chỗ cho walk-in | High | L | PB-05, PB-11 | Sprint 4 | Done |
 
 Lý do sắp xếp:
 - **1–10** tạo luồng tối giản đi hết vòng đời một đơn: đặt theo khung → giữ quota → bếp → thanh toán → bàn giao (hướng Sprint 1 trong README). PB-16 đứng trước PB-15 vì bàn giao yêu cầu đơn đã `PAID` (BR-29). Tài khoản, menu và quota dùng dữ liệu mẫu nên đăng ký và các màn quản lý chưa chặn luồng này.
@@ -67,8 +67,8 @@ Lý do sắp xếp:
 ### B. Quota và điều phối
 | ID | User Story | Acceptance Criteria | Nguồn |
 |---|---|---|---|
-| PB-04 | Là **quản lý**, tôi muốn cấu hình giờ mở cửa và quota điểm công việc cho từng khung 15 phút, để giới hạn lượng việc cửa hàng cam kết. | 1. Đặt giờ mở cửa; hệ thống chia thành các khung 15 phút (BR-06).<br>2. Đặt quota mặc định và sửa quota từng khung của ngày hiện tại (BR-07).<br>3. Xem được quota và điểm đã giữ của mỗi khung.<br>4. Không đặt được quota thấp hơn điểm đã giữ; không thu hẹp giờ mở cửa làm mất khung đang có đơn (BR-11). | Charter 4.4, NT1, NT2; WBS 4.6 |
-| PB-05 | Là **chủ cửa hàng**, tôi muốn mọi đơn chỉ được xác nhận khi giữ được quota dùng chung, để không nhận vượt khả năng và không phá cam kết với đơn trước. | Nơi duy nhất trong backlog cho quy tắc quota; PB-07, PB-09, PB-11 dùng lại.<br>1. Điểm đơn tính và lưu theo BR-08.<br>2. Pre-order và walk-in trừ cùng một quota; đơn chỉ xác nhận khi điểm đơn ≤ quota còn lại (BR-09).<br>3. Tạo đơn và giữ quota thành công cùng nhau hoặc không có gì thay đổi (BR-10).<br>4. Đơn vượt quota của cả khung bị từ chối (BR-12).<br>5. Quota giữ và hoàn theo BR-14.<br>6. Đúng khi có request đồng thời được kiểm chứng ở NFR-01. | Charter 4.4, NT1, NT2, NT5; proposal 7; WBS 4.6; RISK-04 |
+| PB-04 | Là **quản lý**, tôi muốn cấu hình giờ mở cửa và công suất từng khoảng làm 15 phút để giới hạn lượng việc cửa hàng cam kết. | 1. Đặt giờ mở cửa, hệ thống chia khung 15 phút (BR-06).<br>2. Đặt công suất mặc định và riêng từng khoảng (BR-07).<br>3. Xem công suất, điểm xếp lịch và số đơn nhận.<br>4. Từ chối cấu hình khiến bếp không kịp đơn đã nhận hoặc làm mất khung đang có đơn (BR-11). | Charter 4.4, NT1, NT2; WBS 4.6; PB-22 |
+| PB-05 | Là **chủ cửa hàng**, tôi muốn mọi đơn chỉ được xác nhận khi có thể giữ chỗ dùng chung, để bảo vệ cam kết với đơn trước. | PB-07, PB-09 và PB-11 dùng chung quy tắc này.<br>1. Điểm đơn tính và lưu theo BR-08.<br>2. Hai nguồn dùng chung một lịch bếp và giới hạn quầy (BR-09).<br>3. Tạo đơn và giữ chỗ cùng giao dịch (BR-10).<br>4. Bếp trống vẫn không làm kịp đơn trong cửa sổ thì từ chối (BR-12).<br>5. Giữ và hoàn chỗ theo BR-14.<br>6. Kiểm chứng đồng thời theo NFR-01. | Charter 4.4, NT1, NT2, NT5; proposal 7; WBS 4.6; RISK-04; PB-22 |
 
 ### C. Pre-order
 | ID | User Story | Acceptance Criteria | Nguồn |
@@ -97,7 +97,7 @@ Lý do sắp xếp:
 | ID | User Story | Acceptance Criteria | Nguồn |
 |---|---|---|---|
 | PB-21 | Là **quản lý** hoặc **nhân viên quầy**, tôi muốn hủy đơn đã xác nhận kèm lý do khi cửa hàng không phục vụ được hoặc khách walk-in đổi ý, để xử lý ngoại lệ trong hệ thống. | 1. Quyền và trạng thái được hủy theo BR-24; bắt buộc nhập lý do.<br>2. Quota hoàn đủ nếu hủy từ `CONFIRMED`, không hoàn nếu từ `PREPARING`.<br>3. Khách pre-order thấy lý do trên trang đơn. | Charter 4.4, 4.7; BR-24; WBS 4.7 |
-| PB-17 | Là **quản lý**, tôi muốn xem mức tải theo quota, đơn đang xử lý, đơn trễ và thống kê ngày, để điều hành và phát hiện nguy cơ quá tải. | 1. Theo từng khung trong ngày: quota, điểm đã giữ, số đơn.<br>2. Danh sách đơn đang xử lý và đơn trễ (BR-26).<br>3. Thống kê ngày theo FR-20.<br>4. Không trình bày số liệu như năng lực bếp thực tế (NT9). | Charter 4.4, NT9; proposal 5.1; WBS 4.12; RISK-03 |
+| PB-17 | Là **quản lý**, tôi muốn xem mức tải theo cấu hình, đơn đang xử lý, đơn trễ và thống kê ngày để điều hành. | 1. Xem điểm dự kiến làm trên công suất từng khoảng và số đơn mỗi khung nhận.<br>2. Xem đơn đang xử lý và đơn trễ (BR-26).<br>3. Xem thống kê ngày và tải bếp còn lại theo FR-20.<br>4. Ghi rõ số liệu dựa trên công suất tự cấu hình (NT9). | Charter 4.4, NT9; proposal 5.1; WBS 4.12; RISK-03 |
 | PB-18 | Là **nhân viên quầy** hoặc **quản lý**, tôi muốn đánh dấu đơn không đến nhận, để danh sách đơn sẵn sàng không bị tồn đọng. | 1. Liệt kê đơn `READY` đã quá hạn theo BR-25.<br>2. Đánh dấu `NO_SHOW`; quota không hoàn.<br>3. Đơn chưa quá hạn thì không đánh dấu được. | Charter 4.7; WBS 4.7; RISK-05 |
 | PB-22 | Là **quản lý cửa hàng**, tôi muốn hệ thống nhận đơn theo khả năng làm thật của bếp, cho bếp làm trước lúc vắng và giữ chỗ cho khách tại quầy, để giờ đông bớt quá tải và khách bớt phải chờ. | 1. Đơn đặt trước nhận lúc S được làm trong [S − H, S]; đơn được nhận khi bếp còn xếp kịp, không khoảng làm nào vượt công suất (BR-09, BR-39).<br>2. Đơn đặt trước dùng tối đa X% công suất mỗi khoảng; walk-in dùng phần còn lại (BR-40).<br>3. Mỗi khung nhận tối đa N đơn (BR-41).<br>4. Màn bếp cho biết đơn nên làm lúc nào theo lịch; quản lý xem điểm bếp dự kiến làm và chỉnh công suất, H, X, N.<br>5. Không bao giờ nhận vượt công suất khi nhiều người đặt cùng lúc (NFR-01). | Người dùng 2026-10-31: "làm trước phải giúp quán giảm quá tải, giúp khách bớt chờ"; phân tích và mô phỏng ở 02-FreeZone/2026-10-31_lich-bep |
 
@@ -131,7 +131,7 @@ NFR áp lên các story liên quan và có công việc kiểm chứng riêng. T
 Mọi gói WBS 4.2–4.12 đều có story tương ứng. Không có story cho mục ngoài phạm vi.
 
 Không đưa vào backlog:
-- **Quota riêng cho pre-order**: đề xuất sau Charter, chưa duyệt.
+- **Hai bếp có công suất độc lập theo kênh**: dự án dùng một bếp chung và giới hạn phần đặt trước theo PB-22.
 - **Sửa đơn sau khi xác nhận**: Charter không đưa vào phạm vi; khách hủy và đặt lại.
 - **Hoàn tiền trong hệ thống**: ngoài phạm vi (BR-30).
 

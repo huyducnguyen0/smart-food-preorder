@@ -70,10 +70,10 @@ PB-03 và PB-04 vẫn là High nhưng chuyển xuống sau luồng cốt lõi tr
 | T-24 | PB-05 | White-box: Control Flow Graph, execution paths, test case cho logic giữ quota ([White-box](../04-Testing/Test-Cases/WHITE_BOX_QUOTA.md)) | Người dùng, AI hỗ trợ | T-16 | Done |
 | T-25 | Story đã chọn | Chạy test, ghi Test Results, sửa lỗi phát hiện | Người dùng, AI hỗ trợ | T-14, T-22, T-23, T-24 | Done |
 | T-26 | — | Sprint Planning (kế hoạch tạm duyệt 2026-10-09) | Người dùng | — | Done |
-| T-27 | — | Daily Scrum, khoảng 10 phút mỗi ngày làm việc | Người dùng | — | To Do |
-| T-28 | — | Sprint Review và Retrospective | Người dùng | T-25 | To Do |
-| T-29 | PB-16 (làm thêm) | Ghi nhận thanh toán UNPAID → PAID | Người dùng, AI hỗ trợ | T-20 | Review |
-| T-30 | PB-15 (làm thêm) | Danh sách READY, xác minh mã, bàn giao (BR-29) | Người dùng, AI hỗ trợ | T-22, T-29 | Review |
+| T-27 | — | Daily Scrum, khoảng 10 phút mỗi ngày làm việc | Người dùng | — | Chưa có bản ghi |
+| T-28 | — | [Review kỹ thuật và ghi nhận cải tiến](../05-Releases/SPRINT_1_REVIEW.md) ngày 2026-11-26 | AI theo yêu cầu hoàn thiện | T-25 | Done |
+| T-29 | PB-16 (làm thêm) | Ghi nhận thanh toán UNPAID → PAID | Người dùng, AI hỗ trợ | T-20 | Done |
+| T-30 | PB-15 (làm thêm) | Danh sách READY, xác minh mã, bàn giao (BR-29) | Người dùng, AI hỗ trợ | T-22, T-29 | Done |
 
 Trạng thái theo nguồn: Backlog → To Do → In Progress → Review → Done. Task code ở Review khi đã mở PR; Done khi đã merge và đạt phần DoD liên quan.
 

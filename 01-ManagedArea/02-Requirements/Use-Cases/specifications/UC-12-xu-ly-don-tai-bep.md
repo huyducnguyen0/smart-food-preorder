@@ -8,7 +8,7 @@ Trạng thái: Đặc tả cho Sprint 1, lập ở T-05 ngày 2026-10-10; ngư�
 | Actor chính | Nhân viên bếp |
 | Mục đích | Biết cần làm đơn nào tiếp theo và báo cho quầy, khách khi đơn sẵn sàng |
 | Story và AC | PB-12 AC1 → bước 2; AC2 → bước 2; AC3 → bước 2. PB-13 AC1 → bước 4–7; AC2 → E1; AC3 → E2 |
-| FR, quy tắc nghiệp vụ | FR-14, FR-15; BR-21, BR-22, BR-26, BR-33; SRS B.5 |
+| FR, quy tắc nghiệp vụ | FR-14, FR-15; BR-21, BR-22, BR-26, BR-33, BR-39; SRS B.5 |
 | NFR | NFR-03, NFR-04 (p95 ≤ 1 giây cho xem hàng chờ) |
 | Quan hệ | UC-12 include UC-12.1; UC-12.2 extend UC-12.1 (thao tác trên từng đơn trong hàng chờ) |
 | Phạm vi Sprint | Sprint 1: toàn bộ. Đơn walk-in xuất hiện khi có UC-07 (Sprint sau) |
@@ -23,7 +23,7 @@ Nhân viên bếp đã đăng nhập (UC-02).
    | Nhóm | Đơn thuộc nhóm |
    |---|---|
    | Đang làm | Trạng thái `PREPARING` |
-   | Cần chuẩn bị | `CONFIRMED` và thời điểm hiện tại ≥ giờ bắt đầu khung − N phút, N = 15 cấu hình được (BR-21) |
+   | Cần chuẩn bị | `CONFIRMED` và đã đến giờ gợi ý theo BR-21 |
    | Sắp tới | `CONFIRMED` còn lại |
 
    Trong mỗi nhóm, sắp theo giờ bắt đầu khung tăng dần; cùng khung thì theo thời điểm xác nhận (BR-22), không theo thời điểm tạo trên giao diện. Mỗi đơn hiển thị: mã nhận, khung nhận, nguồn (pre-order/walk-in), danh sách món và số lượng, thời điểm xác nhận. Đơn `CONFIRMED` hoặc `PREPARING` đã qua giờ bắt đầu khung (walk-in: giờ kết thúc khung, sửa đổi 2026-10-28) được **đánh dấu trễ** (BR-26), chỉ để hiển thị, không chặn thao tác.
@@ -31,8 +31,8 @@ Nhân viên bếp đã đăng nhập (UC-02).
 
 **UC-12.2 — Cập nhật tiến độ đơn**
 
-4. Nhân viên bếp: chọn "Bắt đầu" ở một đơn `CONFIRMED`, thuộc nhóm cần chuẩn bị hoặc sắp tới. Bếp được làm trước đơn sắp tới lúc vắng; thẻ đơn sắp tới ghi "Cần chuẩn bị từ HH:mm" (BR-21). Đơn đã bắt đầu thì khách không tự hủy được nữa (BR-23).
-5. Hệ thống: khóa dòng đơn, kiểm tra đơn **đang** ở `CONFIRMED`, chuyển sang `PREPARING`, ghi thời điểm và người thực hiện. Đơn chuyển sang nhóm "Đang làm".
+4. Nhân viên bếp: chọn "Bắt đầu" ở đơn `CONFIRMED` đã vào cửa sổ làm (BR-39). Thẻ đơn còn quá sớm hiển thị mốc được bắt đầu và khóa nút. Đơn đã bắt đầu thì khách không tự hủy được nữa (BR-23).
+5. Hệ thống: khóa dòng đơn, kiểm tra đơn đang `CONFIRMED` và đã được bắt đầu, rồi chuyển sang `PREPARING`, ghi thời điểm và người thực hiện. Đơn chuyển sang nhóm "Đang làm".
 6. Nhân viên bếp: khi làm xong cả đơn, chọn "Hoàn tất" ở đơn `PREPARING`.
 7. Hệ thống: kiểm tra đơn **đang** ở `PREPARING`, chuyển sang `READY`, ghi thời điểm và người thực hiện. Đơn rời hàng chờ bếp; khách thấy "Sẵn sàng nhận" ở UC-05; quầy thấy đơn ở danh sách bàn giao (UC-09, khi có).
 
@@ -44,6 +44,7 @@ Cập nhật theo **cả đơn**, không theo từng món (BR-22).
 - **E2 — Không phải nhân viên bếp** (bước 4–7): tài khoản vai trò khác gọi thao tác chuyển trạng thái. Hệ thống từ chối, không thay đổi đơn (BR-33, PB-13 AC3, NFR-03).
 - **E3 — Không tải được hàng chờ hoặc lỗi khi cập nhật** (bước 2, 5, 7): báo lỗi, cho thử lại; trạng thái đơn không đổi nếu cập nhật thất bại.
 - **E4 — Phiên đăng nhập hết hạn**: UC-02 E4.
+- **E5 — Đơn đặt trước còn quá sớm** (bước 5, BR-39): giữ nguyên đơn, trả `PREPARATION_TOO_EARLY` và mốc được bắt đầu.
 
 ## Postcondition
 - **Thành công (bước 5)**: đơn ở `PREPARING`, có thời điểm và người bắt đầu; quota vẫn giữ (BR-14).
@@ -52,7 +53,7 @@ Cập nhật theo **cả đơn**, không theo từng món (BR-22).
 
 ## Ghi chú và giới hạn
 - Không có thao tác hoàn tác (ví dụ `PREPARING → CONFIRMED` khi bấm nhầm) vì SRS B.5 không cho phép chuyển trạng thái khác. Bấm nhầm thì xử lý ngoài hệ thống. Người dùng xác nhận chấp nhận giới hạn này ngày 2026-10-11.
-- Sprint 4 (2026-10-31, PB-22): nhóm "cần chuẩn bị" gồm đơn đã tới giờ nên làm theo lịch bếp (`prepareFrom`), không muộn hơn 15 phút trước khung; thẻ đơn sắp tới ghi "Theo lịch bếp: làm từ HH:mm · làm trước được".
+- `prepareFrom` dùng để gợi ý và phân nhóm. `startAllowedFrom` là mốc sớm nhất được bắt đầu đơn đặt trước.
 - Bếp không thấy giá và trạng thái thanh toán (không cần cho việc chế biến).
 - Đơn `READY` không còn trong hàng chờ bếp; đơn bị hủy (Sprint sau) tự rời hàng chờ.
 

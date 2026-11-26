@@ -354,6 +354,8 @@ const dashboard: Dashboard = {
     lateNow: 1,
     heldPoints: 12,
     quotaPoints: 880,
+    plannedPoints: 12,
+    remainingCapacityPoints: 820,
     quotaUsagePercent: 1,
     staleOpen: 0,
   },
@@ -367,7 +369,9 @@ describe('AdminDashboardPage (PB-17)', () => {
     const stats = await screen.findByRole('region', { name: 'Thống kê hôm nay' })
     expect(within(stats).getByText('Đơn đặt trước').nextSibling).toHaveTextContent('3')
     expect(within(stats).getByText('Đang trễ').nextSibling).toHaveTextContent('1')
-    expect(within(stats).getByText('1% (12/880)')).toBeInTheDocument()
+    expect(within(stats).getByText('Tải bếp còn lại').nextSibling).toHaveTextContent(
+      '1% (12/820 điểm)',
+    )
 
     const active = screen.getByRole('list', { name: 'Đơn đang xử lý' })
     const late = within(active).getByText('LATE01').closest('li') as HTMLElement
