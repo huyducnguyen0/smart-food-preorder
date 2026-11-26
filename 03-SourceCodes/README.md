@@ -124,7 +124,7 @@ Lần đầu build mất vài phút (tải image nền, thư viện Maven và np
 - Dừng, giữ dữ liệu: `docker compose --profile app stop`. Xóa container và **cả dữ liệu**: `docker compose --profile app down -v`.
 - Sửa code thì chạy lại lệnh `up ... --build` để build lại image.
 - Image không chạy test; chạy test bằng `./mvnw verify` và `npm test` trước khi merge (mục Kiểm thử).
-- Triển khai thật (không có dữ liệu mẫu): trong `.env` bỏ comment bốn dòng `FLYWAY_LOCATIONS`, `INITIAL_MANAGER_LOGIN_ID`, `INITIAL_MANAGER_PASSWORD`, `INITIAL_MANAGER_NAME` và đặt mật khẩu riêng; đổi `DB_PASSWORD`. Lần khởi động đầu, backend tạo tài khoản quản lý đầu tiên (log có dòng `Đã tạo tài khoản quản lý đầu tiên`); các lần sau đã có quản lý thì không làm gì. Giờ mở cửa 10:00–21:00 và quota 20 có sẵn từ migration V10, quản lý sửa lại ở màn "Quản lý → Giờ mở cửa và quota". Chưa có HTTPS (cần đặt phía trước khi đưa lên mạng).
+- Cấu hình có HTTPS và database mới nằm ở [Chạy cấu hình public bằng Caddy](#chạy-cấu-hình-public-bằng-caddy).
 
 ### Tạo dữ liệu demo
 Hệ thống đang chạy **có dữ liệu mẫu** thì chạy, trong `03-SourceCodes/`:
@@ -132,6 +132,48 @@ Hệ thống đang chạy **có dữ liệu mẫu** thì chạy, trong `03-Sourc
 bash scripts/demo-data.sh
 ```
 Script đăng nhập bằng tài khoản mẫu và tạo 9 đơn hôm nay, gồm đặt trước chờ bếp, khách hủy, cửa hàng hủy và walk-in ở các trạng thái từ chờ bếp đến đã nhận. Chạy trong giờ mở cửa, khi còn khoảng một giờ trước giờ đóng cửa để đủ hai khung đặt trước. Với cách chạy dev: `BASE_URL=http://localhost:5173 bash scripts/demo-data.sh`. Mỗi khách mẫu có tối đa 3 đơn chưa kết thúc. Nếu cần demo lại trong ngày, dùng Docker Compose project riêng với volume mới và cổng khác.
+
+## Chạy cấu hình public bằng Caddy
+
+`compose.prod.yaml` bổ sung Caddy vào cấu hình Docker hiện có. Caddy nghe cổng TCP 80 và 443, chuyển HTTP sang HTTPS và đưa cả giao diện lẫn API qua nginx trên cùng tên miền. PostgreSQL, Spring Boot và nginx dùng mạng Docker nội bộ cho các kết nối ứng dụng. Dữ liệu PostgreSQL và chứng chỉ Caddy nằm trên các volume của project `smart-food-preorder-public`. Compose hỗ trợ cú pháp `!reset` được dùng để bỏ các cổng của cấu hình demo. [Docker Compose](https://docs.docker.com/reference/compose-file/merge/) · [Caddy Automatic HTTPS](https://caddyserver.com/docs/automatic-https)
+
+### Thử HTTPS trên máy
+
+Trong `03-SourceCodes/`, với cổng 80 và 443 còn trống:
+
+1. Copy `.env.production.example` thành `.env.production`. Giữ `PUBLIC_HOST=localhost` và `PUBLIC_BIND_IP=127.0.0.1`. Điền `DB_PASSWORD`, `INITIAL_MANAGER_LOGIN_ID` và `INITIAL_MANAGER_PASSWORD` bằng giá trị riêng. Backend tạo quản lý lúc database chưa có quản lý. File `.env.production` được Git bỏ qua.
+2. Chạy bằng PowerShell:
+
+   ```powershell
+   $publicCompose = @('--env-file', '.env.production', '-f', 'compose.yaml', '-f', 'compose.prod.yaml', '--profile', 'app')
+   docker compose @publicCompose config --quiet
+   docker compose @publicCompose up -d --build --wait
+   docker compose @publicCompose ps
+   ```
+
+3. Caddy cấp chứng chỉ `localhost` bằng CA nội bộ. Dùng CA cho lần kiểm tra này:
+
+   ```powershell
+   $localCa = Join-Path $env:TEMP 'smart-food-preorder-caddy-root.crt'
+   docker compose @publicCompose cp caddy:/data/caddy/pki/authorities/local/root.crt $localCa
+   curl.exe --ipv4 --ssl-revoke-best-effort --cacert $localCa --fail https://localhost/api/health
+   ```
+
+   Kỳ vọng HTTP 200 và database `UP`. Thử đăng nhập quản lý bằng tài khoản vừa tạo. Khi dùng trình duyệt, chứng chỉ `localhost` cần trình duyệt tin CA nội bộ của lần chạy này. [Caddy Local HTTPS](https://caddyserver.com/docs/automatic-https#local-https)
+
+### Đưa lên VPS
+
+1. Lấy commit/tag đã kiểm thử, tạo `.env.production` trên VPS. Đặt `PUBLIC_HOST` thành tên miền, ví dụ `datmon.example.com`, và `PUBLIC_BIND_IP=0.0.0.0` cho IPv4. Trỏ bản ghi DNS A về VPS và cho phép TCP 80, 443 vào Caddy. Caddy sẽ cấp chứng chỉ công khai khi tên miền và cổng truy cập được. [Caddy HTTPS quick-start](https://caddyserver.com/docs/quick-starts/https)
+2. Khởi động lần đầu trên volume PostgreSQL mới. Flyway chỉ chạy migration, còn quản lý đầu tiên được tạo từ biến môi trường. Sau khi đăng nhập, nhập menu và tạo tài khoản bếp/quầy qua các màn quản lý.
+
+   ```bash
+   docker compose --env-file .env.production -f compose.yaml -f compose.prod.yaml --profile app config --quiet
+   docker compose --env-file .env.production -f compose.yaml -f compose.prod.yaml --profile app up -d --build --wait
+   ```
+
+3. Từ mạng ngoài, kiểm tra DNS, redirect HTTP → HTTPS, `/api/health`, đăng nhập và một vòng đời đơn. Dùng `logs` để xem lỗi và `stop` để dừng có giữ dữ liệu. Sao lưu PostgreSQL trước khi cập nhật bản có migration.
+
+nginx áp dụng giới hạn cho `POST /api/auth/login` theo IP do Caddy chuyển vào. Từ trạng thái rảnh, một IP gửi nhanh được tối đa 5 yêu cầu. Sau đó hệ thống cho thêm một lượt khoảng mỗi 12 giây. Khi vượt ngưỡng, giao diện báo chờ từ phản hồi 429. Các tài khoản chung một IP dùng chung giới hạn. Cấu hình này đặt Caddy trực tiếp ở đầu vào public. [nginx limit_req](https://nginx.org/en/docs/http/ngx_http_limit_req_module.html)
 
 ## Chạy nhanh không cần Docker (dùng để phát triển và thử tay)
 Nếu Docker Desktop chưa chạy được, backend vẫn chạy được trên một PostgreSQL 18 thật khởi động ngay trong tiến trình (cùng thư viện với test). Mỗi lần chạy tạo database mới có sẵn dữ liệu mẫu; tắt là mất dữ liệu.

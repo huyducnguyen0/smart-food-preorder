@@ -188,3 +188,9 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 API: `AdminDay` thêm `holdMinutes`, `preOrderSharePercent`, `pickupLimitOrders`; `AdminSlot` thêm `plannedPoints` (điểm bếp dự kiến làm trong khoảng) và `pickupOrders` (số đơn nhận trong khung). `PUT /api/admin/settings` nhận ba thông số cấu hình, bỏ qua trường nào thì giữ giá trị cũ.
 
 Khi hoàn thiện v1, `Snapshot.fits` dùng cùng một lịch cho cả hai kênh theo BR-40. `KitchenOrder.prepareFrom` là giờ gợi ý theo BR-21, còn `startAllowedFrom` là mốc bắt đầu theo BR-39 (null cho walk-in). API bắt đầu có thể trả 409 `PREPARATION_TOO_EARLY` kèm mốc. `Dashboard.stats.quotaUsagePercent` = `plannedPoints / remainingCapacityPoints × 100`, làm tròn. `heldPoints` và `quotaPoints` giữ nghĩa tổng điểm đã giữ tại quầy và tổng công suất các khoảng trong giờ mở cửa.
+
+## Triển khai public
+
+`compose.prod.yaml` chỉ publish Caddy ra host. Caddy kết thúc TLS, đặt thông tin IP và HTTPS rồi chuyển yêu cầu tới nginx. nginx nối mạng `edge` với mạng ứng dụng để chuyển `/api` tới Spring Boot. Spring Boot chỉ nhận kết nối trong mạng ứng dụng, dùng thông tin HTTPS đã chuyển qua proxy và đặt cờ `Secure` cho cookie phiên. Frontend gọi API cùng origin để giữ luồng session và CSRF.
+
+nginx giới hạn `POST /api/auth/login` theo IP đầu vào từ Caddy. Khi vượt ngưỡng, nginx trả 429 với `code=LOGIN_RATE_LIMITED` và `Retry-After`, giao diện hiện thông báo chờ. Cấu hình public chỉ nạp các migration cấu trúc và xác lập quản lý đầu tiên trên database mới. [Hướng dẫn vận hành](../../../03-SourceCodes/README.md#chạy-cấu-hình-public-bằng-caddy)

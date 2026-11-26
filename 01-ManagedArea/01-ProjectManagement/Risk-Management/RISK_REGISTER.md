@@ -80,7 +80,7 @@ Xem lại đánh giá khi scope/yêu cầu/thiết kế thay đổi, trong Sprin
 | RISK-10 | **Đã xảy ra**: tài liệu thiết kế lệch code (Database, Architecture, Class Design, UI Prototype); đã cập nhật 2026-10-28 và 2026-10-31 | Lịch sử commit `docs:` | Giảm; cần giữ cập nhật cùng thay đổi |
 | RISK-11 | NFR-04 mới đo ở máy dev; có test biên, đồng thời, white-box quota | Test Results Sprint 3 | Giảm một phần |
 | RISK-12 | Bản triển khai không dữ liệu mẫu từng không dùng được, đã sửa và thử lại trên database mới | Test Results lượt Docker | Giảm |
-| RISK-13 | Vẫn chưa giới hạn đăng nhập sai | — | Chấp nhận như quyết định 2026-10-10 |
+| RISK-13 | Cấu hình public giới hạn yêu cầu đăng nhập theo IP ở nginx, trả 429 và hiển thị thông báo chờ | [Hướng dẫn cấu hình public](../../../03-SourceCodes/README.md#chạy-cấu-hình-public-bằng-caddy) | Giảm rủi ro ở đầu vào public. Theo dõi hành vi khi có nhiều IP hoặc nhiều người dùng chung IP. |
 
 ## Output chuyển giao
 

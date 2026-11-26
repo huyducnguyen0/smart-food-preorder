@@ -66,6 +66,17 @@ describe('LoginPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Tài khoản đã bị khóa')
   })
 
+  it('phản hồi 429 của cổng public hiển thị yêu cầu chờ trước khi thử lại', async () => {
+    const signIn = vi.fn().mockRejectedValue(new ApiError(429, 'LOGIN_RATE_LIMITED', 'x'))
+    renderWithAuth(<LoginPage />, { path: '/login', auth: { signIn }, extraRoutes: destinations })
+
+    await fillAndSubmit('khach1@example.com', 'mat-khau')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi rồi thử lại.',
+    )
+  })
+
   it('không kết nối được máy chủ thì báo lỗi kết nối', async () => {
     const signIn = vi.fn().mockRejectedValue(new ApiError(0, null, 'x'))
     renderWithAuth(<LoginPage />, { path: '/login', auth: { signIn }, extraRoutes: destinations })

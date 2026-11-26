@@ -14,6 +14,7 @@ Ngày 2026-11-26 hoàn thiện PB-22 để kiểm tra cả hai nguồn đơn tr�
 - [Chạy bản demo](03-SourceCodes/README.md).
 - [Kết quả kiểm thử](01-ManagedArea/04-Testing/Test-Results/README.md).
 - [Sprint Review và Release v1.0.0](01-ManagedArea/05-Releases/README.md).
+- [Cấu hình chạy public bằng Caddy](03-SourceCodes/README.md#chạy-cấu-hình-public-bằng-caddy).
 
 ## Nguồn và các mốc thực hiện
 

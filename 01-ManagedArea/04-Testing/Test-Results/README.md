@@ -207,3 +207,19 @@ Kiểm thử trên Windows 11 với Java 25, PostgreSQL 18 nhúng cho backend v�
 
 Các phép đo dùng môi trường thử nghiệm của dự án. Mốc 45 phút, 70%, 20 điểm và 8 đơn là cấu hình của mô hình học phần, chưa đo tại cửa hàng.
 
+## Lượt 2026-11-26 — chuẩn bị triển khai public
+
+Thử `compose.yaml` + `compose.prod.yaml` trên máy Windows bằng Docker Compose v5.3.1, Caddy v2.11.9, PostgreSQL 18 và project thử riêng. Caddy bind `127.0.0.1` cho lần thử. Phần HTTPS được kiểm bằng CA nội bộ do Caddy cấp cho `localhost`.
+
+| Mục | Kết quả |
+|---|---|
+| Cấu hình Docker | Compose, `nginx -t` và `caddy validate` đạt. Chỉ Caddy publish 80 và 443 |
+| HTTPS | HTTP trả 308 tới URL HTTPS cùng đường dẫn. HTTPS xác thực bằng CA local và trả health `UP`, database `UP`, schema V12 |
+| Khởi tạo mới | Có một quản lý từ biến môi trường, 0 món mẫu, 0 migration lặp |
+| Giới hạn đăng nhập | 5 yêu cầu sai liên tiếp trả 401, yêu cầu thứ sáu trả 429 `LOGIN_RATE_LIMITED`, `Retry-After: 12`. Giao diện hiện thông báo chờ, health vẫn trả 200, đăng nhập hợp lệ thành công sau thời gian chờ |
+| Phiên và CSRF | Cookie CSRF qua HTTPS có `Secure`. Cookie phiên quản lý có `Secure` và `HttpOnly`. Quản lý đổi công suất bếp qua giao diện và xác nhận cập nhật thành công |
+| Khởi động lại | Sau khi dừng rồi khởi động các container, giữ tài khoản, công suất bếp đã lưu và CA local. Bản demo cổng 18080 vẫn báo `UP` |
+| Hồi quy | Backend `verify` **443 test pass**. Frontend **152 test pass**, kiểm định dạng, lint và build đạt |
+
+Lượt này xác nhận HTTPS với CA local. Cấp chứng chỉ công khai và truy cập từ mạng ngoài cần được kiểm khi có VPS và tên miền.
+

@@ -6,6 +6,7 @@ const MESSAGES: Record<string, string> = {
   VALIDATION_ERROR: 'Dữ liệu chưa hợp lệ, vui lòng kiểm tra lại.',
   UNAUTHENTICATED: 'Vui lòng đăng nhập.',
   INVALID_CREDENTIALS: 'Thông tin đăng nhập không đúng.',
+  LOGIN_RATE_LIMITED: 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng đợi rồi thử lại.',
   ACCOUNT_LOCKED: 'Tài khoản đã bị khóa, liên hệ quản lý.',
   FORBIDDEN: 'Bạn không có quyền thực hiện thao tác này.',
   MENU_ITEM_NOT_FOUND: 'Món này không còn trong thực đơn.',

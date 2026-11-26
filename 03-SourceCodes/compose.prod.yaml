@@ -1,0 +1,56 @@
+# Dùng kèm compose.yaml và .env.production. Chỉ Caddy publish cổng trên host.
+name: smart-food-preorder-public
+
+services:
+  db:
+    ports: !reset []
+    restart: unless-stopped
+
+  backend:
+    environment:
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration
+      INITIAL_MANAGER_LOGIN_ID: ${INITIAL_MANAGER_LOGIN_ID:?Đặt INITIAL_MANAGER_LOGIN_ID trong .env.production}
+      INITIAL_MANAGER_PASSWORD: ${INITIAL_MANAGER_PASSWORD:?Đặt INITIAL_MANAGER_PASSWORD trong .env.production}
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
+
+  frontend:
+    ports: !reset []
+    volumes:
+      - ./frontend/nginx.prod.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [default, edge]
+    depends_on:
+      backend:
+        restart: true
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/api/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  caddy:
+    profiles: [app]
+    image: caddy:2-alpine
+    environment:
+      PUBLIC_HOST: ${PUBLIC_HOST:?Đặt PUBLIC_HOST trong .env.production}
+    ports:
+      - "${PUBLIC_BIND_IP:-127.0.0.1}:80:80"
+      - "${PUBLIC_BIND_IP:-127.0.0.1}:443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [edge]
+    depends_on:
+      frontend:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  default:
+    internal: true
+  edge:
+
+volumes:
+  caddy_data:
+  caddy_config:
