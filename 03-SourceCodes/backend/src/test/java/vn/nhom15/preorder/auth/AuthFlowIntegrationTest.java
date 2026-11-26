@@ -129,6 +129,6 @@ class AuthFlowIntegrationTest {
         mockMvc.perform(get("/api/health"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.database").value("UP"))
-                .andExpect(jsonPath("$.schemaVersion").value("5"));
+                .andExpect(jsonPath("$.schemaVersion").value(org.hamcrest.Matchers.matchesPattern("[1-9][0-9]*")));
     }
 }

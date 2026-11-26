@@ -27,8 +27,8 @@ Từ [đặc tả UC-04](../Use-Cases/specifications/UC-04-dat-pre-order.md), g�
 | Đủ N = 3 đơn chưa kết thúc? → có | E5 | Kết thúc |
 | Khung vẫn ≥ 30 phút? → không | E6 | (K) |
 | Món còn bán và đúng giá? → không | E7 | (G) |
-| Điểm đơn ≤ quota của khung? → không | E9 (UC-17 E1) | (G) |
-| Điểm đơn ≤ quota − đang giữ? → không | E8 (UC-17 E2), điểm mở rộng UC-18 | (K) |
+| Bếp trống xếp kịp đơn? → không | E9 (UC-17 E1) | (G) |
+| Quầy hết chỗ hoặc lịch chung không xếp kịp | E8 (UC-17 E2), điểm mở rộng UC-18 | (K) |
 | Tạo đơn và giữ quota cùng thành công? → không | E10 (UC-17 E3) | Kết thúc |
 | Ghi chú | E11 phiên hết hạn | Đăng nhập lại |
 

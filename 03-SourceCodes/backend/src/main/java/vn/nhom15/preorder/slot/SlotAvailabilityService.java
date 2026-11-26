@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import vn.nhom15.preorder.common.ApiException;
 import vn.nhom15.preorder.common.ErrorCode;
@@ -29,18 +28,21 @@ public class SlotAvailabilityService {
     private final MenuService menuService;
     private final OrderingProperties properties;
     private final Clock clock;
+    private final KitchenPlanService kitchenPlanService;
 
     public SlotAvailabilityService(
             StoreSettingsRepository storeSettingsRepository,
             SlotRepository slotRepository,
             MenuService menuService,
             OrderingProperties properties,
-            Clock clock) {
+            Clock clock,
+            KitchenPlanService kitchenPlanService) {
         this.storeSettingsRepository = storeSettingsRepository;
         this.slotRepository = slotRepository;
         this.menuService = menuService;
         this.properties = properties;
         this.clock = clock;
+        this.kitchenPlanService = kitchenPlanService;
     }
 
     /**
@@ -59,20 +61,20 @@ public class SlotAvailabilityService {
         }
 
         int points = cartPoints(lines);
-        Map<LocalTime, TimeSlot> existing =
-                slotRepository.findByDate(today).stream().collect(Collectors.toMap(TimeSlot::startTime, s -> s));
+        // PB-22: khung đặt được khi quầy còn chỗ và bếp còn xếp kịp làm giỏ này trước giờ nhận (làm trước được tối đa
+        // H phút). Chỉ đọc: kết quả đúng tại thời điểm hiển thị, việc giữ chỗ thật kiểm lại trong giao dịch (BR-36).
+        KitchenPlanService.Snapshot plan = kitchenPlanService.snapshot();
 
         List<SlotView> views = new ArrayList<>();
         boolean anyBookable = false;
         boolean fitsSomeSlot = false;
         for (LocalTime start : candidates) {
-            TimeSlot slot = existing.get(start);
-            int quota = slot != null ? slot.quota(settings.defaultQuotaPoints()) : settings.defaultQuotaPoints();
-            int held = slot != null ? slot.heldPoints() : 0;
-            boolean bookable = points <= quota - held;
-            anyBookable |= bookable;
-            fitsSomeSlot |= points <= quota;
             LocalDateTime startAt = today.atTime(start);
+            KitchenPlanner.Job job = plan.preOrderJob(startAt, points);
+            boolean fitsEmpty = !plan.tooLargeEvenWhenEmpty(job);
+            boolean bookable = fitsEmpty && plan.pickupHasRoom(start) && plan.fits(job);
+            anyBookable |= bookable;
+            fitsSomeSlot |= fitsEmpty;
             views.add(new SlotView(startAt, startAt.plusMinutes(properties.slotMinutes()), bookable));
         }
 
@@ -92,6 +94,9 @@ public class SlotAvailabilityService {
      * @throws ApiException {@code SLOT_NOT_BOOKABLE} nếu không hợp lệ
      */
     public void checkBookable(LocalDateTime slotStart) {
+        // Khóa chia sẻ cấu hình TRƯỚC khi đọc giờ mở cửa, giữ tới hết giao dịch đặt đơn: quản lý thu hẹp giờ cùng lúc
+        // phải chờ đơn này xong rồi mới kiểm tra "khung có đơn", nên không lọt đơn ngoài giờ mới (BR-11).
+        storeSettingsRepository.lockShared();
         LocalDateTime now = LocalDateTime.now(clock);
         boolean valid = slotStart.toLocalDate().equals(now.toLocalDate())
                 && slotStart.getSecond() == 0
@@ -100,6 +105,90 @@ public class SlotAvailabilityService {
         if (!valid) {
             throw new ApiException(ErrorCode.SLOT_NOT_BOOKABLE, "Khung giờ này không còn đặt được, vui lòng chọn lại");
         }
+    }
+
+    /**
+     * UC-18 / BR-16: tối đa 3 khung hợp lệ (BR-15) còn đủ quota cho giỏ, khác khung đã chọn, gần khung đã chọn nhất cả
+     * trước lẫn sau; cùng khoảng cách thì khung sau đứng trước. Rỗng nếu không còn khung nào.
+     */
+    public List<SlotView> alternatives(LocalDateTime chosen, List<CartLine> lines) {
+        return listSlots(lines).slots().stream()
+                .filter(SlotView::bookable)
+                .filter(slot -> !slot.start().equals(chosen))
+                .sorted(java.util.Comparator.comparingLong((SlotView slot) -> Math.abs(
+                                java.time.Duration.between(chosen, slot.start()).toMinutes()))
+                        .thenComparing(SlotView::start, java.util.Comparator.reverseOrder()))
+                .limit(3)
+                .toList();
+    }
+
+    /**
+     * BR-18: khung dự kiến sớm nhất cho đơn walk-in, tính từ khung hiện tại (khung chứa thời điểm bây giờ), còn đủ
+     * quota.
+     * Không áp dụng mốc đặt trước 30 phút của BR-15. Chỉ để báo khách, chưa giữ quota (BR-19).
+     *
+     * @throws ApiException {@code ORDER_TOO_LARGE} nếu đơn lớn hơn quota của mọi khung còn lại;
+     *     {@code NO_SLOT_AVAILABLE}
+     *     nếu không còn khung nào đủ chỗ hôm nay
+     */
+    public SlotView earliestWalkInSlot(int points) {
+        LocalDateTime now = LocalDateTime.now(clock);
+        LocalDate today = now.toLocalDate();
+        StoreSettings settings = storeSettingsRepository.get();
+        KitchenPlanService.Snapshot plan = kitchenPlanService.snapshot();
+        List<LocalTime> starts = walkInStartTimes(settings, now);
+        boolean fitsSomeSlot = false;
+        for (LocalTime start : starts) {
+            LocalDateTime startAt = today.atTime(start);
+            KitchenPlanner.Job job = plan.walkInJob(startAt, points);
+            boolean fitsEmpty = !plan.tooLargeEvenWhenEmpty(job);
+            fitsSomeSlot |= fitsEmpty;
+            if (fitsEmpty && plan.pickupHasRoom(start) && plan.fits(job)) {
+                return new SlotView(startAt, startAt.plusMinutes(properties.slotMinutes()), true);
+            }
+        }
+        if (!fitsSomeSlot && !starts.isEmpty()) {
+            throw new ApiException(
+                    ErrorCode.ORDER_TOO_LARGE, "Đơn quá lớn cho một khung giờ, hãy tách đơn hoặc bớt món");
+        }
+        throw new ApiException(ErrorCode.NO_SLOT_AVAILABLE, "Hôm nay không còn khung nào đủ chỗ cho đơn này");
+    }
+
+    /**
+     * Khung walk-in nhân viên xác nhận còn hợp lệ: hôm nay, đúng mốc, trong giờ mở cửa, chưa kết thúc.
+     *
+     * @throws ApiException {@code SLOT_NOT_BOOKABLE} nếu không hợp lệ
+     */
+    public void checkWalkInSlot(LocalDateTime slotStart) {
+        storeSettingsRepository.lockShared(); // như checkBookable (BR-11)
+        LocalDateTime now = LocalDateTime.now(clock);
+        boolean valid = slotStart.toLocalDate().equals(now.toLocalDate())
+                && slotStart.getSecond() == 0
+                && slotStart.getNano() == 0
+                && walkInStartTimes(storeSettingsRepository.get(), now).contains(slotStart.toLocalTime());
+        if (!valid) {
+            throw new ApiException(ErrorCode.SLOT_NOT_BOOKABLE, "Khung giờ này không còn nhận đơn, vui lòng xem lại");
+        }
+    }
+
+    /** Khung hôm nay chưa kết thúc: từ khung hiện tại tới khung cuối trong giờ mở cửa. */
+    private List<LocalTime> walkInStartTimes(StoreSettings settings, LocalDateTime now) {
+        List<LocalTime> result = new ArrayList<>();
+        LocalTime start = settings.openTime();
+        while (!start.plusMinutes(properties.slotMinutes()).isAfter(settings.closeTime())) {
+            if (now.toLocalDate()
+                    .atTime(start)
+                    .plusMinutes(properties.slotMinutes())
+                    .isAfter(now)) {
+                result.add(start);
+            }
+            LocalTime next = start.plusMinutes(properties.slotMinutes());
+            if (next.isBefore(start)) {
+                break;
+            }
+            start = next;
+        }
+        return result;
     }
 
     /** Điểm của giỏ; món tạm hết vẫn tính điểm vì lỗi món chỉ báo khi gửi đơn (UC-04 E7). */

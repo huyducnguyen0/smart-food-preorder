@@ -33,14 +33,14 @@ Mã nguồn chia theo **module nghiệp vụ** (package by feature) thay vì the
 |---|---|---|---|
 | `auth` | Đăng nhập, đăng xuất, phiên; tài khoản; cung cấp người dùng hiện tại cho module khác | UC-02; BR-32, BR-33; NFR-03, NFR-06 | `user_accounts` |
 | `menu` | Nhóm món, món; tình trạng bán, giá, điểm công việc | UC-03, UC-04 E1; BR-01–BR-04 | `menu_categories`, `menu_items` |
-| `slot` | Giờ mở cửa, quota mặc định, khung giờ; liệt kê khung hợp lệ; **giữ quota** | UC-04 bước 6, UC-17; BR-06–BR-16, BR-36 | `store_settings`, `time_slots` |
+| `slot` | Giờ mở cửa, công suất bếp, khung giờ; liệt kê khung hợp lệ; **lịch bếp và giữ chỗ** (từ Sprint 4) | UC-04 bước 6, UC-17; BR-06–BR-16, BR-36, BR-39–BR-41 | `store_settings`, `time_slots` |
 | `order` | Đặt đơn, đơn của khách, **mọi chuyển trạng thái đơn** | UC-04 bước 8–11, UC-05; BR-17, BR-28, BR-35, BR-37, BR-38; SRS B.5 | `orders`, `order_lines` |
 | `kitchen` | Hàng chờ bếp; gọi chuyển trạng thái | UC-12; BR-21, BR-22, BR-26 | Không sở hữu bảng, chỉ đọc |
 | `common` | Lỗi chung, mã lỗi, định dạng phản hồi lỗi | Mọi use case | — |
 | `config` | Clock, Spring Security, thuộc tính cấu hình | — | — |
 | `health` | `GET /api/health` (đã có từ T-03) | — | — |
 
-Sprint sau dự kiến thêm: `counter` (walk-in UC-07, thanh toán UC-08, bàn giao UC-09, no-show UC-10), `admin` (quản lý món UC-13, cấu hình UC-14, tài khoản UC-15, theo dõi UC-16). Walk-in gọi `QuotaService` của `slot` như pre-order; bàn giao, hủy và no-show gọi `OrderStatusService` của `order`.
+Đã thêm ở Sprint 1–3 (cập nhật 2026-10-31 cho khớp code): `counter` (màn quầy: thanh toán, bàn giao, walk-in, hủy, no-show), `report` (theo dõi UC-16, chỉ đọc). Quản lý món nằm trong `menu`, cấu hình giờ và quota trong `slot`, tài khoản nhân viên trong `auth` (không có module `admin` riêng; đường dẫn `/api/admin/**` chỉ là nhóm quyền). Walk-in gọi `QuotaService` của `slot` như pre-order. Chuyển trạng thái đơn nằm ở hai service của `order`: `OrderStatusService` (tiến độ: bếp bắt đầu, hoàn tất; quầy bàn giao) và `OrderCancellationService` (ngoại lệ: hủy, không đến nhận, có hoàn quota).
 
 ### Tầng trong một module
 | Tầng | Hậu tố | Được làm | Không được làm |
@@ -55,7 +55,7 @@ Dùng `JdbcTemplate` như T-03, không dùng JPA: các câu SQL quan trọng (gi
 ### Quy tắc phụ thuộc giữa module
 1. Chỉ gọi **Service** của module khác; không gọi Repository hay Controller của module khác.
 2. Phụ thuộc một chiều, không vòng: `kitchen → order → slot → menu`; `order → menu`; mọi module → `auth` (người dùng hiện tại), `common`, `config`.
-3. **Chỉ module `order` ghi bảng `orders`, `order_lines`.** Mọi chuyển trạng thái đơn đi qua `OrderStatusService`, nơi duy nhất cài bảng chuyển trạng thái SRS B.5. Module khác được đọc bằng truy vấn riêng (ví dụ `KitchenQueueRepository` chỉ `SELECT`).
+3. **Chỉ module `order` ghi bảng `orders`, `order_lines`.** Mọi chuyển trạng thái đơn đi qua hai service của `order`: `OrderStatusService` (tiến độ) và `OrderCancellationService` (hủy, không đến nhận). Mỗi chuyển chỉ thực hiện khi trạng thái hiện tại đúng trạng thái nguồn của SRS B.5 (câu cập nhật có điều kiện hoặc khóa dòng đơn rồi kiểm tra). Module khác được đọc bằng truy vấn riêng (ví dụ `KitchenQueueRepository` chỉ `SELECT`).
 4. **Chỉ module `slot` ghi `time_slots.held_points`**, qua `QuotaService`. Đây là cách đáp ứng NFR-05: quy tắc quota nằm ở một chỗ, pre-order và walk-in dùng chung.
 
 Các quy tắc này được kiểm khi review PR. Chưa dùng công cụ tự động kiểm phụ thuộc (ví dụ ArchUnit); xét lại khi có thêm module ở Sprint sau.
@@ -79,7 +79,7 @@ Vai trò: `CUSTOMER`, `KITCHEN`, `COUNTER`, `MANAGER`. Quản lý làm được 
 | Thời gian | Mọi code nghiệp vụ lấy giờ qua bean `Clock` (múi giờ `Asia/Ho_Chi_Minh`, đã có ở T-03). "Hôm nay", "khung hợp lệ", "trễ" đều tính theo giờ cửa hàng | BR-15, BR-21, BR-26; test cố định được thời điểm |
 | Cấu hình nghiệp vụ | Hai nhóm: **quản lý sửa khi vận hành** (giờ mở cửa, quota mặc định) lưu trong database, bảng `store_settings`; **cấu hình hệ thống** (độ dài khung 15, đặt trước 30 phút, cửa sổ chuẩn bị 15, N = 3 đơn) lưu trong `application.yaml` mục `app.ordering` | BR-06, BR-07, BR-15, BR-21, BR-37. Nhóm đầu có màn hình quản lý ở PB-04; nhóm sau "cấu hình được" nhưng không đổi trong vận hành |
 | Giao dịch | `@Transactional` ở service. Đặt đơn là **một giao dịch** gồm giữ quota và tạo đơn | BR-10, UC-17 E3 |
-| Đồng thời | Giữ quota bằng **câu cập nhật có điều kiện** trên dòng khung; các lần đặt của một khách xử lý lần lượt bằng **khóa dòng tài khoản** (`SELECT … FOR UPDATE`). Chi tiết ở [Class Design](../Class-Design/README.md) mục 3 | NFR-01, NFR-02, BR-17, BR-37 |
+| Đồng thời | Giữ chỗ bằng **khóa lịch bếp theo ngày** (`pg_advisory_xact_lock`, từ Sprint 4; trước đó là câu cập nhật có điều kiện trên dòng khung); các lần đặt của một khách xử lý lần lượt bằng **khóa dòng tài khoản** (`SELECT … FOR UPDATE`). Chi tiết ở [Class Design](../Class-Design/README.md) mục 3 | NFR-01, NFR-02, BR-17, BR-37 |
 | Định dạng lỗi | Mọi lỗi trả JSON theo chuẩn Problem Details (RFC 9457, Spring có sẵn `ProblemDetail`), thêm trường `code` là mã máy đọc được (bảng mục 5.3). Frontend chọn câu thông báo tiếng Việt theo `code` | Một nơi xử lý lỗi (`GlobalExceptionHandler`); câu chữ giao diện nằm ở frontend |
 | Tiền | Số nguyên đồng (VND), kiểu `int`/`integer`, không dùng số thực | Không có giảm giá, thuế (UC-04 Ghi chú) |
 | Định danh đơn | `id` số tự tăng trong URL. Khách đoán id đơn người khác chỉ nhận 404 (kiểm tra sở hữu) | NFR-03 |
@@ -103,6 +103,21 @@ Tiền tố `/api`. JSON, tên trường camelCase. Giờ có ngày dạng ISO-8
 | `GET /api/kitchen/queue` | `KITCHEN` | UC-12.1 | Hàng chờ bếp ba nhóm |
 | `POST /api/kitchen/orders/{id}/start` | `KITCHEN` | UC-12.2 bước 4–5 | `CONFIRMED → PREPARING` |
 | `POST /api/kitchen/orders/{id}/complete` | `KITCHEN` | UC-12.2 bước 6–7 | `PREPARING → READY` |
+| `GET /api/counter/orders` | `COUNTER`, `MANAGER` | UC-08 bước 2 | Đơn hôm nay đang xử lý, kèm số tiền cần thu |
+| `POST /api/counter/orders/{id}/payment` | `COUNTER`, `MANAGER` | UC-08 bước 3–4 | Ghi nhận `UNPAID → PAID` kèm phương thức |
+| `POST /api/counter/orders/{id}/handover` | `COUNTER`, `MANAGER` | UC-09 bước 4–5 | `READY → PICKED_UP` khi đúng mã và đã `PAID` |
+| `POST /api/counter/walk-in/estimate` | `COUNTER`, `MANAGER` | UC-07 bước 2–3 | Khung dự kiến sớm nhất (BR-18) và số tiền cần thu; chưa giữ quota |
+| `POST /api/counter/walk-in` | `COUNTER`, `MANAGER` | UC-07 bước 5–7 | Xác nhận đơn walk-in đã thu tiền; 201 mới, 200 khi gửi lại cùng `requestId` |
+| `POST /api/auth/register` | Công khai | UC-01 | Đăng ký khách, đăng nhập luôn; 201 + `CurrentUser` |
+| `GET /api/admin/menu` | `MANAGER` | UC-13 | Mọi món kể cả ngừng bán, có `workloadPoints`; danh sách nhóm |
+| `POST /api/admin/menu/items`, `PUT /api/admin/menu/items/{id}` | `MANAGER` | UC-13.1, 13.2 | Thêm, sửa món |
+| `POST /api/admin/menu/items/{id}/availability`, `/discontinue`, `/restore` | `MANAGER` | UC-13.3, 13.4 | Còn bán/tạm hết; ngừng bán; bán lại |
+| `GET /api/admin/slots/today`, `PUT /api/admin/settings`, `PUT /api/admin/slots/today/{HH:mm}/quota` | `MANAGER` | UC-14 | Khung hôm nay có quota và điểm đã giữ; đổi giờ, quota mặc định; quota riêng (`null` = về mặc định) |
+| `POST /api/orders/{id}/cancel` | `CUSTOMER` | UC-06 | Khách hủy đơn `CONFIRMED` trước cửa sổ chuẩn bị; hoàn đủ điểm |
+| `POST /api/counter/orders/{id}/cancel` | `COUNTER` (chỉ walk-in `CONFIRMED`), `MANAGER` | UC-11 | Hủy kèm `reason` bắt buộc; hoàn điểm nếu từ `CONFIRMED` |
+| `POST /api/counter/orders/{id}/no-show` | `COUNTER`, `MANAGER` | UC-10 | `READY → NO_SHOW` khi quá hạn (BR-25); không hoàn |
+| `GET /api/admin/staff`, `POST /api/admin/staff`, `POST /api/admin/staff/{id}/lock`, `/unlock` | `MANAGER` | UC-15 | Tài khoản quầy/bếp: xem, tạo, khóa, mở khóa |
+| `GET /api/admin/dashboard` | `MANAGER` | UC-16 | Khung hôm nay, đơn đang xử lý có cờ trễ, thống kê ngày |
 | `GET /api/health` | Công khai | — | Có từ T-03 |
 
 ### 5.2. Dữ liệu vào/ra chính
@@ -153,62 +168,23 @@ Chỉ có món đang bán; `available = false` là tạm hết. Không trả đi
 ```
 `KitchenOrder`: `id`, `pickupCode`, `slotStart`, `slotEnd`, `source` (`PRE_ORDER`/`WALK_IN`), `confirmedAt`, `late` (BR-26), `lines` gồm `name`, `quantity`. Không có giá và thanh toán (UC-12 Ghi chú). `start`/`complete` trả 200 `{ "id": 41, "status": "PREPARING" }`.
 
-### 5.3. Mã lỗi
-Phản hồi lỗi dạng:
-```json
-{ "type": "about:blank", "title": "Conflict", "status": 409,
-  "code": "SLOT_FULL", "detail": "Khung đã hết chỗ" }
-```
-| HTTP | `code` | Khi nào | Đặc tả |
-|---|---|---|---|
-| 400 | `VALIDATION_ERROR` | Thiếu trường hoặc tham số, số lượng < 1, giỏ trống, một món hai dòng, định dạng sai; kèm `errors` theo trường khi sai ở dữ liệu gửi lên | UC-02 E3, UC-04 A2 |
-| 401 | `UNAUTHENTICATED` | Chưa đăng nhập hoặc phiên hết hạn | UC-02 E4 |
-| 401 | `INVALID_CREDENTIALS` | Sai định danh hoặc mật khẩu (một mã chung) | UC-02 E1 |
-| 403 | `ACCOUNT_LOCKED` | Mật khẩu đúng nhưng tài khoản bị khóa | UC-02 E2 |
-| 403 | `FORBIDDEN` | Sai vai trò | UC-02 E5, UC-12 E2 |
-| 404 | `MENU_ITEM_NOT_FOUND` | Món không có hoặc ngừng bán | UC-04 E1 |
-| 404 | `ORDER_NOT_FOUND` | Đơn không có hoặc không phải của khách | UC-05 E1 |
-| 409 | `OPEN_ORDER_LIMIT_REACHED` | Đã đủ N đơn chưa kết thúc; kèm `openOrders` và `limit` | UC-04 E5, BR-37 |
-| 409 | `SLOT_NOT_BOOKABLE` | Khung không thuộc hôm nay, sai mốc, ngoài giờ mở cửa hoặc < 30 phút | UC-04 E6, BR-15 |
-| 409 | `ITEMS_CHANGED` | Món đổi giá, tạm hết, ngừng bán; kèm `items`: mỗi phần tử có `menuItemId`, `reason` (`PRICE_CHANGED`/`UNAVAILABLE`), và `currentPrice` khi đổi giá | UC-04 E7, BR-35 |
-| 409 | `ORDER_TOO_LARGE` | Điểm đơn > quota của khung | UC-04 E9, UC-17 E1 |
-| 409 | `SLOT_FULL` | Không đủ quota còn lại | UC-04 E8, UC-17 E2 |
-| 409 | `INVALID_STATUS_TRANSITION` | Trạng thái hiện tại không cho phép chuyển; kèm `currentStatus` | UC-12 E1 |
-| 500 | `INTERNAL_ERROR` | Lỗi không lường trước; giao dịch đã hủy | UC-04 E10, UC-12 E3 |
+**`GET /api/counter/orders`** → 200 `{ "orders": [CounterOrder] }`. `CounterOrder`: `id`, `pickupCode`, `customerName` (null với walk-in), `slotStart`, `slotEnd`, `source`, `status`, `paymentStatus`, `paymentMethod`, `totalAmount`, `lines` gồm `name`, `quantity`. Chỉ đơn hôm nay ở `CONFIRMED`, `PREPARING`, `READY`.
 
-## 6. Frontend
-![Package Diagram frontend](package-diagram_frontend.svg)
+**`POST /api/counter/orders/{id}/payment`** với `{ "method": "CASH" }` hoặc `"BANK_TRANSFER"` → 200 `{ "id": 41, "paymentStatus": "PAID", "paymentMethod": "CASH" }`. Thiếu hoặc sai `method` → 400; đơn không có → 404; đã ghi nhận → 409 `ALREADY_PAID`; đơn đã bàn giao, hủy, vắng mặt → 409 `ORDER_NOT_PAYABLE`.
 
-| Thư mục | Trách nhiệm |
-|---|---|
-| `src/app` | Khởi tạo ứng dụng, khai báo route, `RequireRole` chặn trang theo vai trò (chỉ để điều hướng; quyền thật kiểm ở backend) |
-| `src/features/<tên>` | Một thư mục cho mỗi nhóm màn hình: `auth`, `menu`, `cart`, `checkout`, `orders`, `kitchen`. Trang, component riêng và hook của nhóm đó |
-| `src/api` | Nơi duy nhất gọi `fetch`. `client.ts` gắn header CSRF, đọc lỗi Problem Details thành `ApiError` có `code`; mỗi file còn lại khai báo kiểu và hàm gọi API của một module backend |
-| `src/components` | Component dùng chung theo [UI Prototype](../UI-Prototype/README.md) v2: khung app (`AppShell`), thanh trên, thanh tab đáy, bảng trượt từ đáy (`BottomSheet`), hiển thị tiền, nhãn trạng thái, thông báo |
+**`POST /api/counter/orders/{id}/handover`** với `{ "pickupCode": "K7M3QX" }` → 200 `{ "id": 41, "status": "PICKED_UP" }`. Mã so không phân biệt chữ hoa thường. Thiếu hoặc trống mã → 400; không có đơn → 404; đơn không ở `READY` (kể cả đã bàn giao) → 409 `INVALID_STATUS_TRANSITION` kèm `currentStatus`; sai mã → 409 `PICKUP_CODE_MISMATCH`; chưa thanh toán → 409 `ORDER_NOT_PAID`. Thứ tự kiểm tra: tồn tại, `READY`, mã, thanh toán.
 
-Quyết định:
-- **Điều hướng**: thư viện React Router, thêm ở T-13. Route cụ thể ở [UI Prototype](../UI-Prototype/README.md).
-- **Trạng thái dùng chung**: chỉ hai context: `AuthProvider` (người dùng hiện tại, nạp từ `GET /api/auth/me`) và `CartProvider` (giỏ). Dữ liệu khác mỗi trang tự tải. Chưa dùng thư viện quản lý trạng thái hay thư viện cache dữ liệu: phạm vi Sprint 1 nhỏ, ít thư viện thì ít thứ phải học.
-- **Giỏ hàng**: lưu `localStorage` theo khóa gắn id tài khoản, để hai tài khoản trên cùng máy không thấy giỏ của nhau. Đăng xuất không xóa giỏ; phiên hết hạn giỏ vẫn còn (UC-04 E11).
-- **Thông báo lỗi**: bảng ánh xạ `code` → câu tiếng Việt ở `src/api/errorMessages.ts`.
+**Sprint 2.** `SLOT_FULL` của `POST /api/orders` kèm `alternatives`: tối đa 3 `SlotView` gợi ý (UC-18, BR-16). `SLOT_FULL` của `POST /api/counter/walk-in` kèm `nextSlot` (khung mới để báo lại khách, BR-19) nếu còn. `POST /api/counter/walk-in` nhận `{ requestId, slotStart, lines: [{menuItemId, quantity, unitPrice}], paymentMethod }`; ước tính nhận `{ lines }` cùng dạng dòng, trả `{ slot: {start, end}, totalAmount }`. Giữ quota (`QuotaService`) khóa chia sẻ dòng `store_settings`, đổi cấu hình khóa ghi, để BR-11 không bị chen ngang.
 
-## 7. Môi trường chạy
-Sprint 1 chỉ chạy local như hướng dẫn ở [03-SourceCodes](../../../03-SourceCodes/README.md): Vite dev server (5173) chuyển `/api` sang Spring Boot (8080), PostgreSQL trong Docker (5433). Cách đóng gói và triển khai lên máy chủ chưa thuộc phạm vi; quyết định khi lập kế hoạch release.
+**Sprint 3.** `OrderDetail` có thêm `cancelReason` (null nếu chưa hủy hoặc khách tự hủy). `CounterOrder` có thêm `overdue` (đơn `READY` đã qua giờ kết thúc khung + `app.ordering.no-show-grace-minutes`, mặc định 30). Hủy và no-show nằm ở `OrderCancellationService` (module `order`): khóa dòng đơn `FOR UPDATE`, kiểm tra quy tắc, đổi trạng thái, gọi `QuotaService.release` trong cùng giao dịch; `release` trừ `held_points` bằng câu `UPDATE … WHERE held_points >= ?`, không đủ thì ném lỗi để giao dịch hủy. Tài khoản nhân viên ở `StaffAccountService` (module `auth`, dùng lại kiểm tra định danh của đăng ký). Bảng theo dõi ở module mới `report`, chỉ đọc. `StaffAccount`: `id`, `loginId`, `displayName`, `role`, `locked`. `Dashboard`: `date`, `slots` (như `AdminSlot`), `activeOrders` (`id`, `pickupCode`, `slotStart`, `status`, `source`, `late`), `stats` (`preOrders`, `walkIns`, `pickedUp`, `cancelled`, `noShow`, `lateNow`, `heldPoints`, `quotaPoints`, `quotaUsagePercent`).
 
-## 8. Kiểm tra NFR-05
-NFR-05 yêu cầu đặt đơn, điều phối quota và luồng bếp/bàn giao tách trách nhiệm. Kiến trúc đáp ứng bằng:
-- ba module riêng `order`, `slot`, `kitchen` (bàn giao sẽ ở `counter`);
-- quy tắc phụ thuộc một chiều và "một bảng, một module ghi" ở mục 2;
-- regression test theo module (T-16, T-18, T-22) chạy bằng `./mvnw verify`.
+**Sửa sau review (2026-10-31).** `CounterOrder` có thêm `stale` (đơn chưa kết thúc của ngày đã qua; `GET /api/counter/orders` trả cả các đơn này, đứng đầu). `KitchenOrder` có thêm `prepareFrom` (thời điểm đơn vào nhóm cần chuẩn bị; bếp vẫn làm trước được). `OrderDetail` có thêm `cancelDeadline` (hạn khách tự hủy). `Dashboard.stats` có thêm `staleOpen`. `CANCEL_NOT_ALLOWED` kèm `reason` = `PAID` hoặc `PREPARATION_WINDOW`. Bộ lọc `LockedAccountFilter` (sau `SecurityContextHolderFilter`) hỏi `AuthService.isBlocked` ở mỗi yêu cầu đã đăng nhập; tài khoản bị khóa thì hủy phiên, trả 401 `UNAUTHENTICATED`. Kiểm tra khung hợp lệ (`checkBookable`, `checkWalkInSlot`) lấy khóa chia sẻ `store_settings` **trước** khi đọc giờ mở cửa, nên đổi giờ cùng lúc không lọt đơn ngoài giờ (BR-11).
 
-Kiểm chứng: review kiến trúc khi review PR này và các PR code; chưa có công cụ tự động.
+**Sprint 4 — lịch bếp (2026-10-31, PB-22).** Thêm vào module `slot`:
+- `KitchenPlanner`: hàm thuần (không đọc database) xếp các đơn vào khoảng làm 15 phút theo hạn sớm làm trước, làm sớm nhất có thể; trả lịch có kịp hay không, điểm dự kiến làm mỗi khoảng và khoảng bắt đầu của từng đơn. Test riêng bằng `KitchenPlannerTest`.
+- `KitchenPlanService`: dựng ảnh chụp lịch hôm nay (`Snapshot`) từ cấu hình, công suất riêng và các đơn `CONFIRMED`/`PREPARING`; dùng chung cho đặt đơn, walk-in, danh sách khung, màn quản lý và hàng chờ bếp.
+- `QuotaService.reserve(date, start, lines, walkIn)`: khóa chia sẻ `store_settings` → khóa lịch bếp của ngày → kiểm tra giới hạn quầy → đơn quá lớn → bếp còn kịp (Class Design mục 3).
 
-## Công cụ
-PlantUML, kiểu chung ở `../_style.iuml`; cách render như [Analysis Model](../Analysis-Model/README.md) mục Công cụ, đổi thư mục làm việc thành `Architecture`.
+API: `AdminDay` thêm `holdMinutes`, `preOrderSharePercent`, `pickupLimitOrders`; `AdminSlot` thêm `plannedPoints` (điểm bếp dự kiến làm trong khoảng) và `pickupOrders` (số đơn nhận trong khung). `PUT /api/admin/settings` nhận ba thông số cấu hình, bỏ qua trường nào thì giữ giá trị cũ.
 
-## Output chuyển giao
-- T-09: cột "Bảng sở hữu" ở mục 2.
-- T-10: tên class, tầng và quy tắc phụ thuộc ở mục 2; mã lỗi ở mục 5.3.
-- T-11: endpoint và dữ liệu ở mục 5 quyết định màn hình hiển thị được gì.
-- T-12 → T-22: hợp đồng API mục 5 là thỏa thuận giữa backend và frontend; sửa API thì sửa mục này trong cùng PR.
-- [CODING_CONVENTION.md](../../../03-SourceCodes/CODING_CONVENTION.md): quy ước tổ chức package lấy từ mục 2 và 6.
+Khi hoàn thiện v1, `Snapshot.fits` dùng cùng một lịch cho cả hai kênh theo BR-40. `KitchenOrder.prepareFrom` là giờ gợi ý theo BR-21, còn `startAllowedFrom` là mốc bắt đầu theo BR-39 (null cho walk-in). API bắt đầu có thể trả 409 `PREPARATION_TOO_EARLY` kèm mốc. `Dashboard.stats.quotaUsagePercent` = `plannedPoints / remainingCapacityPoints × 100`, làm tròn. `heldPoints` và `quotaPoints` giữ nghĩa tổng điểm đã giữ tại quầy và tổng công suất các khoảng trong giờ mở cửa.

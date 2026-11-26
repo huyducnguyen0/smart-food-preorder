@@ -16,7 +16,9 @@ import vn.nhom15.preorder.order.OrderSource;
  * @param slotEnd giờ kết thúc khung nhận
  * @param source nguồn đơn
  * @param confirmedAt thời điểm xác nhận
- * @param late đã qua giờ bắt đầu khung mà chưa xong (BR-26); chỉ để hiển thị
+ * @param late đơn trễ theo {@link vn.nhom15.preorder.order.LateRule} (BR-26); chỉ để hiển thị
+ * @param prepareFrom giờ gợi ý bắt đầu theo lịch bếp (BR-21)
+ * @param startAllowedFrom mốc sớm nhất được bắt đầu đơn đặt trước (BR-39); null nếu là walk-in
  * @param lines các món cần làm
  */
 public record KitchenOrder(
@@ -27,6 +29,8 @@ public record KitchenOrder(
         OrderSource source,
         OffsetDateTime confirmedAt,
         boolean late,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime prepareFrom,
+        @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDateTime startAllowedFrom,
         List<Line> lines) {
 
     /** Một món và số lượng cần làm. */

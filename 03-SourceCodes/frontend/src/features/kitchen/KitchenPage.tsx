@@ -26,14 +26,19 @@ function OrderCard({
   action,
   emphasis,
   busy,
+  serverTime,
   onAction,
 }: {
   order: KitchenOrder
   action: Action
   emphasis: boolean
   busy: boolean
+  serverTime: string
   onAction: (order: KitchenOrder, action: Action) => void
 }) {
+  const { startAllowedFrom } = order
+  const tooEarly =
+    action === 'start' && startAllowedFrom !== null && serverTime.slice(0, 16) < startAllowedFrom
   return (
     <li className={`k-card${order.late ? ' late' : ''}`}>
       <div className="k-card-head">
@@ -50,10 +55,17 @@ function OrderCard({
         ))}
       </ul>
       <span className="k-confirmed">Xác nhận {timeOf(order.confirmedAt)}</span>
+      {!emphasis && action === 'start' && (
+        <span className="k-wait">
+          {tooEarly
+            ? `Có thể bắt đầu từ ${timeOf(startAllowedFrom)}`
+            : `Theo lịch bếp: làm từ ${timeOf(order.prepareFrom)}`}
+        </span>
+      )}
       <button
         type="button"
         className={`btn k-action${emphasis ? ' btn-primary' : ''}`}
-        disabled={busy}
+        disabled={busy || tooEarly}
         aria-label={`${action === 'start' ? 'Bắt đầu' : 'Hoàn tất'} đơn ${order.pickupCode}`}
         onClick={() => onAction(order, action)}
       >
@@ -69,6 +81,7 @@ function Column({
   action,
   emphasis,
   busyId,
+  serverTime,
   onAction,
 }: {
   title: string
@@ -76,6 +89,7 @@ function Column({
   action: Action
   emphasis: boolean
   busyId: number | null
+  serverTime: string
   onAction: (order: KitchenOrder, action: Action) => void
 }) {
   return (
@@ -91,6 +105,7 @@ function Column({
             action={action}
             emphasis={emphasis}
             busy={busyId !== null}
+            serverTime={serverTime}
             onAction={onAction}
           />
         ))}
@@ -101,7 +116,7 @@ function Column({
 
 /**
  * UC-12.1 Hàng chờ bếp: đơn hôm nay chia ba nhóm Đang làm, Cần chuẩn bị, Sắp tới; đơn trễ có nhãn đỏ. Tự tải lại mỗi 30
- * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" ở đơn đã xác nhận (kể cả đơn sắp tới, BR-21) và "Hoàn tất" ở đơn đang làm
+ * giây và có nút "Tải lại". Bếp bấm "Bắt đầu" khi đơn vào cửa sổ làm (BR-21, BR-39) và "Hoàn tất" ở đơn đang làm
  * (UC-12.2). Đơn đổi trạng thái ở nơi khác thì báo và làm mới (E1).
  */
 export function KitchenPage() {
@@ -201,6 +216,7 @@ export function KitchenPage() {
             action="complete"
             emphasis
             busyId={busyId}
+            serverTime={queue.serverTime}
             onAction={handleAction}
           />
           <Column
@@ -209,6 +225,7 @@ export function KitchenPage() {
             action="start"
             emphasis
             busyId={busyId}
+            serverTime={queue.serverTime}
             onAction={handleAction}
           />
           <Column
@@ -217,6 +234,7 @@ export function KitchenPage() {
             action="start"
             emphasis={false}
             busyId={busyId}
+            serverTime={queue.serverTime}
             onAction={handleAction}
           />
         </div>

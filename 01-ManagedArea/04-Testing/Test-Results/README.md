@@ -66,3 +66,144 @@ Trước đó ghi là "Docker Desktop không khởi động". Nguyên nhân th�
 | `docker restart` container database | Đơn và 10 điểm giữ vẫn còn nguyên: dữ liệu bền, khác với PostgreSQL nhúng |
 
 Để thử được, tôi tạm đổi giờ đóng cửa trong database (lúc chạy là 22:29, quá 21:00) rồi trả về 21:00 và xóa đơn thử. Chưa chạy lại cả 131 ca trên database Docker; bộ test tự động vẫn dùng PostgreSQL nhúng.
+
+## Lượt 2026-10-28: Sprint 2
+Chạy trên nhánh `feature/sprint-2` (dựa trên PR #22, #23). Bảng ca: [BLACK_BOX_TEST_CASES_SPRINT_2.md](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_2.md).
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Java 25, PostgreSQL 18.6 nhúng trong test; Vite dev và backend dev cho phần chạy tay |
+| Backend | `./mvnw clean verify`: 399 test, **Passed 399**, Failed 0; Checkstyle sạch |
+| Frontend | `npm test`: 129 test, **Passed 129**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca black-box Sprint 2 (kèm T-29, T-30) | 61 ca, **Passed 61** |
+| NFR-01 hai kênh | TC-CON-08: 25 pre-order + 25 walk-in 3 điểm cùng lúc vào khung quota 20: đúng 6 đơn, giữ 18 điểm, khớp tổng điểm đơn |
+| Chạy tay trên trình duyệt thật | Đăng ký; quản lý thêm món; quota riêng một khung; quầy tạo đơn walk-in. Chưa chạy tay: khung gợi ý, các nhánh lỗi |
+
+**Lỗi phát hiện khi chạy và đã sửa:** 3 test cũ của trang đăng nhập (dạng `@WebMvcTest`) thiếu bean đăng ký mới; 1 test cũ chèn đơn walk-in thiếu người tạo (ràng buộc mới của V8 bắt được). Không có lỗi ở code tính năng.
+
+**Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
+
+## Lượt 2026-10-28: Sprint 3
+Chạy trên nhánh `feature/sprint-3` (dựa trên nhánh Sprint 2). Bảng ca: [BLACK_BOX_TEST_CASES_SPRINT_3.md](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_3.md).
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Java 25, PostgreSQL 18 nhúng trong test; backend dev và Vite dev cho phần chạy tay |
+| Backend | `./mvnw clean verify`: 427 test, **Passed 427**, Failed 0; Checkstyle sạch |
+| Frontend | `npm test`: 144 test, **Passed 144**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca black-box Sprint 3 | 28 ca (27 ca chức năng + TC-PERF-01), **Passed 28**. TC-MY-05 còn treo từ Sprint 1 nay được kiểm bằng TC-STC-01 và test frontend |
+| Chạy tay trên trình duyệt thật | Khách đặt rồi hủy đơn; đơn thứ hai được bếp làm xong qua API, trang khách **tự** hiện "đã sẵn sàng" sau một lượt 15 giây; màn Theo dõi đúng số (đơn hủy đã trả điểm); quản lý tạo rồi khóa tài khoản quầy, tài khoản bị khóa đăng nhập nhận `ACCOUNT_LOCKED`. Chưa chạy tay: hủy và no-show ở màn Quầy |
+
+**NFR-04 (TC-PERF-01)**, lượt verify cuối cùng (số thay đổi chút ít giữa các lần chạy; lần chạy riêng trước đó p95 đặt đơn 270 ms):
+
+| Yêu cầu | Số mẫu | p50 | p95 | Lớn nhất |
+|---|---|---|---|---|
+| `GET /api/menu` | 500 | 6 ms | 48 ms | 160 ms |
+| `POST /api/orders` | 100 | 78 ms | 155 ms | 162 ms |
+| `GET /api/kitchen/queue` | 500 | 15 ms | 70 ms | 157 ms |
+| `POST /api/counter/orders/{id}/handover` | 100 | 14 ms | 37 ms | 39 ms |
+
+Mọi yêu cầu trả thành công (200/201); p95 mọi loại dưới ngưỡng 1 giây. **Giới hạn của số đo:** client, server và database chạy chung một máy phát triển, database nhúng, không qua mạng; có làm nóng 20 lượt trước khi đo. Đây là bằng chứng ở môi trường dev, chưa phải "môi trường được công bố" mà NFR-04 nói tới; đo lại khi có máy chủ triển khai.
+
+**Lỗi phát hiện khi chạy và đã sửa:**
+- Test cũ `OrderingPropertiesTest` thiếu thuộc tính mới `no-show-grace-minutes` (cấu hình thiếu thì Spring gán 0).
+- 4 dòng vượt 120 ký tự (Checkstyle).
+- **Lỗi thật ở giao diện, có từ Sprint 1**, phát hiện khi chạy tay: đăng xuất khi đang ở trang chỉ khách vào được (ví dụ `/orders/2`) thì người đăng nhập tiếp theo với vai trò khác bị đưa tới "Không có quyền". Đã sửa (chuyển trang trước rồi mới đăng xuất) và kiểm lại trên trình duyệt; chưa có test tự động cho lỗi này.
+
+**Giới hạn:** ca test viết cùng lúc với code bởi cùng AI; chưa ai khác chạy lại hay review; chưa chạy qua `docker compose` cho lượt này.
+
+## Lượt 2026-10-28: chạy toàn hệ thống bằng Docker (chuẩn bị phát hành)
+Nhánh `release/v1-prep` (dựa trên nhánh Sprint 3). Mục đích: kiểm tra bản đóng gói chạy được trọn vẹn, không thay cho bộ test tự động ở lượt Sprint 3.
+
+| Mục | Kết quả |
+|---|---|
+| Môi trường | Windows 11, Docker Engine 29.6.2; image `eclipse-temurin:25`, `node:24-alpine`, `nginx:1.29-alpine`, `postgres:18-alpine` |
+| Build và khởi động | `docker compose --profile app up -d --build --wait`: cả ba container chạy, `backend` `healthy`. Database dev có sẵn (schema V5) được Flyway nâng lên V9 khi backend khởi động |
+| Đường đi qua nginx (cổng 8000) | `/api/health` trả `UP`, schema 9; mở thẳng `/orders/2` trả trang React (định tuyến phía trình duyệt) |
+| Vòng đời đơn qua HTTP | Script thử 14 bước qua cổng 8000: khách đăng nhập, xem menu, đặt đơn; bếp bắt đầu, hoàn tất; khách thấy `READY`; quầy thu tiền mặt, bàn giao đúng mã; đặt đơn thứ hai rồi khách hủy; quản lý xem theo dõi và nhân viên; khách bị chặn ở API quản lý (403); đăng xuất. **14/14 đúng** |
+| Giữ dữ liệu | Khởi động lại container `backend`: đơn đã tạo vẫn còn (database ở volume `pgdata`) |
+| Trình duyệt | Quản lý đăng nhập qua cổng 8000, mở thẳng `/admin` vẫn giữ phiên, số liệu khớp (1 đã nhận, 1 đã hủy) |
+| Kích thước image | backend 531 MB, frontend 94 MB |
+
+**Lỗi phát hiện và đã sửa:** healthcheck của backend ban đầu chạy bằng `sh` (không hỗ trợ `/dev/tcp`) nên container bị báo `unhealthy` dù backend chạy đúng; đổi sang `bash`.
+
+**Giới hạn:** script thử 14 bước chạy tay, chưa đưa vào repository; chưa thử chế độ không có dữ liệu mẫu (`FLYWAY_LOCATIONS`); không có HTTPS; chưa chạy trên máy khác ngoài máy phát triển.
+
+### Bổ sung 2026-10-28: chế độ triển khai không có dữ liệu mẫu, dữ liệu demo
+Khi rà soát database theo yêu cầu của người dùng, phát hiện chế độ triển khai không nạp dữ liệu mẫu (`FLYWAY_LOCATIONS=classpath:db/migration`, hướng dẫn ở lượt trên) **không dùng được**: không có tài khoản quản lý nào và không có dòng cấu hình cửa hàng. Đã sửa bằng migration V10 (cấu hình cửa hàng mặc định) và tạo quản lý đầu tiên từ biến môi trường `INITIAL_MANAGER_*` lúc khởi động (BR-32), kèm 5 test (`InitialManagerProvisionerTest`) trên PostgreSQL thật không có dữ liệu mẫu. Backend `./mvnw clean verify`: **432 test, Passed 432**, Checkstyle sạch. Một test cũ (`SlotRepositoryTest`) giả định database không dữ liệu mẫu thì thiếu cấu hình cửa hàng; đã sửa test để tự xóa dòng cấu hình trước khi kiểm nhánh lỗi.
+
+| Kiểm tra | Kết quả |
+|---|---|
+| Project Docker riêng, database mới, không dữ liệu mẫu (cổng 8001, xóa sau khi thử) | 10 migration; log "Đã tạo tài khoản quản lý đầu tiên"; quản lý đăng nhập được; tài khoản mẫu `khach1` không tồn tại (401); khung hôm nay có từ cấu hình V10; quản lý tạo được tài khoản quầy; khách tự đăng ký được |
+| Khởi động lại với `INITIAL_MANAGER_*` khác | Không tạo quản lý thứ hai |
+| Database có sẵn của người dùng (cổng 8000) | Nâng lên V10, dữ liệu giữ nguyên, không tạo thêm quản lý |
+| Nhóm món khi không có dữ liệu mẫu | Ban đầu không có nhóm nào nên quản lý không thêm được món. Người dùng quyết định (2026-10-28): luôn có nhóm "Món khác"; đã thêm migration V11 và thử lại (dòng dưới) |
+| `scripts/demo-data.sh` trên project riêng có dữ liệu mẫu (cổng 8002, xóa sau khi thử; giờ đóng cửa dời sang 23:45 vì lúc thử đã gần 21:00) | 21/21 bước OK: 9 đơn ở đủ trạng thái; lý do hủy tiếng Việt lưu đúng; màn theo dõi đếm 7 pre-order, 2 walk-in, 1 đã nhận, 2 đã hủy |
+| Lần chạy đầu của script trên database của người dùng | Script tự dồn 21 điểm vào một khung quota 20; hệ thống **từ chối đúng** đơn thứ ba; đã sửa script (giảm điểm, bỏ qua các bước sau của đơn đặt hỏng). Database local của người dùng giữ 8 đơn demo của lần chạy này |
+
+**Quan sát và quyết định:** đơn walk-in xếp vào khung hiện tại (đã bắt đầu) nên bị gắn "Trễ" ngay khi tạo. Người dùng quyết định (2026-10-28): walk-in chỉ trễ từ giờ kết thúc khung. Đã sửa BR-26 trong SRS, gom quy tắc trễ của hàng chờ bếp và màn theo dõi về một chỗ (`LateRule`), thêm TC-LATE-01, 02 và TC-MNG-09. Backend `./mvnw clean verify`: **437 test, Passed 437**, Checkstyle sạch.
+
+**Thử lại chế độ triển khai thật sau V11** (project Docker riêng, database mới, cổng 8001, xóa sau khi thử): 11 migration; quản lý đầu tiên được tạo; danh sách nhóm chỉ có "Món khác"; quản lý thêm món "Bánh mì trứng" vào nhóm đó, khách vãng lai thấy món trên thực đơn; khách tự đăng ký; quản lý tạo tài khoản bếp; khách đặt 2 phần; bếp bắt đầu, hoàn tất; thu tiền mặt, bàn giao đúng mã; khách thấy "đã nhận" tổng 40.000đ; màn theo dõi đếm 1 đơn đã nhận. **14/14 đúng.** Giờ đóng cửa được dời sang 23:45 bằng chức năng của quản lý vì lúc thử đã 20:57. Database của người dùng (cổng 8000) lên V11, có thêm nhóm "Món khác", 10 đơn cũ giữ nguyên.
+
+**Lưu ý khi thử bằng `curl` trên Git Bash:** gõ tiếng Việt trực tiếp trong lệnh có thể không được gửi dạng UTF-8 (ví dụ tên thành "Qu?y"); gửi bằng file UTF-8 thì đúng. Đây là lỗi của cách thử, không phải của ứng dụng; script demo gửi bằng file.
+
+## Lượt 2026-10-31: review luồng sản phẩm và sửa lỗi
+Nhánh `fix/review-findings` (dựa trên `release/v1-prep`). Người dùng yêu cầu review lại thiết kế luồng, backend, database; AI đọc lại toàn bộ code backend, đối chiếu tài liệu, chạy thử những chỗ nghi ngờ bằng một test tạm (đã xóa), rồi sửa theo đề xuất người dùng đồng ý.
+
+**Lỗi tìm thấy** (đều đã tái hiện bằng chạy thật trước khi sửa, trừ ghi chú):
+| # | Lỗi | Cách tái hiện | Sửa |
+|---|---|---|---|
+| ① | Khách đặt 3 đơn, cửa hàng không xử lý, sang hôm sau khách bị chặn đặt đơn mới, không tự hủy được, và màn quầy, bếp, theo dõi đều không thấy 3 đơn đó | Dời đồng hồ sang hôm sau | BR-37 chỉ đếm đơn từ hôm nay; màn quầy có mục "Đơn tồn từ ngày trước"; màn theo dõi nhắc |
+| ② | Quầy thu tiền đơn đặt trước khi còn "đã xác nhận", khách vẫn tự hủy được, đơn biến mất khỏi màn quầy nên không ai biết phải hoàn tiền | Thu tiền rồi khách hủy | Khách không tự hủy đơn đã thanh toán (BR-23 sửa đổi) |
+| ③ | Khóa tài khoản nhân viên không có tác dụng với màn đang mở (màn quầy, bếp tự làm mới nên phiên không hết hạn) | Đọc code; sau khi sửa đã thử trên ứng dụng thật: khóa bếp đang mở màn → yêu cầu kế tiếp 401 | Kiểm tra tài khoản ở mỗi yêu cầu đã đăng nhập |
+| ④ | Quản lý rút giờ đóng cửa đúng lúc khách đặt khung cuối: đơn vẫn được tạo ngoài giờ mới | Lúc review đánh giá "hiếm, chưa tái hiện"; TC-FIX-06 cho thấy xảy ra ngay vòng đầu khi chưa sửa | Khóa cấu hình trước khi kiểm tra khung |
+| ⑤ | Bếp bắt đầu đơn khung 20:00 từ 11:00 làm khách mất quyền tự hủy | Bếp bấm sớm rồi khách hủy | Bếp chỉ bắt đầu từ thời gian chuẩn bị (BR-21 sửa đổi) |
+
+Trong lúc sửa còn phát hiện chính bản sửa ③ ban đầu vi phạm quy tắc kiến trúc (module `config` gọi thẳng repository của `auth`); đã đổi sang gọi `AuthService`.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `./mvnw clean verify`: **444 test, Passed 444**; Checkstyle sạch. 15 test cũ sửa theo quy tắc mới (mục Test Cases) |
+| Frontend | **149 test, Passed 149**; `tsc -b`, `oxlint`, `prettier --check`, `npm run build` sạch |
+| Ca mới | TC-FIX-01 → 07 Passed; test frontend đơn đã thanh toán, đơn tồn, cảnh báo đơn tồn |
+| Chạy thật (backend với PostgreSQL nhúng, cổng 8080) | `scripts/demo-data.sh` đã sửa: 23/23 bước đúng; khóa tài khoản bếp đang mở màn: 401 ngay |
+| NFR-04 (lượt verify cuối) | p95: xem menu 214 ms, đặt đơn 448 ms, hàng chờ bếp 296 ms, bàn giao 94 ms; vẫn dưới 1 giây nhưng cao hơn lượt Sprint 3 (48, 155, 70, 37 ms) |
+
+**Giới hạn:** số đo NFR-04 lần này chạy khi một backend thử khác cũng đang chạy trên máy; ngoài ra mỗi yêu cầu đã đăng nhập thêm một truy vấn kiểm tra tài khoản (sửa ③). Chưa tách được hai nguyên nhân; nên đo lại trên máy rảnh. Docker Desktop tắt trong lượt này nên chưa chạy lại bản Docker.
+
+### Bổ sung 2026-10-31: khôi phục làm trước, hạn tự hủy hiển thị cho khách
+Người dùng chỉ ra quy tắc "bếp chỉ bắt đầu từ 15 phút trước khung" (sửa ⑤ ở trên) làm dồn việc vào giờ đông, walk-in không được phục vụ. Đã khôi phục: bếp làm trước được; khách tự hủy khi cửa hàng chưa bắt đầu làm, chậm nhất 15 phút trước giờ nhận; chi tiết đơn có `cancelDeadline`, trang đơn ghi rõ điều kiện. Bỏ mã lỗi `PREPARATION_TOO_EARLY`. Phân tích sâu hơn và mô phỏng: [02-FreeZone/2026-10-31_lich-bep](../../../02-FreeZone/2026-10-31_lich-bep/README.md); thay đổi mô hình quota làm ở Sprint 4.
+
+## Lượt 2026-10-31: Sprint 4 — lịch bếp (PB-22)
+Nhánh `feature/sprint-4` (dựa trên `fix/review-findings`). Môi trường: Windows 11, Java 25, PostgreSQL 18.6 nhúng trong test; Node cho frontend. Docker Desktop tắt nên chưa chạy bản Docker.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `./mvnw clean verify`: **442 test, Passed 442**, Failed 0; Spotless và Checkstyle sạch (0 vi phạm). Bỏ `QuotaDatabaseTest` (kiểm câu SQL giữ quota cũ, không còn); thêm `KitchenPlannerTest` 8, `Sprint4KitchenPlanBlackBoxTest` 8; viết lại `QuotaServiceTest` (9) |
+| Frontend | `npm test`: **150 test, Passed 150**; `npm run build` thành công |
+| Ca mới | TC-PLAN-01 → 08 Passed ([Sprint 4](../Test-Cases/BLACK_BOX_TEST_CASES_SPRINT_4.md)); 5 ca cũ đổi nội dung theo quy tắc mới, Passed |
+| Độ phủ lịch bếp | `KitchenPlanner` 36/36 dòng, 27/28 nhánh; `KitchenPlanService` 48/48 dòng, 22/24 nhánh; `QuotaService` 31/32 dòng, 15/16 nhánh ([white-box](../Test-Cases/WHITE_BOX_QUOTA.md) mục 8) |
+| NFR-04 (50 người dùng đồng thời) | p95: xem menu 123 ms, đặt đơn 583 ms, hàng chờ bếp 263 ms, bàn giao 45 ms; dưới 1 giây |
+
+**Nhận xét NFR-04:** đặt đơn chậm hơn lượt trước (448 ms) vì các lần nhận đơn trong cùng ngày nay xếp hàng qua khóa lịch bếp và mỗi lần dựng lại lịch. Vẫn đạt yêu cầu dưới 1 giây; chưa đo trên máy rảnh nên số này chỉ để so sánh tương đối.
+
+**Chưa chạy:** thử tay trên trình duyệt với Docker; `scripts/demo-data.sh` dưới cấu hình mặc định mới (quầy 8 đơn, đặt trước 70%) chưa chạy lại.
+
+## Lượt 2026-11-26 — v1.0.0
+
+Kiểm thử trên Windows 11 với Java 25, PostgreSQL 18 nhúng cho backend và Node.js 25 cho frontend. Demo tích hợp chạy qua nginx, Spring Boot và PostgreSQL 18 trong Docker Compose project riêng. Trình duyệt Chromium được điều khiển qua Playwright với bốn phiên đăng nhập độc lập.
+
+| Mục | Kết quả |
+|---|---|
+| Backend | `mvnw.cmd -o verify`: **443 test Passed**, 0 lỗi, Spotless và Checkstyle đạt |
+| Frontend | **151 test Passed**, format, lint, kiểm kiểu và build đạt |
+| Lịch bếp | TC-PLAN-01 đến 09 Passed. Ca mới: walk-in 18 điểm + pre-order 22 điểm, từ chối đơn 22 điểm và nhận đơn 16 điểm. Bếp bị chặn lúc 11:14 khi mốc cho phép là 11:15 |
+| Tranh công suất qua Docker | Với một khoảng làm có 10 điểm, gửi cùng lúc pre-order 5 điểm và walk-in 8 điểm. Một lệnh 201, lệnh kia 409 `SLOT_FULL` |
+| Trình duyệt | Khách đặt trước qua giỏ và trang chọn giờ. Quầy báo giờ, thu tiền và xác nhận walk-in. Bếp bắt đầu và hoàn tất hai đơn. Trang đơn của khách tự hiện `READY`. Quản lý thấy lịch bếp và số đơn đã bàn giao |
+| Bàn giao | API từ chối đúng mã khi chưa trả tiền. Trình duyệt ghi nhận tiền mặt, từ chối mã sai, chấp nhận đúng mã và chuyển sang `PICKED_UP` |
+| Dữ liệu demo | `scripts/demo-data.sh` tạo 9 đơn và thực hiện thành công 21 bước trên cấu hình mặc định |
+| Khởi động lại | Dừng rồi khởi động lại ba container, giữ volume. API health trả UP, schema V12, số đơn trước và sau đều là 12 |
+| NFR-04 | Lượt nhánh tích hợp với 50 người dùng đồng thời: p95 menu 231 ms, đặt 590 ms, bếp 110 ms, bàn giao 63 ms |
+
+Các phép đo dùng môi trường thử nghiệm của dự án. Mốc 45 phút, 70%, 20 điểm và 8 đơn là cấu hình của mô hình học phần, chưa đo tại cửa hàng.
+

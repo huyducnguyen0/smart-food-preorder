@@ -5,7 +5,7 @@ import type { CurrentUser } from '../api/auth'
 import { AuthContext, type AuthContextValue } from '../features/auth/authContext'
 import { CartProvider } from '../features/cart/CartProvider'
 
-type AuthOverrides = Partial<Pick<AuthContextValue, 'signIn' | 'signOut'>> & {
+type AuthOverrides = Partial<Pick<AuthContextValue, 'signIn' | 'signUp' | 'signOut'>> & {
   status?: AuthContextValue['status']
   user?: CurrentUser | null
 }
@@ -26,6 +26,7 @@ export function renderWithAuth(
     status,
     user,
     signIn: auth.signIn ?? (() => Promise.reject(new Error('signIn chưa được giả lập'))),
+    signUp: auth.signUp ?? (() => Promise.reject(new Error('signUp chưa được giả lập'))),
     signOut: auth.signOut ?? (() => Promise.resolve()),
   } as AuthContextValue
 

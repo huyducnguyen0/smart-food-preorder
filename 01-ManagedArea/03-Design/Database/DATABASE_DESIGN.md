@@ -1,5 +1,5 @@
 # Database Design
-Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cột cho hủy, thanh toán, bàn giao, walk-in thêm ở Sprint sau (mục 5).
+Trạng thái: Lập ở task T-09 (Sprint 1) ngày 2026-10-17 cho các bảng Sprint 1: tài khoản, món, cấu hình giờ mở cửa/quota, khung, đơn, dòng đơn; người dùng chưa review. Cập nhật ngày 2026-10-31 (Sprint 4, lịch bếp) đến migration V12. Cập nhật ngày 2026-10-28 (chuẩn bị phát hành) cho khớp database thật đến migration V11: các cột thanh toán, bàn giao, walk-in, hủy, no-show của `orders` (mục 2) đã đối chiếu với schema đang chạy trong Docker.
 
 Bước 13.1 của [quy trình IT3180](../../../00-References/IT3180_PROJECT_PROCESS.md): từ mô hình khái niệm (thực thể, thuộc tính, quan hệ) sang mô hình logic (bảng, khóa chính, khóa ngoại).
 
@@ -73,7 +73,10 @@ Món đặt được khi `available AND NOT discontinued`. Không có thao tác 
 | `id` | smallint | PK, CHECK `id = 1` | Bảng chỉ có một dòng |
 | `open_time` | time | NOT NULL | Giờ mở cửa (BR-06) |
 | `close_time` | time | NOT NULL, CHECK `open_time < close_time` | Giờ đóng cửa. Khung cuối kết thúc không muộn hơn giờ này |
-| `default_quota_points` | integer | NOT NULL, CHECK ≥ 0 | Quota mặc định mỗi khung (BR-07) |
+| `default_quota_points` | integer | NOT NULL, CHECK ≥ 0 | Từ Sprint 4: **công suất bếp** mặc định mỗi khoảng làm 15 phút (BR-07). Trước đó: quota mặc định mỗi khung |
+| `hold_minutes` | integer | NOT NULL, mặc định 45, CHECK > 0 | Làm trước tối đa bao lâu so với giờ nhận (BR-39); service yêu cầu ≥ độ dài khung (15 phút) |
+| `preorder_share_percent` | integer | NOT NULL, mặc định 70, CHECK 0–100 | Phần công suất mỗi khoảng làm cho đơn đặt trước (BR-40) |
+| `pickup_limit_orders` | integer | NOT NULL, mặc định 8, CHECK ≥ 1 | Số đơn tối đa mỗi khung nhận (BR-41) |
 | `updated_at` | timestamptz | NOT NULL | |
 
 Giờ mở/đóng cửa phải rơi đúng mốc 15 phút (BR-06). Điều kiện này phụ thuộc độ dài khung trong cấu hình hệ thống, nên kiểm ở service khi quản lý sửa (PB-04), không đặt `CHECK`. Không hỗ trợ mở cửa qua nửa đêm.
@@ -84,12 +87,13 @@ Giờ mở/đóng cửa phải rơi đúng mốc 15 phút (BR-06). Điều kiệ
 | `id` | bigint | PK | |
 | `slot_date` | date | NOT NULL | Ngày theo giờ cửa hàng |
 | `start_time` | time | NOT NULL | Giờ bắt đầu khung, đúng mốc :00/:15/:30/:45 (BR-06) |
-| `quota_override` | integer | CHECK ≥ 0 | Quota riêng của khung; `NULL` = dùng quota mặc định (BR-07) |
-| `held_points` | integer | NOT NULL, mặc định 0, CHECK ≥ 0 | Tổng điểm các đơn đang giữ quota của khung (BR-09, BR-14) |
+| `quota_override` | integer | CHECK ≥ 0 | Từ Sprint 4: công suất bếp riêng của khoảng làm bắt đầu lúc `start_time`; `NULL` = công suất mặc định (BR-07) |
+| `held_points` | integer | NOT NULL, mặc định 0, CHECK ≥ 0 | Tổng điểm các đơn nhận trong khung còn giữ chỗ (BR-14). Từ Sprint 4 chỉ để thống kê và đối chiếu, không còn là giới hạn |
 | | | UNIQUE (`slot_date`, `start_time`) | Mỗi khung một dòng; cũng là chỉ mục để tìm khung của một ngày |
-| | | CHECK `quota_override IS NULL OR held_points <= quota_override` | Lưới an toàn cho BR-09 khi có quota riêng |
 
 Giờ kết thúc khung = `start_time` + độ dài khung trong cấu hình, không lưu.
+
+Một dòng `time_slots` có **hai vai** từ Sprint 4 (2026-10-31): là **khung nhận** của khách (`held_points`, các đơn trỏ tới) và là **khoảng làm** của bếp cùng giờ (`quota_override`). Ràng buộc `ck_time_slots_held_within_override` bị bỏ ở V12 vì điểm nhận trong khung không còn bị chặn bởi công suất của chính khoảng đó (bếp làm trước ở các khoảng sớm hơn). Giữ tên cột cũ để không phải chuyển dữ liệu.
 
 ### `orders` (module `order`)
 | Cột | Kiểu | Ràng buộc | Ý nghĩa, quy tắc |
@@ -108,6 +112,12 @@ Giờ kết thúc khung = `start_time` + độ dài khung trong cấu hình, kh�
 | `confirmed_at` | timestamptz | NOT NULL | Thời điểm xác nhận; dùng để sắp hàng chờ bếp (BR-22) |
 | `preparing_at`, `preparing_by` | timestamptz, bigint FK → `user_accounts` | | Bếp bắt đầu (UC-12 bước 5) |
 | `ready_at`, `ready_by` | timestamptz, bigint FK → `user_accounts` | | Bếp hoàn tất (UC-12 bước 7) |
+| `paid_at`, `paid_by` | timestamptz, bigint FK → `user_accounts` | | Quầy ghi nhận thanh toán (UC-08; V6) |
+| `picked_up_at`, `picked_up_by` | timestamptz, bigint FK → `user_accounts` | | Quầy bàn giao (UC-09; V7) |
+| `created_by` | bigint FK → `user_accounts` | | Nhân viên nhập đơn walk-in (UC-07; V8) |
+| `cancelled_at`, `cancelled_by` | timestamptz, bigint FK → `user_accounts` | | Người hủy: khách (UC-06) hoặc cửa hàng (UC-11) (V9) |
+| `cancel_reason` | varchar(500) | | Lý do cửa hàng hủy, khách đọc được (BR-24); khách tự hủy thì để trống (V9) |
+| `no_show_at`, `no_show_by` | timestamptz, bigint FK → `user_accounts` | | Đánh dấu không đến nhận (UC-10; V9) |
 
 Ràng buộc nhiều cột:
 | Tên | Điều kiện | Quy tắc |
@@ -117,8 +127,15 @@ Ràng buộc nhiều cột:
 | `ck_orders_payment` | `(payment_status = 'PAID') = (payment_method IS NOT NULL)` | BR-27 |
 | `ck_orders_preparing` | `(preparing_at IS NULL) = (preparing_by IS NULL)` | Có thời điểm thì có người thực hiện |
 | `ck_orders_ready` | `(ready_at IS NULL) = (ready_by IS NULL)` | Như trên |
+| `ck_orders_paid_audit` | `(paid_at IS NULL) = (paid_by IS NULL)` và `PAID` khi và chỉ khi có `paid_at` | BR-27; V6 |
+| `ck_orders_picked_up_audit`, `ck_orders_cancelled_audit`, `ck_orders_no_show_audit` | Có thời điểm thì có người thực hiện | V7, V9 |
+| `ck_orders_cancel_reason` | `cancel_reason IS NULL OR cancelled_at IS NOT NULL` | Lý do chỉ có ở đơn đã hủy; V9 |
+| `ck_orders_walk_in_creator` | `source <> 'WALK_IN' OR created_by IS NOT NULL` | Walk-in luôn ghi nhân viên tạo; V8 |
+| `uq_orders_walk_in_request_id` | UNIQUE (`request_id`) chỉ với dòng `source = 'WALK_IN'` (chỉ mục một phần) | NFR-02 cho walk-in: gửi lại cùng mã yêu cầu không tạo đơn thứ hai; V8 |
 
-Chỉ mục: `ix_orders_customer_id` (đơn của tôi, đếm đơn chưa kết thúc cho BR-37), `ix_orders_time_slot_id` (hàng chờ bếp theo ngày, đơn của một khung).
+Chỉ mục: `ix_orders_customer_id` (đơn của tôi, đếm đơn chưa kết thúc cho BR-37), `ix_orders_time_slot_id` (hàng chờ bếp theo ngày, đơn của một khung). Bảng `menu_items` có `ix_menu_items_category_id` (món theo nhóm, tạo ở V4).
+
+Các cột "ai, lúc nào" của mỗi bước nằm ngay trong `orders` thay vì một bảng lịch sử trạng thái riêng: mỗi bước xảy ra tối đa một lần với một đơn nên đủ để truy vết. Nếu sau này cho phép một bước lặp lại (ví dụ sửa đơn nhiều lần), cần bảng lịch sử riêng. Thanh toán cũng nằm trong `orders` (không có bảng `payments`): hệ thống chỉ ghi nhận một lần thu đủ tiền mỗi đơn, hoàn tiền làm ngoài hệ thống (BR-27, BR-30); cần bảng riêng khi có thanh toán online, hoàn tiền hoặc thu nhiều lần. Giỏ hàng không có bảng: giỏ là nháp lưu trên trình duyệt (quyết định 2026-10-10, UC-04 Ghi chú), chỉ thành dữ liệu khi khách xác nhận đặt.
 
 **Mã nhận duy nhất trên toàn bảng**, chặt hơn BR-38 ("không trùng trong cùng ngày"). Lý do: ràng buộc theo ngày cần thêm cột ngày vào `orders` (ngày đã nằm ở `time_slots`), còn duy nhất toàn bảng thì đơn giản và vẫn thỏa BR-38. Có 31⁶ ≈ 887 triệu mã, đủ dùng rất lâu cho một cửa hàng.
 
@@ -139,17 +156,18 @@ Các bảng đạt dạng chuẩn 3 (3NF): mỗi cột không khóa phụ thuộ
 |---|---|
 | `order_lines.item_name`, `unit_price` (đã có ở `menu_items`) | Là giá trị **tại thời điểm đặt**, khác ý nghĩa với giá hiện tại (BR-35) |
 | `orders.workload_points` (tính được từ dòng đơn × điểm món) | Điểm món có thể đổi sau đó; BR-08 yêu cầu lưu |
-| `time_slots.held_points` (tính được từ tổng điểm đơn) | Cần cho giữ quota không chen ngang (mục 3) |
+| `time_slots.held_points` (tính được từ tổng điểm đơn) | Trước Sprint 4 là chỗ khóa khi giữ quota; nay giữ cho thống kê màn quản lý và đối chiếu trong test |
 
 ## 3. Bất biến dữ liệu và cách bảo vệ
 | Bất biến | Bảo vệ bởi |
 |---|---|
-| Tổng điểm đang giữ của khung ≤ quota của khung (BR-09, NFR-01) | Câu `UPDATE` có điều kiện trên dòng `time_slots` trong giao dịch đặt đơn ([Class Design](../Class-Design/README.md) mục 3); thêm `CHECK` khi có quota riêng |
-| `held_points` = tổng `workload_points` của các đơn đang giữ quota | Chỉ `QuotaService` cộng/trừ, trong cùng giao dịch với tạo/hủy đơn (BR-10). Kiểm bằng truy vấn đối chiếu trong test T-16 |
+| Không có đơn mở nằm ngoài giờ mở cửa (BR-11) | Đặt đơn và walk-in lấy khóa chia sẻ dòng `store_settings` trước khi kiểm tra khung; đổi giờ lấy khóa ghi rồi mới đếm đơn (2026-10-31) |
+| Các đơn còn phải làm luôn xếp được lịch, không khoảng làm nào vượt công suất; số đơn mỗi khung nhận ≤ giới hạn quầy (BR-09, BR-41, NFR-01) | Mọi lần nhận đơn và đổi cấu hình của một ngày lấy khóa `pg_advisory_xact_lock(1501, số ngày)` rồi mới dựng lịch và kiểm tra ([Class Design](../Class-Design/README.md) mục 3). Không biểu diễn được bằng `CHECK` vì là điều kiện trên nhiều dòng (2026-10-31) |
+| `held_points` = tổng `workload_points` của các đơn đang giữ quota (mọi đơn trừ đơn hủy từ `CONFIRMED`, nhận biết bằng `status = 'CANCELLED' AND preparing_at IS NULL`) | Chỉ `QuotaService` cộng/trừ, trong cùng giao dịch với tạo/hủy đơn (BR-10). Kiểm bằng truy vấn đối chiếu trong test (`assertHeldMatchesOrders`) |
 | Một mã yêu cầu tạo tối đa một đơn (BR-17, NFR-02) | Khóa dòng tài khoản khi đặt + `uq_orders_customer_id_request_id` làm lưới an toàn |
-| Tối đa N đơn chưa kết thúc mỗi khách (BR-37) | Khóa dòng tài khoản khi đặt rồi mới đếm |
+| Tối đa N đơn chưa kết thúc mỗi khách (BR-37), chỉ tính đơn có khung từ hôm nay (2026-10-31) | Khóa dòng tài khoản khi đặt rồi mới đếm (nối `time_slots` để lọc ngày) |
 | Mã nhận không trùng (BR-38) | `UNIQUE` + `CHECK` định dạng |
-| Chỉ chuyển trạng thái hợp lệ (SRS B.5) | `UPDATE … WHERE id = ? AND status = <trạng thái nguồn>` trong `OrderStatusService`; không thấy dòng nào bị đổi thì báo `INVALID_STATUS_TRANSITION` |
+| Chỉ chuyển trạng thái hợp lệ (SRS B.5) | `UPDATE … WHERE id = ? AND status = <trạng thái nguồn>` trong `OrderStatusService`, hoặc khóa dòng đơn rồi kiểm tra trong `OrderCancellationService` và lần bếp bắt đầu; không thấy dòng nào bị đổi thì báo `INVALID_STATUS_TRANSITION` |
 
 Ràng buộc trong database là lớp phòng vệ cuối: code đúng thì không bao giờ chạm tới, code sai thì bị chặn thay vì âm thầm ghi dữ liệu hỏng.
 
@@ -173,17 +191,23 @@ Mỗi bảng tạo trong task đầu tiên cần nó, bằng migration Flyway ri
 | `V3__create_slots.sql` | T-16 | `store_settings`, `time_slots` |
 | `V4__create_menu.sql` | T-15 | `menu_categories`, `menu_items` |
 | `V5__create_orders.sql` | T-18 | `orders`, `order_lines` |
+| `V6__order_payment.sql` | T-29 | `orders.paid_at`, `paid_by`, ràng buộc `ck_orders_paid_audit` |
+| `V7__order_handover.sql` | T-30 | `orders.picked_up_at`, `picked_up_by`, ràng buộc `ck_orders_picked_up_audit` |
+| `V11__default_menu_category.sql` | Chuẩn bị phát hành | Nhóm "Món khác" (xếp cuối) luôn có, để quản lý luôn có nhóm để thêm món khi không nạp dữ liệu mẫu (quyết định 2026-10-28) |
+| `V12__kitchen_plan.sql` | Sprint 4 (PB-22) | `store_settings.hold_minutes`, `preorder_share_percent`, `pickup_limit_orders` kèm `CHECK`; bỏ `ck_time_slots_held_within_override`; ghi chú nghĩa mới của cột cũ |
+| `V10__default_store_settings.sql` | Chuẩn bị phát hành | Dòng `store_settings` mặc định (10:00–21:00, quota 20): cấu hình bắt buộc, phải có cả khi triển khai không nạp dữ liệu mẫu |
+| `V9__order_cancel_no_show.sql` | Sprint 3 (PB-10, PB-21, PB-18) | `orders.cancelled_at`, `cancelled_by`, `cancel_reason` (≤ 500 ký tự), `no_show_at`, `no_show_by`; ràng buộc có thời điểm thì có người (`ck_orders_cancelled_audit`, `ck_orders_no_show_audit`), lý do chỉ có khi đã hủy (`ck_orders_cancel_reason`) |
+| `V8__walk_in_orders.sql` | Sprint 2 (PB-11) | `orders.created_by` (walk-in bắt buộc có), chỉ mục duy nhất `uq_orders_walk_in_request_id` (`request_id` của walk-in, NFR-02) |
 
 Số phiên bản dịch theo thứ tự task thực tế: T-16 (giữ quota) làm trước T-15 (menu) nên bảng khung giờ là V3 và bảng menu là V4. Quy tắc: số phiên bản tăng dần theo thứ tự merge và không sửa migration đã chạy (Flyway từ chối chạy migration có số nhỏ hơn số đã áp dụng).
 
-**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
+**Dữ liệu mẫu** (tài khoản, menu, giờ mở cửa, quota) dùng cho môi trường local và demo, không phải dữ liệu thật. Triển khai không nạp dữ liệu mẫu thì: cấu hình cửa hàng có từ V10, nhóm "Món khác" từ V11; quản lý đầu tiên do backend tạo lúc khởi động từ biến môi trường `INITIAL_MANAGER_*` khi chưa có quản lý nào (BR-32); mọi dữ liệu khác do quản lý nhập. Quyết định ở T-12: dữ liệu mẫu nằm ở thư mục Flyway riêng `db/seed`, dưới dạng migration lặp `R__<mô_tả>.sql` dùng `ON CONFLICT DO NOTHING`; cấu trúc bảng nằm ở `db/migration`. `application.yaml` bật cả hai thư mục cho local; triển khai công khai bỏ `db/seed` khỏi `spring.flyway.locations`.
 
-**Cột dự kiến cho Sprint sau** (chưa tạo):
+**Cột dự kiến cho Sprint sau** (đã tạo hết ở V6–V9; giữ bảng để truy nguồn):
 | Bảng | Cột | Use case |
 |---|---|---|
 | `orders` | `paid_at`, `paid_by` | UC-08 Ghi nhận thanh toán (PB-16, làm thêm Sprint 1) |
 | `orders` | `picked_up_at`, `picked_up_by` | UC-09 Bàn giao (PB-15, làm thêm Sprint 1) |
-| `orders` | `cancelled_at`, `cancelled_by`, `cancel_reason`, `no_show_at`, `no_show_by` | UC-06, UC-10, UC-11 |
 | `orders` | `created_by` | UC-07 walk-in (nhân viên nhập đơn) |
 
 ## Công cụ

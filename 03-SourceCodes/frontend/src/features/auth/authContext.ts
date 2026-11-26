@@ -9,6 +9,12 @@ export type AuthState =
 export type AuthContextValue = AuthState & {
   /** Đăng nhập; ném ApiError nếu sai thông tin hoặc tài khoản bị khóa (UC-02 E1, E2). */
   signIn: (loginId: string, password: string) => Promise<CurrentUser>
+  /** Đăng ký tài khoản khách rồi đăng nhập luôn (UC-01); ném ApiError nếu định danh đã có hoặc dữ liệu sai. */
+  signUp: (input: {
+    loginId: string
+    displayName: string
+    password: string
+  }) => Promise<CurrentUser>
   /** Đăng xuất (UC-02 bước 7–8). */
   signOut: () => Promise<void>
 }

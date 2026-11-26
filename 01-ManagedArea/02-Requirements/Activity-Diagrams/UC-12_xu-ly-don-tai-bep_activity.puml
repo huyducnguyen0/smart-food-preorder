@@ -14,18 +14,22 @@ repeat
   else (có)
     :Chia nhóm (BR-21):
     - Đang làm: PREPARING
-    - Cần chuẩn bị: CONFIRMED, hiện tại ≥ giờ khung − 15 phút
+    - Cần chuẩn bị: CONFIRMED, đã tới giờ gợi ý
     - Sắp tới: CONFIRMED còn lại;
     :Sắp theo giờ bắt đầu khung, cùng khung theo thời điểm xác nhận (BR-22),
-    đánh dấu trễ nếu hiện tại ≥ giờ bắt đầu khung (BR-26) (bước 2);
+    đánh dấu trễ theo giờ bắt đầu khung (walk-in: giờ kết thúc khung) (BR-26);
   endif
   |Nhân viên bếp|
   switch (Thao tác?)
   case (Bắt đầu một đơn CONFIRMED)
     |Hệ thống|
     if (Đơn đang ở CONFIRMED?) then (có)
-      :Chuyển PREPARING, ghi thời điểm và người thực hiện,
-      đơn sang nhóm "Đang làm" (bước 5);
+      if (Đơn đặt trước còn quá sớm? (BR-39)) then (có)
+        :E5: giữ nguyên đơn, báo mốc được bắt đầu;
+      else (không)
+        :Chuyển PREPARING, ghi thời điểm và người thực hiện,
+        đơn sang nhóm "Đang làm" (bước 5);
+      endif
     else (không)
       :E1: không đổi đơn, báo trạng thái hiện tại,
       làm mới hàng chờ;

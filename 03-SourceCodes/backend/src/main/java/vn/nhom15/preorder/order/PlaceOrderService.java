@@ -1,6 +1,7 @@
 package vn.nhom15.preorder.order;
 
 import java.time.Clock;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -72,7 +73,7 @@ public class PlaceOrderService {
         }
 
         // 3. Giới hạn đơn chưa kết thúc (E5, BR-37).
-        int openOrders = orderRepository.countOpenOrders(customerId);
+        int openOrders = orderRepository.countOpenOrders(customerId, LocalDate.now(clock));
         if (openOrders >= properties.maxOpenOrdersPerCustomer()) {
             throw new ApiException(
                             ErrorCode.OPEN_ORDER_LIMIT_REACHED,
@@ -92,7 +93,7 @@ public class PlaceOrderService {
                 .map(line -> new QuotaLine(items.get(line.menuItemId()).workloadPoints(), line.quantity()))
                 .toList();
         QuotaReservation reservation = quotaService.reserve(
-                command.slotStart().toLocalDate(), command.slotStart().toLocalTime(), quotaLines);
+                command.slotStart().toLocalDate(), command.slotStart().toLocalTime(), quotaLines, false);
 
         List<NewOrder.NewOrderLine> orderLines = command.lines().stream()
                 .map(line -> {
@@ -112,13 +113,15 @@ public class PlaceOrderService {
                 newPickupCode(),
                 command.requestId(),
                 OffsetDateTime.now(clock),
-                orderLines));
+                orderLines,
+                null,
+                null));
 
         // 9. Đọc lại để trả đúng những gì đã lưu.
         return new PlaceOrderResult(loadDetail(orderId, customerId), true);
     }
 
-    private static void rejectDuplicateItems(List<RequestedLine> lines) {
+    static void rejectDuplicateItems(List<RequestedLine> lines) {
         Set<Long> seen = new HashSet<>();
         for (RequestedLine line : lines) {
             if (!seen.add(line.menuItemId())) {
@@ -128,7 +131,7 @@ public class PlaceOrderService {
     }
 
     /** Báo cùng lúc mọi món đã thay đổi để khách cập nhật giỏ một lần (E7). */
-    private static void checkItems(List<RequestedLine> lines, Map<Long, MenuItem> items) {
+    static void checkItems(List<RequestedLine> lines, Map<Long, MenuItem> items) {
         List<Map<String, Object>> changed = new ArrayList<>();
         for (RequestedLine line : lines) {
             MenuItem item = items.get(line.menuItemId());
@@ -167,6 +170,6 @@ public class PlaceOrderService {
         return orderRepository
                 .findDetail(orderId, customerId, properties.slotMinutes())
                 .orElseThrow(() -> new IllegalStateException("Không đọc lại được đơn vừa tạo: " + orderId))
-                .inZone(clock.getZone());
+                .inZone(clock.getZone(), properties.prepWindowMinutes());
     }
 }

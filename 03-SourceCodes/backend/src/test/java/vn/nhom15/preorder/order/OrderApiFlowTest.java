@@ -71,6 +71,10 @@ class OrderApiFlowTest {
     @BeforeEach
     void setUp() {
         jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
+        // Cấu hình tương đương mô hình quota Sprint 1 (làm trước 15 phút, đặt trước 100%, quầy không giới hạn), xem
+        // PB-22.
+        jdbc.update("UPDATE store_settings SET hold_minutes = 15, preorder_share_percent = 100,"
+                + " pickup_limit_orders = 1000");
         burgerId = jdbc.queryForObject("SELECT id FROM menu_items WHERE name = 'Burger bò'", Long.class);
         teaId = jdbc.queryForObject("SELECT id FROM menu_items WHERE name = 'Trà đào'", Long.class);
     }

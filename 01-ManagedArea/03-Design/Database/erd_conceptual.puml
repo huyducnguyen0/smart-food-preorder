@@ -2,7 +2,7 @@
 !include ../_style.iuml
 hide circle
 hide empty methods
-title ER Diagram (mức khái niệm) — Sprint 1
+title ER Diagram (mức khái niệm) — đến migration V10
 
 entity "Tài khoản\n(Account)" as Account {
   {field} định danh đăng nhập (email/SĐT)
@@ -47,6 +47,9 @@ entity "Đơn\n(Order)" as Order {
   {field} mã yêu cầu
   {field} thời điểm xác nhận
   {field} thời điểm bắt đầu, hoàn tất
+  {field} thời điểm thu tiền, bàn giao
+  {field} thời điểm và lý do hủy
+  {field} thời điểm đánh dấu không đến nhận
 }
 
 entity "Dòng đơn\n(OrderLine)" as Line {
@@ -62,6 +65,8 @@ Order ||--|{ Line : gồm
 Item ||--o{ Line : "được đặt trong"
 Account |o--o{ Order : "bắt đầu (bếp)"
 Account |o--o{ Order : "hoàn tất (bếp)"
+Account |o--o{ Order : "thu tiền, bàn giao,\nnhập walk-in (quầy)"
+Account |o--o{ Order : "hủy, đánh dấu\nkhông đến nhận"
 
 note right of Settings
   Chỉ có một bản ghi.

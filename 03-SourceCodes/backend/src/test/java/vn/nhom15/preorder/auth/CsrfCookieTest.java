@@ -37,6 +37,10 @@ class CsrfCookieTest {
     @MockitoBean
     private AuthService authService;
 
+    /** AuthController cần thêm dịch vụ đăng ký (UC-01); test này không dùng tới. */
+    @MockitoBean
+    private RegistrationService registrationService;
+
     private String issueToken() throws Exception {
         // Phản hồi 401 đầu tiên (chưa đăng nhập) vẫn phải cấp cookie, để trang đăng nhập có token gửi lại.
         MvcResult result = mockMvc.perform(get("/api/auth/me"))

@@ -5,10 +5,14 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.nhom15.preorder.config.OrderingProperties;
+import vn.nhom15.preorder.order.LateRule;
+import vn.nhom15.preorder.order.OrderSource;
 import vn.nhom15.preorder.order.OrderStatus;
+import vn.nhom15.preorder.slot.KitchenPlanService;
 
 /** UC-12.1 Xem hàng chờ bếp: chia ba nhóm, giữ thứ tự theo giờ khung rồi giờ xác nhận, đánh dấu đơn trễ. */
 @Service
@@ -24,11 +28,17 @@ public class KitchenService {
     private final KitchenQueueRepository repository;
     private final OrderingProperties properties;
     private final Clock clock;
+    private final KitchenPlanService kitchenPlanService;
 
-    public KitchenService(KitchenQueueRepository repository, OrderingProperties properties, Clock clock) {
+    public KitchenService(
+            KitchenQueueRepository repository,
+            OrderingProperties properties,
+            Clock clock,
+            KitchenPlanService kitchenPlanService) {
         this.repository = repository;
         this.properties = properties;
         this.clock = clock;
+        this.kitchenPlanService = kitchenPlanService;
     }
 
     @Transactional(readOnly = true)
@@ -39,10 +49,27 @@ public class KitchenService {
         List<KitchenOrder> preparing = new ArrayList<>();
         List<KitchenOrder> dueSoon = new ArrayList<>();
         List<KitchenOrder> upcoming = new ArrayList<>();
-        for (KitchenQueueRepository.ActiveOrder active :
-                repository.findActiveOrders(now.toLocalDate(), properties.slotMinutes())) {
-            KitchenOrder order = finish(active.order(), isLate(active.order().slotStart(), now));
-            switch (groupOf(active.status(), order.slotStart(), now, properties.prepWindowMinutes())) {
+        // PB-22: lịch bếp cho biết nên làm đơn nào lúc nào (làm sớm nhất có thể, trong giới hạn món còn ngon).
+        KitchenPlanService.Snapshot snapshot = kitchenPlanService.snapshot();
+        Map<Long, LocalDateTime> plannedStart = snapshot.current().firstIntervalByKey();
+        for (KitchenQueueRepository.ActiveOrder active : repository.findActiveOrders(
+                now.toLocalDate(), properties.slotMinutes(), properties.prepWindowMinutes())) {
+            KitchenOrder found = active.order();
+            LocalDateTime planned = plannedStart.get(found.id());
+            LocalDateTime prepareFrom =
+                    planned != null && planned.isBefore(found.prepareFrom()) ? planned : found.prepareFrom();
+            LocalDateTime startAllowedFrom = found.source() == OrderSource.PRE_ORDER
+                    ? snapshot.settings().earliestPreOrderStart(found.slotStart())
+                    : null;
+            if (startAllowedFrom != null && prepareFrom.isBefore(startAllowedFrom)) {
+                prepareFrom = startAllowedFrom;
+            }
+            KitchenOrder order = finish(
+                    found,
+                    LateRule.isLate(active.status(), found.source(), found.slotStart(), found.slotEnd(), now),
+                    prepareFrom,
+                    startAllowedFrom);
+            switch (groupOf(active.status(), prepareFrom, now)) {
                 case PREPARING -> preparing.add(order);
                 case DUE_SOON -> dueSoon.add(order);
                 case UPCOMING -> upcoming.add(order);
@@ -52,23 +79,20 @@ public class KitchenService {
     }
 
     /**
-     * Nhóm của một đơn: đang làm; hoặc đã xác nhận và đã tới {@code prepWindowMinutes} phút trước giờ bắt đầu khung
-     * (BR-21) thì cần chuẩn bị; còn lại là sắp tới.
+     * Nhóm của một đơn: đang làm; hoặc đã xác nhận và đã tới giờ nên làm thì cần chuẩn bị; còn lại là sắp tới (bếp vẫn
+     * làm trước được, BR-21). Giờ nên làm là giờ lịch bếp xếp, nhưng không muộn hơn {@code prepWindowMinutes} phút
+     * trước giờ bắt đầu khung.
      */
-    static Group groupOf(OrderStatus status, LocalDateTime slotStart, LocalDateTime now, int prepWindowMinutes) {
+    static Group groupOf(OrderStatus status, LocalDateTime prepareFrom, LocalDateTime now) {
         if (status == OrderStatus.PREPARING) {
             return Group.PREPARING;
         }
-        return now.isBefore(slotStart.minusMinutes(prepWindowMinutes)) ? Group.UPCOMING : Group.DUE_SOON;
-    }
-
-    /** Đã qua giờ bắt đầu khung (BR-26). Đúng giờ bắt đầu là đã trễ. */
-    static boolean isLate(LocalDateTime slotStart, LocalDateTime now) {
-        return !now.isBefore(slotStart);
+        return now.isBefore(prepareFrom) ? Group.UPCOMING : Group.DUE_SOON;
     }
 
     /** Đặt cờ trễ và viết thời điểm xác nhận theo múi giờ cửa hàng (database trả theo múi giờ của kết nối). */
-    private KitchenOrder finish(KitchenOrder order, boolean late) {
+    private KitchenOrder finish(
+            KitchenOrder order, boolean late, LocalDateTime prepareFrom, LocalDateTime startAllowedFrom) {
         return new KitchenOrder(
                 order.id(),
                 order.pickupCode(),
@@ -77,6 +101,8 @@ public class KitchenService {
                 order.source(),
                 order.confirmedAt().atZoneSameInstant(clock.getZone()).toOffsetDateTime(),
                 late,
+                prepareFrom,
+                startAllowedFrom,
                 order.lines());
     }
 }

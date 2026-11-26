@@ -14,9 +14,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import vn.nhom15.preorder.auth.AuthService;
 import vn.nhom15.preorder.common.ErrorCode;
 
 /**
@@ -33,7 +35,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthService authService) throws Exception {
         // Cookie XSRF-TOKEN đọc được bằng JavaScript; frontend gửi lại ở header X-XSRF-TOKEN cho mọi yêu cầu ghi.
         // Dùng handler không mã hóa (đủ cho SPA gửi nguyên giá trị cookie); CsrfCookieFilter bảo đảm cookie luôn được
         // ghi.
@@ -42,6 +44,8 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .csrfTokenRequestHandler(csrfHandler))
                 .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
+                // BR-32: tài khoản bị khóa mất quyền ngay, kể cả phiên đang mở.
+                .addFilterAfter(new LockedAccountFilter(authService), SecurityContextHolderFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable)
@@ -55,7 +59,7 @@ public class SecurityConfig {
                         // UC-02, UC-03: chưa đăng nhập vẫn xem được menu và đăng nhập (BR-34).
                         .requestMatchers(HttpMethod.GET, "/api/health", "/api/menu", "/api/menu/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login")
+                        .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/register")
                         .permitAll()
                         .requestMatchers("/api/auth/**")
                         .authenticated()
@@ -64,6 +68,12 @@ public class SecurityConfig {
                         .hasRole("CUSTOMER")
                         .requestMatchers("/api/kitchen/**")
                         .hasRole("KITCHEN")
+                        // Quản lý làm được thao tác của quầy (SRS B.2).
+                        .requestMatchers("/api/counter/**")
+                        .hasAnyRole("COUNTER", "MANAGER")
+                        // Quản lý món, giờ mở cửa và quota (UC-13, UC-14).
+                        .requestMatchers("/api/admin/**")
+                        .hasRole("MANAGER")
                         // Mặc định từ chối: đường dẫn mới phải được khai báo quyền ở đây.
                         .anyRequest()
                         .denyAll());
@@ -71,7 +81,7 @@ public class SecurityConfig {
     }
 
     /** Ghi lỗi dạng JSON cùng khuôn với {@code GlobalExceptionHandler} (Problem Details kèm trường code). */
-    private static void writeError(HttpServletResponse response, ErrorCode code, String detail) throws IOException {
+    static void writeError(HttpServletResponse response, ErrorCode code, String detail) throws IOException {
         response.setStatus(code.status().value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());

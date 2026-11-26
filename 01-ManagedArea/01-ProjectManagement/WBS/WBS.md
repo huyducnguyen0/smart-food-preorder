@@ -129,6 +129,26 @@ Không có gói full POS, inventory/batch, tối ưu bếp, delivery, marketplac
 
 Đã có khung repository và Charter với nội dung nghiệp vụ được duyệt; WBS hiện là bản phân rã ban đầu. Các dòng còn lại mô tả công việc cần làm, không chứng nhận đã thực hiện. Estimate, owner và task chi tiết sẽ được bổ sung khi đủ đầu vào; chưa coi WBS đã sẵn sàng giao tất cả gói triển khai ngay.
 
+## Tình trạng gói việc (cập nhật 2026-10-31)
+Ghi theo bằng chứng trong repository. "Xong" là đầu ra đã có và đã kiểm tra; chưa có nghĩa là đã được chấp nhận (Review còn là nháp).
+
+| Gói | Tình trạng | Đầu ra |
+|---|---|---|
+| 1.1–1.4 | Xong | Charter, WBS, Risk Register, repository, Git workflow |
+| 1.5 | Xong cho Sprint 1–3 | Sprint 1–3 Backlog |
+| 2.1–2.7 | Xong cho phạm vi đã làm | SRS, Product Backlog (21 story), Use Case Model, 18 đặc tả, Activity Diagram |
+| 3.1–3.2 | Một phần | Analysis Model Sprint 1; thêm sequence hủy đơn 2026-10-31 |
+| 3.3–3.6 | Xong | Architecture, ERD, Relational Schema, Class Design (cập nhật 2026-10-31) |
+| 3.7 | Một phần | Wireframe màn 01–07; màn 08–14 chỉ có giao diện thật; Navigation Flow vẽ lại 2026-10-31 |
+| 3.8 | Một phần | Prototype v2 được chấp thuận 2026-10-21; màn mới chưa đánh giá riêng |
+| 4.1–4.12 | Xong | Toàn bộ chức năng của Product Backlog |
+| 4.13 | Chưa xong | Các PR #22, #23, #25, #26, #27 và PR sửa sau review chưa merge; chưa có review độc lập |
+| 5.1–5.5 | Xong cho phạm vi đã làm | Black-box Sprint 1–3, white-box quota, Test Results theo lượt |
+| 6.1 | Nháp | Review Sprint 2, 3 chưa được duyệt; chưa có phản hồi của người khác |
+| 6.2 | Chưa | Đã có bản chạy bằng Docker; chưa Release vì chưa được chấp nhận |
+| 6.3 | Nháp | Retro Sprint 2, 3 |
+| 6.4 | Một phần | Phản hồi từ review của AI đã đưa vào sửa đổi 2026-10-31 |
+
 ## Output chuyển giao
 
 WBS này phục vụ estimation, planning, risk identification và task decomposition. Bước kế tiếp là lập Risk Register từ Charter và các nhóm công việc trên; sau đó thu thập/phân tích yêu cầu, Product Backlog và Sprint Planning theo nguồn. Khi yêu cầu hoặc scope thay đổi, cập nhật WBS thay vì giữ một bản phân rã không còn phản ánh dự án.

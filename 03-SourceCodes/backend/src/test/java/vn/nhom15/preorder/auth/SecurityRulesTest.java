@@ -34,6 +34,10 @@ class SecurityRulesTest {
     @MockitoBean
     private AuthService authService;
 
+    /** AuthController cần thêm dịch vụ đăng ký (UC-01); test này không dùng tới. */
+    @MockitoBean
+    private RegistrationService registrationService;
+
     private static RequestPostProcessor as(Role role) {
         return authentication(UsernamePasswordAuthenticationToken.authenticated(
                 new CurrentUser(1, "Thử", role), null, List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))));

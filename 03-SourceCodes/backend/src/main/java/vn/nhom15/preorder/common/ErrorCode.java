@@ -33,6 +33,28 @@ public enum ErrorCode {
     SLOT_FULL(HttpStatus.CONFLICT),
     /** Đơn không ở trạng thái cho phép chuyển (UC-12 E1, SRS B.5). */
     INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT),
+    /** Đơn đặt trước chưa vào cửa sổ làm của bếp (UC-12 E5, BR-39). */
+    PREPARATION_TOO_EARLY(HttpStatus.CONFLICT),
+    /** Đơn đã được ghi nhận thanh toán rồi (UC-08 E1, BR-27). */
+    ALREADY_PAID(HttpStatus.CONFLICT),
+    /** Đơn đã kết thúc hoặc bị hủy nên không ghi nhận thanh toán được (UC-08 E2). */
+    ORDER_NOT_PAYABLE(HttpStatus.CONFLICT),
+    /** Mã nhận quầy nhập không khớp với đơn (UC-09 E2, BR-29). */
+    PICKUP_CODE_MISMATCH(HttpStatus.CONFLICT),
+    /** Đơn chưa thanh toán nên chưa bàn giao được (UC-09 E3, BR-29). */
+    ORDER_NOT_PAID(HttpStatus.CONFLICT),
+    /** Email hoặc số điện thoại đã có tài khoản (UC-01 E1, BR-31). */
+    LOGIN_ID_TAKEN(HttpStatus.CONFLICT),
+    /** Quota mới thấp hơn điểm khung đang giữ (UC-14 E1, BR-11). */
+    QUOTA_BELOW_HELD(HttpStatus.CONFLICT),
+    /** Thu hẹp giờ mở cửa làm mất khung đang có đơn (UC-14 E2, BR-11). */
+    HOURS_CONFLICT_WITH_ORDERS(HttpStatus.CONFLICT),
+    /** Không còn khung nào hôm nay nhận được đơn walk-in này (UC-07 E1, BR-18). */
+    NO_SLOT_AVAILABLE(HttpStatus.CONFLICT),
+    /** Không được hủy đơn này: đã vào cửa sổ chuẩn bị (BR-23) hoặc vai trò không được hủy loại đơn này (BR-24). */
+    CANCEL_NOT_ALLOWED(HttpStatus.CONFLICT),
+    /** Đơn sẵn sàng chưa quá hạn nên chưa đánh dấu không đến nhận được (BR-25). */
+    NO_SHOW_TOO_EARLY(HttpStatus.CONFLICT),
     /** Lỗi hệ thống không lường trước; giao dịch đã hủy (UC-04 E10). */
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR);
 

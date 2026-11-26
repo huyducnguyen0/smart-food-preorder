@@ -9,6 +9,7 @@ control SlotAvailabilityControl as SA
 entity MenuItem as MI
 entity StoreSettings as SS
 entity TimeSlot as TS
+entity Order as O
 
 C -> UI : chọn "Chọn giờ nhận" (bước 5)
 note right of UI
@@ -19,18 +20,19 @@ UI -> SA : lấy khung(dòng giỏ: món, số lượng)
 activate SA
 SA -> MI : điểm công việc hiện tại của các món
 SA -> SA : điểm giỏ = Σ điểm × số lượng (BR-08)
-SA -> SS : giờ mở cửa, quota mặc định
+SA -> SS : giờ mở cửa và cấu hình lịch bếp
 SA -> SA : chia khung 15 phút hôm nay, giữ khung\nbắt đầu ≥ hiện tại + 30 phút (BR-06, BR-15)
-SA -> TS : quota riêng, điểm đang giữ của các khung đó
-SA -> SA : mỗi khung: "Đặt được" nếu điểm giỏ ≤\nquota khung − điểm đang giữ, ngược lại "Không đủ chỗ" (BR-36)
+SA -> TS : công suất riêng theo khoảng làm
+SA -> O : đơn còn phải làm và số đơn theo khung nhận
+SA -> SA : mỗi khung: "Đặt được" nếu còn chỗ ở quầy\nvà bếp xếp kịp (BR-36)
 SA --> UI : danh sách khung (giờ, tình trạng) + lý do nếu không chọn được
 deactivate SA
 
 alt không còn khung hợp lệ (E2)
   UI -> C : "Hôm nay không còn khung nhận", giỏ được giữ
-else không khung nào "Đặt được", điểm giỏ ≤ quota của ít nhất một khung (E3)
+else không khung nào "Đặt được", bếp trống có thể làm đơn ở ít nhất một khung (E3)
   UI -> C : báo hết chỗ trong ngày, gợi ý bớt món
-else điểm giỏ > quota của mọi khung (E4)
+else bếp trống cũng không làm kịp ở bất kỳ khung nào (E4)
   UI -> C : báo đơn quá lớn cho một khung, liên hệ cửa hàng (BR-12)
 else có khung "Đặt được"
   UI -> C : hiển thị khung; khung "Không đủ chỗ" không chọn được\n(không hiển thị con số quota, BR-36)

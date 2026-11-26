@@ -17,8 +17,9 @@ public class OrderRepository {
 
     private static final String INSERT_ORDER_SQL = """
             INSERT INTO orders (customer_id, source, time_slot_id, status, payment_status, workload_points,
-                                total_amount, pickup_code, request_id, confirmed_at)
-            VALUES (?, ?, ?, 'CONFIRMED', 'UNPAID', ?, ?, ?, ?, ?)
+                                total_amount, pickup_code, request_id, confirmed_at, created_by, payment_method,
+                                paid_at, paid_by)
+            VALUES (?, ?, ?, 'CONFIRMED', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
             """;
 
@@ -61,6 +62,124 @@ public class OrderRepository {
                                 """, at, staffId, orderId) > 0;
     }
 
+    /**
+     * Ghi nhận đã thanh toán: chỉ đơn chưa thanh toán và còn đang xử lý (chưa bàn giao, hủy hay vắng mặt). Một câu lệnh
+     * có điều kiện nên hai nhân viên cùng bấm chỉ một người thành công.
+     *
+     * @return true nếu vừa ghi nhận
+     */
+    public boolean markPaid(long orderId, PaymentMethod method, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders
+                                SET payment_status = 'PAID', payment_method = ?, paid_at = ?, paid_by = ?
+                                WHERE id = ? AND payment_status = 'UNPAID'
+                                  AND status IN ('CONFIRMED', 'PREPARING', 'READY')
+                                """, method.name(), at, staffId, orderId) > 0;
+    }
+
+    /**
+     * Bàn giao: chỉ đơn đang sẵn sàng, đã thanh toán và đúng mã nhận (BR-29), trong một câu lệnh có điều kiện nên một
+     * đơn không bao giờ bàn giao hai lần.
+     *
+     * @return true nếu vừa bàn giao
+     */
+    public boolean markPickedUp(long orderId, String pickupCode, long staffId, OffsetDateTime at) {
+        return jdbcTemplate.update("""
+                                UPDATE orders SET status = 'PICKED_UP', picked_up_at = ?, picked_up_by = ?
+                                WHERE id = ? AND status = 'READY' AND payment_status = 'PAID' AND pickup_code = ?
+                                """, at, staffId, orderId, pickupCode) > 0;
+    }
+
+    /** Trạng thái, thanh toán và mã nhận của đơn, để giải thích vì sao bàn giao bị từ chối. */
+    public Optional<HandoverState> findHandoverState(long orderId) {
+        return jdbcTemplate
+                .query(
+                        "SELECT status, payment_status, pickup_code FROM orders WHERE id = ?",
+                        (rs, rowNum) -> new HandoverState(
+                                OrderStatus.valueOf(rs.getString("status")),
+                                rs.getString("payment_status"),
+                                rs.getString("pickup_code")),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ảnh chụp những gì quyết định một lần bàn giao có được phép hay không. */
+    public record HandoverState(OrderStatus status, String paymentStatus, String pickupCode) {}
+
+    /** Trạng thái và tình trạng thanh toán hiện tại của đơn, rỗng nếu không có đơn. */
+    public Optional<PaymentState> findPaymentState(long orderId) {
+        return jdbcTemplate
+                .query(
+                        "SELECT status, payment_status FROM orders WHERE id = ?",
+                        (rs, rowNum) -> new PaymentState(
+                                OrderStatus.valueOf(rs.getString("status")), rs.getString("payment_status")),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ảnh chụp trạng thái đơn và tình trạng thanh toán, để giải thích vì sao một thao tác bị từ chối. */
+    public record PaymentState(OrderStatus status, String paymentStatus) {}
+
+    /** Ảnh chụp một đơn đang bị khóa để đổi trạng thái (hủy, không đến nhận). */
+    public record LockedOrder(
+            long id,
+            Long customerId,
+            OrderSource source,
+            OrderStatus status,
+            long timeSlotId,
+            int workloadPoints,
+            LocalDateTime slotStart,
+            boolean paid) {}
+
+    /**
+     * Khóa dòng đơn đến hết giao dịch và đọc những gì cần để quyết định hủy hay đánh dấu không đến nhận. Bếp đổi trạng
+     * thái cùng lúc phải chờ, rồi kiểm tra lại trạng thái mới nên không có hai thay đổi chồng nhau.
+     */
+    public Optional<LockedOrder> lockForChange(long orderId) {
+        return jdbcTemplate
+                .query(
+                        """
+                                SELECT o.id, o.customer_id, o.source, o.status, o.time_slot_id, o.workload_points,
+                                       s.slot_date, s.start_time, o.payment_status
+                                FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                                WHERE o.id = ?
+                                FOR UPDATE OF o
+                                """,
+                        (rs, rowNum) -> new LockedOrder(
+                                rs.getLong("id"),
+                                rs.getObject("customer_id", Long.class),
+                                OrderSource.valueOf(rs.getString("source")),
+                                OrderStatus.valueOf(rs.getString("status")),
+                                rs.getLong("time_slot_id"),
+                                rs.getInt("workload_points"),
+                                LocalDateTime.of(
+                                        rs.getObject("slot_date", LocalDate.class),
+                                        rs.getObject("start_time", LocalTime.class)),
+                                "PAID".equals(rs.getString("payment_status"))),
+                        orderId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Ghi hủy đơn đã khóa; {@code reason} null khi khách tự hủy. */
+    public void markCancelled(long orderId, long byUserId, String reason, OffsetDateTime at) {
+        jdbcTemplate.update("""
+                        UPDATE orders SET status = 'CANCELLED', cancelled_at = ?, cancelled_by = ?, cancel_reason = ?
+                        WHERE id = ?
+                        """, at, byUserId, reason, orderId);
+    }
+
+    /** Ghi đơn không đến nhận (đơn đã khóa). */
+    public void markNoShow(long orderId, long byUserId, OffsetDateTime at) {
+        jdbcTemplate.update(
+                "UPDATE orders SET status = 'NO_SHOW', no_show_at = ?, no_show_by = ? WHERE id = ?",
+                at,
+                byUserId,
+                orderId);
+    }
+
     /** Trạng thái hiện tại của đơn, rỗng nếu không có đơn. */
     public Optional<OrderStatus> findStatus(long orderId) {
         return jdbcTemplate.queryForList("SELECT status FROM orders WHERE id = ?", String.class, orderId).stream()
@@ -80,12 +199,16 @@ public class OrderRepository {
                 .findFirst();
     }
 
-    /** Số đơn chưa kết thúc của khách (BR-37): cùng tập trạng thái với {@link OrderStatus#isOpen()}. */
-    public int countOpenOrders(long customerId) {
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM orders WHERE customer_id = ? AND status IN ('CONFIRMED', 'PREPARING', 'READY')",
-                Integer.class,
-                customerId);
+    /**
+     * Số đơn chưa kết thúc của khách (BR-37) có khung từ {@code today} trở đi. Đơn của ngày đã qua mà chưa ai xử lý
+     * không chặn khách đặt đơn mới (quyết định 2026-10-31); cửa hàng dọn chúng ở mục "đơn tồn" của màn quầy.
+     */
+    public int countOpenOrders(long customerId, LocalDate today) {
+        Integer count = jdbcTemplate.queryForObject("""
+                        SELECT count(*) FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
+                        WHERE o.customer_id = ? AND o.status IN ('CONFIRMED', 'PREPARING', 'READY')
+                          AND s.slot_date >= ?
+                        """, Integer.class, customerId, today);
         return Objects.requireNonNull(count);
     }
 
@@ -102,11 +225,16 @@ public class OrderRepository {
                 order.customerId(),
                 order.source().name(),
                 order.timeSlotId(),
+                order.paidWith() == null ? "UNPAID" : "PAID",
                 order.workloadPoints(),
                 order.totalAmount(),
                 order.pickupCode(),
                 order.requestId(),
-                order.confirmedAt());
+                order.confirmedAt(),
+                order.createdBy(),
+                order.paidWith() == null ? null : order.paidWith().name(),
+                order.paidWith() == null ? null : order.confirmedAt(),
+                order.paidWith() == null ? null : order.createdBy());
         long orderId = Objects.requireNonNull(id);
         jdbcTemplate.batchUpdate(INSERT_LINE_SQL, order.lines(), order.lines().size(), (ps, line) -> {
             ps.setLong(1, orderId);
@@ -149,8 +277,26 @@ public class OrderRepository {
                 customerId);
     }
 
+    /** Đơn walk-in đã tạo cho mã yêu cầu này, nếu có (NFR-02 cho walk-in). */
+    public Optional<Long> findIdByWalkInRequest(UUID requestId) {
+        return jdbcTemplate
+                .queryForList(
+                        "SELECT id FROM orders WHERE source = 'WALK_IN' AND request_id = ?", Long.class, requestId)
+                .stream()
+                .findFirst();
+    }
+
+    /** Chi tiết một đơn bất kỳ theo mã, dùng cho nhân viên (đơn walk-in không có khách). */
+    public Optional<OrderDetail> findDetailById(long orderId, int slotMinutes) {
+        return findDetail(orderId, null, slotMinutes);
+    }
+
     /** Chi tiết đơn của một khách; đơn không tồn tại hoặc của khách khác thì rỗng. */
     public Optional<OrderDetail> findDetail(long orderId, long customerId, int slotMinutes) {
+        return findDetail(orderId, Long.valueOf(customerId), slotMinutes);
+    }
+
+    private Optional<OrderDetail> findDetail(long orderId, Long customerId, int slotMinutes) {
         List<OrderLineView> lines = jdbcTemplate.query(
                 """
                         SELECT menu_item_id, item_name, quantity, unit_price FROM order_lines
@@ -167,9 +313,9 @@ public class OrderRepository {
                 .query(
                         """
                                 SELECT o.id, o.pickup_code, s.slot_date, s.start_time, o.status, o.payment_status,
-                                       o.payment_method, o.total_amount, o.confirmed_at
+                                       o.payment_method, o.total_amount, o.confirmed_at, o.cancel_reason
                                 FROM orders o JOIN time_slots s ON s.id = o.time_slot_id
-                                WHERE o.id = ? AND o.customer_id = ?
+                                WHERE o.id = ? AND (CAST(? AS bigint) IS NULL OR o.customer_id = ?)
                                 """,
                         (rs, rowNum) -> {
                             LocalDateTime start = LocalDateTime.of(
@@ -185,9 +331,12 @@ public class OrderRepository {
                                     rs.getString("payment_method"),
                                     rs.getInt("total_amount"),
                                     rs.getObject("confirmed_at", OffsetDateTime.class),
-                                    lines);
+                                    lines,
+                                    rs.getString("cancel_reason"),
+                                    null);
                         },
                         orderId,
+                        customerId,
                         customerId)
                 .stream()
                 .findFirst();

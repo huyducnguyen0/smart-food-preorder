@@ -12,6 +12,7 @@ import org.springframework.validation.annotation.Validated;
  * @param minLeadMinutes phải đặt trước giờ bắt đầu khung ít nhất bấy nhiêu phút (BR-15)
  * @param prepWindowMinutes đơn vào nhóm "cần chuẩn bị" từ bấy nhiêu phút trước giờ bắt đầu khung (BR-21)
  * @param maxOpenOrdersPerCustomer số đơn chưa kết thúc tối đa của một khách (BR-37)
+ * @param noShowGraceMinutes đơn sẵn sàng quá giờ kết thúc khung bấy nhiêu phút thì được đánh dấu không đến nhận (BR-25)
  */
 @Validated
 @ConfigurationProperties(prefix = "app.ordering")
@@ -19,4 +20,5 @@ public record OrderingProperties(
         @Min(1) int slotMinutes,
         @Min(0) int minLeadMinutes,
         @Min(0) int prepWindowMinutes,
-        @Min(1) int maxOpenOrdersPerCustomer) {}
+        @Min(1) int maxOpenOrdersPerCustomer,
+        @Min(0) int noShowGraceMinutes) {}

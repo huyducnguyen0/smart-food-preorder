@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { messageOf } from '../../api/errorMessages'
-import { fetchMyOrders, type OrderSummary } from '../../api/orders'
+import { fetchMyOrders, isOpenStatus, type OrderSummary } from '../../api/orders'
 import { Alert } from '../../components/Alert'
 import { formatMoney } from '../../lib/format'
 import { dateOf, slotRange, STATUS_LABELS, STATUS_TONES } from '../../lib/orderLabels'
+import { usePolling } from '../../lib/usePolling'
+import { ORDER_POLL_MS } from './OrderDetailPage'
 
 type State =
   | { kind: 'loading' }
@@ -35,6 +37,19 @@ export function OrdersPage() {
     setState({ kind: 'loading' })
     setAttempt((value) => value + 1)
   }, [])
+
+  // PB-14: còn đơn chưa kết thúc thì tự làm mới ngầm mỗi 15 giây; lỗi tạm thời thì giữ danh sách đang hiện.
+  const hasOpen = state.kind === 'ready' && state.orders.some((order) => isOpenStatus(order.status))
+  usePolling(
+    () => {
+      fetchMyOrders().then(
+        (orders) => setState({ kind: 'ready', orders }),
+        () => undefined,
+      )
+    },
+    ORDER_POLL_MS,
+    hasOpen,
+  )
 
   return (
     <div className="content">

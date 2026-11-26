@@ -97,9 +97,19 @@ Hai sơ đồ cho UC-04.2, phần có nhiều quy tắc và rủi ro nhất củ
 - **Vì sao kiểm tra A1 trước tiên.** Lần gửi lại phải nhận đúng đơn cũ, kể cả khi lúc đó khách đã đủ 3 đơn (chính là đơn vừa tạo) hoặc khung đã hết chỗ (do chính đơn đó giữ). Kiểm tra A1 sau E5 hay E8 sẽ trả lỗi sai cho lần gửi lại.
 - **Vì sao "kiểm tra và giữ" phải không chen ngang.** Khung còn 10 điểm, hai khách cùng gửi đơn 8 điểm. Nếu cả hai cùng đọc "còn 10" rồi mới cộng, cả hai đều được xác nhận và khung bị giữ 16/10 điểm, vi phạm BR-09. Gộp kiểm tra và cộng thành một thao tác thì người tới sau thấy "còn 2" và nhận E8.
 - **Vì sao các yêu cầu của cùng một khách xử lý lần lượt.** Cùng lý do ở mức khách: hai lần gửi đồng thời cùng mã yêu cầu có thể cùng thấy "chưa có đơn" (vi phạm BR-17). Tương tự, hai đơn khác nhau gửi đồng thời khi khách đang có 2 đơn có thể cùng thấy "mới 2 đơn" (vi phạm BR-37).
-- **E8 và E9 khác nhau.** E9 (đơn lớn hơn quota của cả khung) thì đổi khung nào cũng không được, nên khách quay lại giỏ để bớt món. E8 (khung vừa bị người khác giữ) thì khách quay lại chọn khung khác.
+- E9 cho biết bếp trống cũng không làm kịp đơn trong cửa sổ của khung đã chọn. E8 cho biết lịch chung không còn xếp kịp hoặc quầy đã đủ đơn. Khung thay thế được kiểm riêng theo cấu hình và lịch của từng khoảng.
+
+### 4.3. Hủy đơn và hoàn quota (UC-06, UC-11; thêm 2026-10-31)
+![Sequence hủy đơn](sequence_UC-06-11_huy-don.svg)
+
+Điểm cần hiểu:
+- **Đổi trạng thái và hoàn điểm trong cùng một giao dịch.** Nếu hoàn điểm thất bại thì đơn cũng không bị hủy, nên điểm đang giữ của khung luôn bằng tổng điểm các đơn còn giữ quota.
+- **Khóa dòng đơn trước khi kiểm tra.** Khách bấm hủy hai lần, hay bếp bấm "Bắt đầu" đúng lúc khách hủy: bên đến sau phải chờ rồi đọc lại trạng thái mới, nên điểm chỉ hoàn một lần và không có đơn vừa "đang làm" vừa "đã hủy".
+- **Hủy từ "đang chuẩn bị" không hoàn điểm** vì bếp đã tốn công trong khung đó (BR-24).
 
 ## 5. Chuyển sang thiết kế
+
+> Từ Sprint 4 (PB-22), `QuotaControl` kiểm tra lịch bếp và chỗ ở quầy. Hai sơ đồ sequence UC-04 thể hiện cách kiểm tra này. Các lớp hiện thực `KitchenPlanner`, `KitchenPlanService` nằm ở Class Design mục 3.
 Các câu hỏi mô hình phân tích đặt ra, trả lời ở bước sau:
 | Câu hỏi | Trả lời ở |
 |---|---|

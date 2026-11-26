@@ -28,6 +28,11 @@ public class AuthService {
         this.dummyHash = passwordEncoder.encode("khong-co-tai-khoan-nay");
     }
 
+    /** Tài khoản của phiên đang mở đã bị khóa hoặc không còn tồn tại (BR-32); bộ lọc bảo mật gọi ở mỗi yêu cầu. */
+    public boolean isBlocked(long accountId) {
+        return accountRepository.isBlocked(accountId);
+    }
+
     /**
      * Xác thực định danh và mật khẩu.
      *

@@ -1,10 +1,16 @@
 import { Link, Navigate, Route, Routes } from 'react-router'
 import { AppShell } from '../components/AppShell'
+import { AdminDashboardPage, AdminHubPage } from '../features/admin/AdminDashboardPage'
+import { AdminMenuPage } from '../features/admin/AdminMenuPage'
+import { AdminSlotsPage } from '../features/admin/AdminSlotsPage'
+import { AdminStaffPage } from '../features/admin/AdminStaffPage'
 import { LoginPage } from '../features/auth/LoginPage'
+import { RegisterPage } from '../features/auth/RegisterPage'
 import { useAuth } from '../features/auth/useAuth'
 import { KitchenPage } from '../features/kitchen/KitchenPage'
 import { CartPage } from '../features/cart/CartPage'
 import { CheckoutPage } from '../features/checkout/CheckoutPage'
+import { CounterPage } from '../features/counter/CounterPage'
 import { MenuPage } from '../features/menu/MenuPage'
 import { OrderDetailPage } from '../features/orders/OrderDetailPage'
 import { OrdersPage } from '../features/orders/OrdersPage'
@@ -47,6 +53,47 @@ export function App() {
       <Route element={<AppShell />}>
         <Route index element={<Home />} />
         <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route
+          path="admin/menu"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminMenuPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/slots"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminSlotsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminDashboardPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/manage"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminHubPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/staff"
+          element={
+            <RequireRole roles={['MANAGER']}>
+              <AdminStaffPage />
+            </RequireRole>
+          }
+        />
         <Route path="forbidden" element={<ForbiddenPage />} />
         <Route
           path="cart"
@@ -77,6 +124,14 @@ export function App() {
           element={
             <RequireRole roles={['CUSTOMER']}>
               <OrderDetailPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="counter"
+          element={
+            <RequireRole roles={['COUNTER', 'MANAGER']}>
+              <CounterPage />
             </RequireRole>
           }
         />

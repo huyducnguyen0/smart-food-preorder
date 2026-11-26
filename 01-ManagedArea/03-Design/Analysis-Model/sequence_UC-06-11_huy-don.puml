@@ -1,0 +1,60 @@
+@startuml sequence_UC-06-11_huy-don
+!include ../_style.iuml
+title Sequence (phân tích) — UC-06 Khách hủy, UC-11 Cửa hàng hủy: đổi trạng thái và hoàn quota cùng nhau
+autonumber
+
+actor "Khách" as C
+actor "Quản lý / Quầy" as S
+boundary "Trang đơn / Màn quầy" as UI
+control CancellationControl as CC
+control QuotaControl as QC
+entity Order as O
+entity TimeSlot as TS
+
+note over CC, TS #FFFFFF
+  Mỗi lần hủy là **một giao dịch**: khóa dòng đơn, kiểm tra quy tắc,
+  đổi trạng thái, hoàn điểm. Bếp bấm "Bắt đầu" cùng lúc cũng khóa
+  dòng đơn trước, nên chỉ một bên thắng (đã kiểm bằng test đồng thời).
+end note
+
+== UC-06 Khách hủy ==
+C -> UI : "Hủy đơn" → "Xác nhận hủy"
+UI -> CC : hủy(đơn, khách)
+activate CC
+CC -> O : khóa dòng đơn, đọc chủ đơn, trạng thái,\nthanh toán, khung, điểm
+alt không phải đơn của khách (E3)
+  CC --> UI : không tìm thấy (như đơn không tồn tại)
+else không còn CONFIRMED (E2)
+  CC --> UI : trạng thái đã đổi
+else đã thanh toán (E5, BR-23 sửa đổi 2026-10-31)
+  CC --> UI : liên hệ cửa hàng để hủy và hoàn tiền
+else đã tới thời gian chuẩn bị (E1)
+  CC --> UI : quá hạn tự hủy, kèm mốc
+else hợp lệ
+  CC -> O : CANCELLED, người hủy, thời điểm
+  CC -> QC : hoàn điểm(khung, điểm đơn)
+  QC -> TS : điểm đang giữ −= điểm đơn\n(chỉ khi điểm đang giữ ≥ điểm đơn)
+  CC --> UI : đã hủy; chỗ trong khung được trả lại
+end
+deactivate CC
+
+== UC-11 Cửa hàng hủy ==
+S -> UI : "Hủy đơn" + lý do
+UI -> CC : hủy(đơn, nhân viên, vai trò, lý do)
+activate CC
+CC -> O : khóa dòng đơn
+alt quầy hủy đơn pre-order (E2)
+  CC --> UI : cần quản lý
+else trạng thái không cho hủy (E3: READY trở đi)
+  CC --> UI : trạng thái không hợp lệ
+else hợp lệ (BR-24)
+  CC -> O : CANCELLED, người hủy, thời điểm, lý do
+  opt hủy từ CONFIRMED
+    CC -> QC : hoàn điểm
+    QC -> TS : điểm đang giữ −= điểm đơn
+  end
+  note right of CC : hủy từ PREPARING: không hoàn\n(bếp đã làm)
+  CC --> UI : đã hủy; khách thấy lý do ở trang đơn
+end
+deactivate CC
+@enduml

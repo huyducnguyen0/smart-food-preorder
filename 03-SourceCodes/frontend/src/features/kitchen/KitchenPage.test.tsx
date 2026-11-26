@@ -21,6 +21,8 @@ function order(overrides: Partial<KitchenOrder>): KitchenOrder {
     source: 'PRE_ORDER',
     confirmedAt: '2031-03-05T10:52:31+07:00',
     late: false,
+    prepareFrom: '2031-03-05T11:15',
+    startAllowedFrom: '2031-03-05T10:45',
     lines: [{ name: 'Burger bò', quantity: 2 }],
     ...overrides,
   }
@@ -43,7 +45,14 @@ const queue: KitchenQueue = {
   ],
   dueSoon: [order({ id: 2, pickupCode: 'D3F7KA' })],
   upcoming: [
-    order({ id: 3, pickupCode: 'M2C8QA', slotStart: '2031-03-05T12:15', source: 'WALK_IN' }),
+    order({
+      id: 3,
+      pickupCode: 'M2C8QA',
+      slotStart: '2031-03-05T12:15',
+      prepareFrom: '2031-03-05T12:00',
+      source: 'WALK_IN',
+      startAllowedFrom: null,
+    }),
   ],
 }
 
@@ -78,6 +87,25 @@ describe('KitchenPage (UC-12.1)', () => {
     expect(
       within(screen.getByRole('region', { name: 'Cần chuẩn bị' })).queryByText('TRỄ'),
     ).toBeNull()
+  })
+
+  it('chặn Bắt đầu trước cửa sổ làm và mở nút đúng tại mốc (BR-39)', async () => {
+    const future = order({ id: 3, pickupCode: 'M2C8QA', startAllowedFrom: '2031-03-05T11:21' })
+    vi.mocked(kitchenApi.fetchKitchenQueue)
+      .mockResolvedValueOnce({ ...queue, upcoming: [future] })
+      .mockResolvedValueOnce({
+        ...queue,
+        serverTime: '2031-03-05T11:21:00+07:00',
+        upcoming: [future],
+      })
+    renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
+
+    const start = await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' })
+    expect(start).toBeDisabled()
+    expect(screen.getByText('Có thể bắt đầu từ 11:21')).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Tải lại' }))
+    await vi.waitFor(() => expect(start).toBeEnabled())
   })
 
   it('không hiện giá hay trạng thái thanh toán (UC-12 Ghi chú)', async () => {
@@ -161,9 +189,11 @@ describe('KitchenPage (UC-12.1)', () => {
       await vi.waitFor(() => expect(kitchenApi.fetchKitchenQueue).toHaveBeenCalledTimes(2))
     })
 
-    it('bếp được bắt đầu cả đơn sắp tới (BR-21)', async () => {
+    it('bếp được làm trước đơn sắp tới lúc vắng, có gợi ý giờ cần chuẩn bị (BR-21)', async () => {
       renderWithAuth(<KitchenPage />, { auth: { user: kitchen } })
 
+      const upcoming = await screen.findByRole('region', { name: 'Sắp tới' })
+      expect(within(upcoming).getByText(/Theo lịch bếp: làm từ 12:00/)).toBeInTheDocument()
       await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn M2C8QA' }))
 
       expect(kitchenApi.startOrder).toHaveBeenCalledWith(3)
@@ -211,11 +241,10 @@ describe('KitchenPage (UC-12.1)', () => {
 
       await userEvent.click(await screen.findByRole('button', { name: 'Bắt đầu đơn D3F7KA' }))
 
-      expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeDisabled()
       expect(screen.getByRole('button', { name: 'Hoàn tất đơn P4W9TD' })).toBeDisabled()
       await act(async () => finish())
       await vi.waitFor(() =>
-        expect(screen.getByRole('button', { name: 'Bắt đầu đơn M2C8QA' })).toBeEnabled(),
+        expect(screen.getByRole('button', { name: 'Hoàn tất đơn P4W9TD' })).toBeEnabled(),
       )
     })
   })

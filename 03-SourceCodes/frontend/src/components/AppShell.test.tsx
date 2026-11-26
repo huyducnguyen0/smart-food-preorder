@@ -11,6 +11,7 @@ import { AppShell } from './AppShell'
 const customer: CurrentUser = { id: 1, displayName: 'Khách Một', role: 'CUSTOMER' }
 const kitchen: CurrentUser = { id: 2, displayName: 'Bếp Một', role: 'KITCHEN' }
 const manager: CurrentUser = { id: 3, displayName: 'Quản Lý', role: 'MANAGER' }
+const counterStaff: CurrentUser = { id: 5, displayName: 'Quầy Một', role: 'COUNTER' }
 
 describe('AppShell', () => {
   it('khách vãng lai chỉ thấy Thực đơn và Đăng nhập', () => {
@@ -74,5 +75,15 @@ describe('AppShell', () => {
 
     expect(signOut).toHaveBeenCalledTimes(1)
     expect(await screen.findByText('TRANG MENU')).toBeInTheDocument()
+  })
+
+  it('nhân viên quầy dùng màn rộng với đầu trang "Quầy"; quản lý thấy thêm tab Quầy', () => {
+    const { unmount } = renderWithAuth(<AppShell />, { auth: { user: counterStaff } })
+    expect(screen.getByRole('heading', { name: 'Quầy' })).toBeInTheDocument()
+    expect(screen.queryByRole('navigation', { name: 'Điều hướng chính' })).not.toBeInTheDocument()
+    unmount()
+
+    renderWithAuth(<AppShell />, { auth: { user: manager } })
+    expect(screen.getByRole('navigation', { name: 'Điều hướng chính' })).toHaveTextContent('Quầy')
   })
 })

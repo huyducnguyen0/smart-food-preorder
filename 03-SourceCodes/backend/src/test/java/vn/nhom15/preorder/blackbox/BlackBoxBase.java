@@ -61,6 +61,9 @@ abstract class BlackBoxBase {
     @Autowired
     MutableClock clock;
 
+    @Autowired
+    vn.nhom15.preorder.slot.KitchenPlanService kitchenPlanService;
+
     /** Dùng để tiêm lỗi database cho TC-ORD-29 và TC-KIT-23; các test khác không đụng tới. */
     @MockitoSpyBean
     OrderRepository orderRepository;
@@ -94,27 +97,36 @@ abstract class BlackBoxBase {
         jdbc.execute("TRUNCATE order_lines, orders, time_slots RESTART IDENTITY CASCADE");
         jdbc.update("DELETE FROM user_accounts WHERE login_id LIKE 'bb-%'");
         jdbc.update("UPDATE user_accounts SET locked = (login_id = 'khoa@example.com')");
-        jdbc.update("UPDATE store_settings SET open_time = '10:00', close_time = '21:00', default_quota_points = 20");
+        // Cấu hình tương đương mô hình quota cũ (làm trước tối đa 15 phút, đặt trước 100%, quầy không giới hạn): đơn
+        // nhận lúc S chỉ làm trong 15 phút ngay trước S, nên các ca của Sprint 1–3 về "khung còn bao nhiêu" giữ nguyên
+        // ý nghĩa. Ca của lịch bếp (PB-22) tự đặt cấu hình thật bằng useSprint4Settings().
+        jdbc.update("UPDATE store_settings SET open_time = '10:00', close_time = '21:00', default_quota_points = 20,"
+                + " hold_minutes = 15, preorder_share_percent = 100, pickup_limit_orders = 1000");
         // Menu kiểm thử: giá, điểm, tình trạng theo bảng ở mục 2 của tài liệu test.
+        // Món mẫu có mã 1–8 theo thứ tự chèn của R__seed_menu.sql; test quản lý món có thể đổi tên hoặc thêm món.
         String[][] menu = {
-            {"Burger bò", "45000", "5", "false", "false"},
-            {"Burger phô mai đôi", "59000", "7", "false", "false"},
-            {"Burger gà giòn", "39000", "5", "true", "false"},
-            {"Gà rán 2 miếng", "55000", "6", "false", "false"},
-            {"Khoai tây chiên", "25000", "2", "false", "false"},
-            {"Trà đào", "20000", "0", "false", "false"},
-            {"Nước suối", "10000", "0", "false", "false"},
-            {"Combo cũ", "99000", "10", "false", "true"},
+            {"Burger", "Burger bò", "45000", "5", "false", "false"},
+            {"Burger", "Burger phô mai đôi", "59000", "7", "false", "false"},
+            {"Burger", "Burger gà giòn", "39000", "5", "true", "false"},
+            {"Gà rán", "Gà rán 2 miếng", "55000", "6", "false", "false"},
+            {"Gà rán", "Khoai tây chiên", "25000", "2", "false", "false"},
+            {"Đồ uống", "Trà đào", "20000", "0", "false", "false"},
+            {"Đồ uống", "Nước suối", "10000", "0", "false", "false"},
+            {"Burger", "Combo cũ", "99000", "10", "false", "true"},
         };
-        for (String[] row : menu) {
+        jdbc.update("DELETE FROM menu_items WHERE id > ?", menu.length);
+        for (int i = 0; i < menu.length; i++) {
+            String[] row = menu[i];
             jdbc.update(
-                    "UPDATE menu_items SET price = ?, workload_points = ?, available = ?, discontinued = ?"
-                            + " WHERE name = ?",
-                    Integer.parseInt(row[1]),
+                    "UPDATE menu_items SET category_id = (SELECT id FROM menu_categories WHERE name = ?), name = ?,"
+                            + " price = ?, workload_points = ?, available = ?, discontinued = ? WHERE id = ?",
+                    row[0],
+                    row[1],
                     Integer.parseInt(row[2]),
-                    !Boolean.parseBoolean(row[3]),
-                    Boolean.parseBoolean(row[4]),
-                    row[0]);
+                    Integer.parseInt(row[3]),
+                    !Boolean.parseBoolean(row[4]),
+                    Boolean.parseBoolean(row[5]),
+                    i + 1);
         }
         at("11:00");
     }
@@ -155,6 +167,17 @@ abstract class BlackBoxBase {
     /** POST kèm token chống CSRF; {@code json} có thể null. */
     Res post(String path, MockHttpSession session, String json) throws Exception {
         MockHttpServletRequestBuilder request = withCsrf(MockMvcRequestBuilders.post(path));
+        if (json != null) {
+            request.contentType(MediaType.APPLICATION_JSON).content(json);
+        }
+        return res(mockMvc.perform(session == null ? request : request.session(session))
+                .andReturn());
+    }
+
+    /** Gọi API với phương thức bất kỳ (ví dụ PUT) kèm token chống CSRF. */
+    Res send(String method, String path, MockHttpSession session, String json) throws Exception {
+        MockHttpServletRequestBuilder request =
+                withCsrf(MockMvcRequestBuilders.request(org.springframework.http.HttpMethod.valueOf(method), path));
         if (json != null) {
             request.contentType(MediaType.APPLICATION_JSON).content(json);
         }
@@ -227,7 +250,12 @@ abstract class BlackBoxBase {
     }
 
     long orderCount() {
-        return jdbc.queryForObject("SELECT count(*) FROM orders", Long.class);
+        // Đơn của khách giả (dựng điều kiện "khung đã giữ n điểm") không tính.
+        return jdbc.queryForObject(
+                "SELECT count(*) FROM orders o LEFT JOIN user_accounts u ON u.id = o.customer_id"
+                        + " WHERE u.login_id IS DISTINCT FROM ?",
+                Long.class,
+                PHANTOM);
     }
 
     /** Điểm đang giữ của khung {@code hhmm}; 0 nếu khung chưa có dòng. */
@@ -240,24 +268,97 @@ abstract class BlackBoxBase {
         return rows.isEmpty() ? 0 : rows.getFirst();
     }
 
-    /** Dựng điều kiện trước "khung đã giữ n điểm" mà API chưa cho làm trực tiếp. */
-    void setHeld(String hhmm, int points) {
+    /** Cấu hình mặc định của lịch bếp (PB-22): làm trước tối đa 45 phút, đặt trước 70%, quầy 8 đơn mỗi khung. */
+    void useSprint4Settings() {
         jdbc.update(
-                "INSERT INTO time_slots (slot_date, start_time, held_points) VALUES (?, ?, ?)"
-                        + " ON CONFLICT (slot_date, start_time) DO UPDATE SET held_points = EXCLUDED.held_points",
-                BlackBoxClockConfig.TODAY,
-                LocalTime.parse(hhmm),
-                points);
+                "UPDATE store_settings SET hold_minutes = 45, preorder_share_percent = 70, pickup_limit_orders = 8");
     }
 
-    /** Dựng điều kiện trước "quản lý đã đặt quota riêng cho khung". */
-    void setQuotaOverride(String hhmm, int quota) {
+    static final String PHANTOM = "bb-phantom@example.com";
+
+    /**
+     * Dựng điều kiện trước "khung nhận {@code hhmm} đã giữ n điểm": thêm một đơn đặt trước thật (của khách giả
+     * {@link #PHANTOM}, không tính trong {@link #orderCount()}) cho phần điểm còn thiếu, để lịch bếp thấy đúng lượng
+     * việc.
+     */
+    void setHeld(String hhmm, int points) {
+        LocalTime start = LocalTime.parse(hhmm);
         jdbc.update(
-                "INSERT INTO time_slots (slot_date, start_time, quota_override) VALUES (?, ?, ?)"
-                        + " ON CONFLICT (slot_date, start_time) DO UPDATE SET quota_override = EXCLUDED.quota_override",
+                "INSERT INTO time_slots (slot_date, start_time) VALUES (?, ?)"
+                        + " ON CONFLICT (slot_date, start_time) DO NOTHING",
                 BlackBoxClockConfig.TODAY,
-                LocalTime.parse(hhmm),
-                quota);
+                start);
+        long slotId = jdbc.queryForObject(
+                "SELECT id FROM time_slots WHERE slot_date = ? AND start_time = ?",
+                Long.class,
+                BlackBoxClockConfig.TODAY,
+                start);
+        int real = jdbc.queryForObject(
+                "SELECT COALESCE(sum(workload_points), 0) FROM orders WHERE time_slot_id = ?"
+                        + " AND NOT (status = 'CANCELLED' AND preparing_at IS NULL)",
+                Integer.class,
+                slotId);
+        int missing = points - real;
+        if (missing > 0) {
+            jdbc.update(
+                    "INSERT INTO orders (customer_id, source, time_slot_id, status, payment_status, workload_points,"
+                            + " total_amount, pickup_code, request_id, confirmed_at)"
+                            + " VALUES (?, 'PRE_ORDER', ?, 'CONFIRMED', 'UNPAID', ?, 0, ?, ?, now())",
+                    phantomCustomer(),
+                    slotId,
+                    missing,
+                    phantomCode(),
+                    UUID.randomUUID());
+        }
+        jdbc.update("UPDATE time_slots SET held_points = ? WHERE id = ?", Math.max(points, real), slotId);
+    }
+
+    private long phantomCustomer() {
+        List<Long> ids = jdbc.queryForList("SELECT id FROM user_accounts WHERE login_id = ?", Long.class, PHANTOM);
+        if (!ids.isEmpty()) {
+            return ids.getFirst();
+        }
+        return jdbc.queryForObject(
+                "INSERT INTO user_accounts (login_id, password_hash, display_name, role) VALUES (?, 'x', 'Khách giả',"
+                        + " 'CUSTOMER') RETURNING id",
+                Long.class,
+                PHANTOM);
+    }
+
+    private static final String CODE_CHARS = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    private final java.util.Random codeRandom = new java.util.Random();
+
+    private String phantomCode() {
+        while (true) {
+            StringBuilder code = new StringBuilder();
+            for (int i = 0; i < 6; i++) {
+                code.append(CODE_CHARS.charAt(codeRandom.nextInt(CODE_CHARS.length())));
+            }
+            Boolean taken = jdbc.queryForObject(
+                    "SELECT EXISTS (SELECT 1 FROM orders WHERE pickup_code = ?)", Boolean.class, code.toString());
+            if (!Boolean.TRUE.equals(taken)) {
+                return code.toString();
+            }
+        }
+    }
+
+    /** Dựng điều kiện trước "khung nhận {@code hhmm} có quota riêng q": khoảng làm ngay trước khung có công suất q. */
+    void setQuotaOverride(String hhmm, int quota) {
+        upsertSlot(LocalTime.parse(hhmm).minusMinutes(15), "quota_override", quota);
+    }
+
+    /** Công suất bếp riêng của khoảng làm bắt đầu lúc {@code hhmm} (PB-22). */
+    void setCapacity(String hhmm, int capacity) {
+        upsertSlot(LocalTime.parse(hhmm), "quota_override", capacity);
+    }
+
+    private void upsertSlot(LocalTime start, String column, int value) {
+        jdbc.update(
+                "INSERT INTO time_slots (slot_date, start_time, " + column + ") VALUES (?, ?, ?)"
+                        + " ON CONFLICT (slot_date, start_time) DO UPDATE SET " + column + " = EXCLUDED." + column,
+                BlackBoxClockConfig.TODAY,
+                start,
+                value);
     }
 
     void setStatus(long orderId, String status) {
@@ -314,26 +415,37 @@ abstract class BlackBoxBase {
 
     /**
      * Bất biến của Database Design mục 3 (TC-CON-07): với mọi khung, điểm đang giữ bằng tổng điểm các đơn đang giữ
-     * quota của khung. Ở Sprint 1 chưa có hủy đơn nên mọi đơn đều giữ quota.
+     * quota của khung. Đơn hủy từ {@code CONFIRMED} (chưa từng bắt đầu làm) đã được hoàn điểm nên không tính (BR-23,
+     * BR-24); mọi đơn khác vẫn giữ điểm.
      */
     void assertHeldMatchesOrders() {
-        List<String> mismatches = jdbc.queryForList("""
-                        SELECT s.start_time || ' held=' || s.held_points || ' orders='
-                               || COALESCE((SELECT sum(o.workload_points) FROM orders o WHERE o.time_slot_id = s.id), 0)
+        List<String> mismatches = new ArrayList<>();
+        jdbc.query("""
+                        SELECT s.start_time, s.held_points,
+                               COALESCE((SELECT sum(o.workload_points) FROM orders o WHERE o.time_slot_id = s.id
+                                         AND NOT (o.status = 'CANCELLED' AND o.preparing_at IS NULL)), 0) AS orders
                         FROM time_slots s
-                        WHERE s.held_points <> COALESCE((SELECT sum(o.workload_points) FROM orders o
-                                                         WHERE o.time_slot_id = s.id), 0)
-                        """, String.class);
+                        """, rs -> {
+            LocalTime start = rs.getObject("start_time", LocalTime.class);
+            int expected = rs.getInt("orders");
+            if (rs.getInt("held_points") != expected) {
+                mismatches.add(start + " held=" + rs.getInt("held_points") + " orders=" + expected);
+            }
+        });
         if (!mismatches.isEmpty()) {
             throw new AssertionError("held_points khác tổng điểm đơn: " + mismatches);
         }
-        Integer overQuota = jdbc.queryForObject("""
-                        SELECT count(*) FROM time_slots s
-                        WHERE s.held_points >
-                              COALESCE(s.quota_override, (SELECT default_quota_points FROM store_settings))
-                        """, Integer.class);
-        if (overQuota != null && overQuota > 0) {
-            throw new AssertionError("Có " + overQuota + " khung giữ quá quota");
+        assertKitchenPlanWithinCapacity();
+    }
+
+    /**
+     * Bất biến của lịch bếp (PB-22, NFR-01): với các đơn còn phải làm, bếp xếp được lịch mà không khoảng làm nào vượt
+     * công suất. Tính lại độc lập từ database bằng chính bộ xếp lịch.
+     */
+    void assertKitchenPlanWithinCapacity() {
+        vn.nhom15.preorder.slot.KitchenPlanService.Snapshot plan = kitchenPlanService.snapshot();
+        if (!plan.acceptedOrdersStillFit()) {
+            throw new AssertionError("Lịch bếp không còn xếp kịp các đơn đã nhận");
         }
     }
 
